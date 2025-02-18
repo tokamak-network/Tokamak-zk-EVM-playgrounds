@@ -3,7 +3,7 @@ import Image from 'next/image';
 const Stars = () => {
   return (
     <Image
-      src="/src/assets/Stars.svg"
+      src="/assets/Stars.svg"
       alt=""
       width={1920}
       height={1080}
