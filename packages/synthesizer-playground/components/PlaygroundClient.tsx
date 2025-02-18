@@ -83,7 +83,7 @@ export default function PlaygroundClient() {
         STORAGE_IN_PLACEMENT_INDEX,
         RETURN_PLACEMENT_INDEX,
         STORAGE_OUT_PLACEMENT_INDEX,
-      } = await import('../../frontend/synthesizer/src/tokamak/constant/constants');
+      } = await import('../constants/constants');
       
       const storageLoadPlacement = placementsMap.get(STORAGE_IN_PLACEMENT_INDEX);
       const logsPlacement = placementsMap.get(RETURN_PLACEMENT_INDEX);

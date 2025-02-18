@@ -3,7 +3,7 @@ import Image from 'next/image';
 const RainbowImage = () => {
   return (
     <Image
-      src="/src/assets/rainbow.svg"
+      src="/assets/rainbow.svg"
       alt=""
       width={1920}
       height={1080}
