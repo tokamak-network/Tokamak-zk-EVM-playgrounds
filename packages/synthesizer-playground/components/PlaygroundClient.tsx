@@ -35,6 +35,7 @@ export default function HomePage() {
     try {
       setIsProcessing(true);
       setStatus('Processing transaction on the server...');
+      console.log('Starting transaction processing:', txId);
 
       // Clear old data
       setStorageLoad([]);
@@ -43,29 +44,86 @@ export default function HomePage() {
       setServerData(null);
 
       // Call the separate Express server
+      console.log('Making request to:', `${API_URL}/api/parseTransaction`);
       const response = await fetch(`${API_URL}/api/parseTransaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ txId }),
       });
+      
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
         throw new Error(`Server returned status ${response.status}`);
       }
+      
       const json = await response.json();
+      console.log('Server response:', json);
+      
       if (!json.ok) {
         throw new Error(json.error || 'Unknown server error.');
       }
 
       // Extract data from server response
       const { to, logs, storageLoad, storageStore, permutation, placementInstance } = json.data;
+      
+      console.log('Processing storageLoad:', storageLoad);
+      console.log('Processing logs:', logs);
+      console.log('Processing storageStore:', storageStore);
 
-      setEvmContractAddress(to);
-      setPlacementLogs(logs || []);
-      setStorageLoad(storageLoad || []);
-      setStorageStore(storageStore || []);
+      // Transform logs data
+      const transformedLogs = logs?.map((log: any) => {
+        const topics = Array.isArray(log.topics) ? log.topics : [];
+        return {
+          topics: topics.map((topic: string) => topic.startsWith('0x') ? topic : `0x${topic}`),
+          valueDec: log.value?.toString() || log.valueDec?.toString() || '0',
+          valueHex: log.valueHex?.startsWith('0x') ? log.valueHex : `0x${log.valueHex || '0'}`
+        };
+      }) || [];
+
+      // Transform storage load data
+      const transformedStorageLoad = storageLoad?.map((item: any) => {
+        const contractAddr = item.contractAddress || to || '';
+        const key = typeof item.key === 'string' ? item.key : (item.key?.toString() || '');
+        const value = item.value?.toString() || '0';
+        const valueHex = item.valueHex || '';
+        
+        return {
+          contractAddress: contractAddr.startsWith('0x') ? contractAddr : `0x${contractAddr}`,
+          key: key.startsWith('0x') ? key : `0x${key}`,
+          valueDecimal: value,
+          valueHex: valueHex.startsWith('0x') ? valueHex : `0x${valueHex}`
+        };
+      }) || [];
+
+      // Transform storage store data
+      const transformedStorageStore = storageStore?.map((item: any) => {
+        const isArray = Array.isArray(item);
+        const contractAddr = isArray ? (item[0] || to) : (item.contractAddress || to);
+        const key = isArray ? item[1] : item.key;
+        const value = isArray ? item[2] : item.value;
+        const valueHex = isArray ? item[3] : item.valueHex;
+
+        return {
+          contractAddress: contractAddr.startsWith('0x') ? contractAddr : `0x${contractAddr}`,
+          key: typeof key === 'string' && key.startsWith('0x') ? key : `0x${key || ''}`,
+          value: value?.toString() || '0',
+          valueHex: valueHex?.startsWith('0x') ? valueHex : `0x${valueHex || '0'}`
+        };
+      }) || [];
+
+      console.log('Transformed storageLoad:', transformedStorageLoad);
+      console.log('Transformed logs:', transformedLogs);
+      console.log('Transformed storageStore:', transformedStorageStore);
+
+      // Set the transformed data to state
+      setEvmContractAddress(to ? (to.startsWith('0x') ? to : `0x${to}`) : '');
+      setPlacementLogs(transformedLogs);
+      setStorageLoad(transformedStorageLoad);
+      setStorageStore(transformedStorageStore);
       setServerData({
-        permutation: JSON.stringify(permutation),
-        placementInstance: JSON.stringify(placementInstance),
+        permutation: permutation ? JSON.stringify(permutation) : null,
+        placementInstance: placementInstance ? JSON.stringify(placementInstance) : null,
       });
 
       setStatus(null);
@@ -90,8 +148,7 @@ export default function HomePage() {
 
   const handleSubmit = () => {
     if (isProcessing) return;
-    sessionStorage.setItem('pendingTransactionId', transactionId);
-    window.location.reload();
+    processTransaction(transactionId);
   };
 
   // Optional file download logic
@@ -128,20 +185,31 @@ export default function HomePage() {
         )}
         {isProcessing ? (
           <CustomLoading />
-        ) : status && status.startsWith('Error') ? (
-          <CustomErrorTab errorMessage={status.replace('Error: ', '')} />
-        ) : null}
-        {serverData && (
-          <ResultDisplay
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            storageLoad={storageLoad}
-            placementLogs={placementLogs}
-            storageStore={storageStore}
-            evmContractAddress={evmContractAddress}
-            handleDownload={handleDownload}
-            serverData={serverData}
-          />
+        ) : (
+          <div>
+            {status && status.startsWith('Error') && (
+              <CustomErrorTab errorMessage={status.replace('Error: ', '')} />
+            )}
+            
+            {/* Show results if we have any data */}
+            {(storageLoad.length > 0 || 
+              storageStore.length > 0 || 
+              placementLogs.length > 0 || 
+              evmContractAddress || 
+              serverData?.permutation || 
+              serverData?.placementInstance) && (
+              <ResultDisplay
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                storageLoad={storageLoad}
+                storageStore={storageStore}
+                placementLogs={placementLogs}
+                evmContractAddress={evmContractAddress}
+                handleDownload={handleDownload}
+                serverData={serverData}
+              />
+            )}
+          </div>
         )}
       </div>
     </>

@@ -1,5 +1,5 @@
 import PlaygroundClient from '@/components/PlaygroundClient';
 
 export default function Home() {
-  return <PlaygroundClient synthesizerInitialized={true} />;
+  return <PlaygroundClient />;
 }
