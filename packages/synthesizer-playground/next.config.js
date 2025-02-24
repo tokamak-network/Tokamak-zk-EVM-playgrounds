@@ -1,61 +1,84 @@
 const path = require('path');
+const CopyPlugin = require('copy-webpack-plugin');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    // Enable WASM
     config.experiments = {
       asyncWebAssembly: true,
       layers: true,
+      topLevelAwait: true,
     };
 
-    // Handle internal synthesizer imports
+    // Add fallbacks for Node.js modules in the browser
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: require.resolve('crypto-browserify'),
+        stream: require.resolve('stream-browserify'),
+        buffer: require.resolve('buffer/'),
+        events: require.resolve('eventemitter3'),
+      };
+    }
+
+    // Update module resolution
+    config.resolve.modules = [
+      'node_modules',
+      path.join(__dirname, 'node_modules'),
+      path.join(__dirname, '..', '..', 'node_modules'),
+      path.join(__dirname, '..', 'frontend', 'synthesizer', 'src'),
+      path.join(__dirname, 'src'),
+    ];
+
+    // Add aliases
     config.resolve.alias = {
       ...config.resolve.alias,
-      // External package aliases
-      '@ethereumjs/common': path.resolve(__dirname, '../frontend/synthesizer/libs/common/dist/esm'),
-      '@ethereumjs/statemanager': path.resolve(__dirname, '../frontend/synthesizer/libs/statemanager/dist/esm'),
-      '@ethereumjs/util': path.resolve(__dirname, '../frontend/synthesizer/libs/util/dist/esm'),
-      '@ethereumjs/mpt': path.resolve(__dirname, '../frontend/synthesizer/libs/mpt/dist/esm'),
-      '@ethereumjs/verkle': path.resolve(__dirname, '../frontend/synthesizer/libs/verkle/dist/esm'),
-      '@frontend': path.resolve(__dirname, '../frontend'),
-      '@synthesizer': path.resolve(__dirname, '../frontend/synthesizer'),
-
-      // Handle internal .js imports
-      './index.js': path.resolve(__dirname, '../frontend/synthesizer/src/index.ts'),
-      './types.js': path.resolve(__dirname, '../frontend/synthesizer/src/types.ts'),
-      './precompiles/index.js': path.resolve(__dirname, '../frontend/synthesizer/src/precompiles/index.ts'),
+      '@ethereumjs/common': path.join(__dirname, '..', 'frontend', 'synthesizer', 'libs', 'common', 'dist', 'esm'),
+      '@ethereumjs/statemanager': path.join(__dirname, '..', 'frontend', 'synthesizer', 'libs', 'statemanager', 'dist', 'esm'),
+      '@ethereumjs/util': path.join(__dirname, '..', 'frontend', 'synthesizer', 'libs', 'util', 'dist', 'esm'),
+      '@ethereumjs/mpt': path.join(__dirname, '..', 'frontend', 'synthesizer', 'libs', 'mpt', 'dist', 'esm'),
+      '@ethereumjs/verkle': path.join(__dirname, '..', 'frontend', 'synthesizer', 'libs', 'verkle', 'dist', 'esm'),
+      '@frontend': path.join(__dirname, '..', 'frontend'),
+      '@synthesizer': path.join(__dirname, '..', 'frontend', 'synthesizer'),
     };
 
-    // Handle .js extensions
+    // Handle extensions
     config.resolve.extensionAlias = {
       '.js': ['.ts', '.js'],
       '.mjs': ['.mts', '.mjs'],
     };
 
-    // Add module resolution rules
-    config.resolve.modules = [
-      'node_modules',
-      path.resolve(__dirname, '../frontend/synthesizer/src'),
-      path.resolve(__dirname, 'src'),
-    ];
-
-    // Handle WASM files
-    config.module.rules.push({
-      test: /\.wasm$/,
-      type: 'asset/resource',
-      generator: {
-        filename: 'static/wasm/[hash][ext][query]'
+    // Add rules for different file types
+    config.module.rules.push(
+      {
+        test: /\.wasm$/,
+        type: 'asset/resource',
+      },
+      {
+        test: /tsconfig\.json$/,
+        loader: 'ignore-loader',
+      },
+      {
+        test: /\.m?js$/,
+        type: 'javascript/auto',
+        resolve: {
+          fullySpecified: false,
+        },
       }
-    });
-
-    // Ignore tsconfig parsing
-    config.module.rules.push({
-      test: /tsconfig\.json$/,
-      loader: 'ignore-loader'
-    });
+    );
 
     return config;
   },
+  transpilePackages: [
+    '@synthesizer-libs/common',
+    '@tokamak-zk-evm/synthesizer',
+    'eventemitter3',
+    'verkle-cryptography-wasm',
+    '@ethereumjs/util'
+  ],
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;

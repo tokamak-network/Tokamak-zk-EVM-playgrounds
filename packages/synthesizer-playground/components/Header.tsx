@@ -8,21 +8,23 @@ type HeaderProps = {
 const Header = ({ logo, onLogoClick }: HeaderProps) => {
   return (
     <div>
-      <div className="fixed top-10 left-10 w-[334px] h-[29.1px]">
+      <div className="fixed top-10 left-10">
         <Image
-          src="/assets/logo.svg"
+          src={logo}
           alt="Synthesizer Logo"
           width={334}
           height={29}
-          className="cursor-pointer transition-all duration-200 ease-in-out hover:opacity-80"
+          className="cursor-pointer transition-opacity duration-200 hover:opacity-80"
           onClick={onLogoClick}
+          priority
         />
       </div>
+      
       <div className="absolute z-10 top-[280px] left-1/2 -translate-x-1/2 w-[736px]">
-        <h1 className="text-[96px] leading-[60px] -mt-[60px] text-yellow-400 font-jersey drop-shadow-[0_1px_0_#a17510,0_2px_0_#a17510]">
+        <h1 className="text-[96px] leading-[60px] -mt-[60px] text-yellow-400 font-jersey shadow-title">
           Synthesizer
         </h1>
-        <h2 className="text-[96px] leading-[60px] m-0 text-white font-jersey drop-shadow-[0_1px_0_#a17510,0_2px_0_#a17510]">
+        <h2 className="text-[96px] leading-[60px] m-0 text-white font-jersey shadow-title">
           Developer Playground
         </h2>
       </div>
@@ -30,4 +32,4 @@ const Header = ({ logo, onLogoClick }: HeaderProps) => {
   );
 };
 
-export default Header; 
+export default Header;
