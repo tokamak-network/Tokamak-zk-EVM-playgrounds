@@ -22,7 +22,10 @@ const LogCard = ({
           <strong className="block mb-1 text-sm font-ibm-mono text-[#222] font-medium">
             Contract Address:
           </strong>
-          <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono" title={contractAddress}>
+          <span 
+            className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono" 
+            title={contractAddress}
+          >
             {summarizeAddress ? summarizeHex(contractAddress) : contractAddress}
           </span>
         </div>
@@ -32,7 +35,10 @@ const LogCard = ({
           <strong className="block mb-1 text-sm font-ibm-mono text-[#222] font-medium">
             Key:
           </strong>
-          <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono" title={keyValue}>
+          <span 
+            className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono" 
+            title={keyValue}
+          >
             {summarizeHex(keyValue)}
           </span>
         </div>
@@ -49,7 +55,10 @@ const LogCard = ({
         <strong className="block mb-1 text-sm font-ibm-mono text-[#222] font-medium">
           Value (Hex):
         </strong>
-        <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono" title={valueHex}>
+        <span 
+          className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono" 
+          title={valueHex}
+        >
           {valueHex}
         </span>
       </div>
