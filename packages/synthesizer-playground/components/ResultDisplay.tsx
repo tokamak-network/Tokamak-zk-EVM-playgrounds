@@ -30,7 +30,7 @@ const ResultDisplay = ({
 
   const renderActiveTab = () => {
     if (activeTab === 'storageLoad') {
-      return storageLoad.length ? (
+      return storageLoad && storageLoad.length > 0 ? (
         storageLoad.map((item, index) => (
           <div key={index} className="relative mt-[30px] bg-white border border-[#5f5f5f] p-[15px] text-black font-tahoma text-xs">
             <div className="absolute -top-[25px] -left-[1px] font-ibm-mono bg-white tracking-[0.15px] text-[#3b48ff] text-left font-medium text-xs p-1 px-2 border-t border-l border-r border-[#5f5f5f] rounded-t">
@@ -39,43 +39,43 @@ const ResultDisplay = ({
             <LogCard
               contractAddress={item.contractAddress || evmContractAddress}
               keyValue={add0xPrefix(item.key)}
-              valueDecimal={item.valueDecimal}
+              valueDecimal={item.valueDecimal || '0'}
               valueHex={add0xPrefix(item.valueHex)}
             />
           </div>
         ))
       ) : (
-        <p>No storage load data.</p>
+        <p className="text-gray-600 mt-4">No storage load data available.</p>
       );
     } else if (activeTab === 'logs') {
-      return placementLogs.length ? (
+      return placementLogs && placementLogs.length > 0 ? (
         placementLogs.map((log, index) => (
           <div key={index} className="relative mt-[30px] bg-white border border-[#5f5f5f] p-[15px] text-black font-tahoma text-xs">
             <div className="absolute -top-[25px] -left-[1px] font-ibm-mono bg-white tracking-[0.15px] text-[#3b48ff] text-left font-medium text-xs p-1 px-2 border-t border-l border-r border-[#5f5f5f] rounded-t">
-              Data #{index + 1}
+              Log #{index + 1}
             </div>
-            <div className="relative text-black font-tahoma text-xs">
+            <div>
+              {log.topics && log.topics.length > 0 && (
+                <div className="mb-3 text-left">
+                  <strong className="block mb-1 text-sm font-ibm-mono text-[#222] font-medium">Topics:</strong>
+                  {log.topics.map((topic: string, topicIndex: number) => (
+                    <div key={topicIndex} className="mb-1">
+                      <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono">
+                        {add0xPrefix(topic)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="mb-3 text-left">
-                <strong className="block mb-1 text-sm font-ibm-mono text-[#222] font-medium">Topics:</strong>
-                {log.topics.map((topic: string, idx: number) => (
-                  <span
-                    key={idx}
-                    title={add0xPrefix(topic)}
-                    className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono"
-                  >
-                    {`${idx}: ${add0xPrefix(summarizeHex(topic))}`}
-                  </span>
-                ))}
-              </div>
-              <div className="mb-3 text-left">
-                <strong className="block mb-1 text-sm font-ibm-mono text-[#222] font-medium">Value (Decimal):</strong>
+                <strong className="block mb-1 text-sm font-ibm-mono text-[#222] font-medium">Value (Dec):</strong>
                 <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono">
-                  {log.valueDec.toString()}
+                  {log.valueDec || '0'}
                 </span>
               </div>
               <div className="mb-3 text-left">
                 <strong className="block mb-1 text-sm font-ibm-mono text-[#222] font-medium">Value (Hex):</strong>
-                <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono" title={add0xPrefix(log.valueHex)}>
+                <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono">
                   {add0xPrefix(log.valueHex)}
                 </span>
               </div>
@@ -83,72 +83,63 @@ const ResultDisplay = ({
           </div>
         ))
       ) : (
-        <p>No logs data.</p>
+        <p className="text-gray-600 mt-4">No logs data available.</p>
       );
     } else if (activeTab === 'storageStore') {
-      return storageStore.length ? (
-        storageStore.map((item, index) => {
-          const contractAddress = Array.isArray(item)
-            ? item[0] || evmContractAddress
-            : item.contractAddress || evmContractAddress;
-          const key = Array.isArray(item) ? item[1] : item.key;
-          const valueDecimal = item.value !== undefined ? item.value.toString() : '0';
-          const valueHex = item.valueHex || '0x0';
-
-          return (
-            <div key={index} className="relative mt-[30px] bg-white border border-[#5f5f5f] p-[15px] text-black font-tahoma text-xs">
-              <div className="absolute -top-[25px] -left-[1px] font-ibm-mono bg-white tracking-[0.15px] text-[#3b48ff] text-left font-medium text-xs p-1 px-2 border-t border-l border-r border-[#5f5f5f] rounded-t">
-                Data #{index + 1}
-              </div>
-              <LogCard
-                contractAddress={contractAddress}
-                keyValue={add0xPrefix(key)}
-                valueDecimal={valueDecimal}
-                valueHex={add0xPrefix(valueHex)}
-                summarizeAddress={true}
-              />
+      return storageStore && storageStore.length > 0 ? (
+        storageStore.map((item, index) => (
+          <div key={index} className="relative mt-[30px] bg-white border border-[#5f5f5f] p-[15px] text-black font-tahoma text-xs">
+            <div className="absolute -top-[25px] -left-[1px] font-ibm-mono bg-white tracking-[0.15px] text-[#3b48ff] text-left font-medium text-xs p-1 px-2 border-t border-l border-r border-[#5f5f5f] rounded-t">
+              Data #{index + 1}
             </div>
-          );
-        })
+            <LogCard
+              contractAddress={item.contractAddress || evmContractAddress}
+              keyValue={add0xPrefix(item.key)}
+              valueDecimal={item.value || '0'}
+              valueHex={add0xPrefix(item.valueHex)}
+              summarizeAddress={true}
+            />
+          </div>
+        ))
       ) : (
-        <p>No storage store data.</p>
+        <p className="text-gray-600 mt-4">No storage store data available.</p>
       );
     }
     return null;
   };
 
   return (
-    <div className="absolute w-[728px] h-auto overflow-visible flex flex-col left-1/2 -translate-x-1/2 top-[512px] flex-grow-0 pb-[150px]">
+    <div className="w-full flex flex-col">
       <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
-      <ScrollBar>
-        {renderActiveTab()}
-      </ScrollBar>
-      {serverData && (
-        <div className="w-[710px] h-[31px] flex justify-start gap-2 p-2 pt-[3px] bg-[#bdbdbd] font-ibm-mono">
-          {serverData.permutation && (
-            <button
-              onClick={() => handleDownload(serverData.permutation, 'permutation.json')}
-              onMouseEnter={() => setPermutationHovered(true)}
-              onMouseLeave={() => setPermutationHovered(false)}
-              className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
-                ${permutationHovered ? 'bg-[#6600b3]' : 'bg-[#55008A]'}`}
-            >
-              Download Permutation
-            </button>
-          )}
-          {serverData.placementInstance && (
-            <button
-              onClick={() => handleDownload(serverData.placementInstance, 'placementInstance.json')}
-              onMouseEnter={() => setPlacementHovered(true)}
-              onMouseLeave={() => setPlacementHovered(false)}
-              className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
-                ${placementHovered ? 'bg-[#008080]' : 'bg-[#008A4C]'}`}
-            >
-              Download Placement Instance
-            </button>
+      <div className="bg-white border border-[#5f5f5f] p-4 min-h-[200px]">
+        <div className="flex flex-col gap-4">
+          {renderActiveTab()}
+          {serverData && (
+            <div className="mt-4 flex gap-4">
+              {serverData.permutation && (
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                  onMouseEnter={() => setPermutationHovered(true)}
+                  onMouseLeave={() => setPermutationHovered(false)}
+                  onClick={() => handleDownload(serverData.permutation, 'permutation.json')}
+                >
+                  Download Permutation
+                </button>
+              )}
+              {serverData.placementInstance && (
+                <button
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+                  onMouseEnter={() => setPlacementHovered(true)}
+                  onMouseLeave={() => setPlacementHovered(false)}
+                  onClick={() => handleDownload(serverData.placementInstance, 'placement_instance.json')}
+                >
+                  Download Placement Instance
+                </button>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
