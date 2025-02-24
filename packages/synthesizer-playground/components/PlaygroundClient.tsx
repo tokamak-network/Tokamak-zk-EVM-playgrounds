@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Buffer } from 'buffer';
 
 import Header from '@/components/Header';
@@ -10,102 +10,101 @@ import CustomLoading from '@/components/CustomLoading';
 import CustomErrorTab from '@/components/CustomErrorTab';
 import Stars from '@/components/Stars';
 import RainbowImage from '@/components/RainbowImage';
-import TokenForm from './TokenForm';
 
-// Polyfill Buffer for browser
-if (typeof window !== 'undefined') {
-  window.Buffer = window.Buffer || Buffer;
-}
+// Determine the external API URL from env variable or fallback to localhost
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
 
-interface PlaygroundClientProps {
-  synthesizerInitialized: boolean;
-  initError?: string;
-}
-
-export default function PlaygroundClient({ synthesizerInitialized, initError }: PlaygroundClientProps) {
-  const [transactionHash, setTransactionHash] = useState('');
+export default function HomePage() {
+  const [transactionId, setTransactionId] = useState('');
   const [status, setStatus] = useState<string | null>(null);
-  const [result, setResult] = useState<{
-    from: string;
-    to: string;
-    logs: Array<{ topics: string[]; valueDec: string; valueHex: string }>;
-    storageLoad: any[];
-    storageStore: any[];
-    permutation: string;
-    placementInstance: string;
-  } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(initError || null);
 
-  // Optional token check state
-  const [tokenData, setTokenData] = useState<any>(null);
+  // Data returned from the server
+  const [storageLoad, setStorageLoad] = useState<any[]>([]);
+  const [placementLogs, setPlacementLogs] = useState<any[]>([]);
+  const [storageStore, setStorageStore] = useState<any[]>([]);
+  const [evmContractAddress, setEvmContractAddress] = useState<string>('');
+  const [serverData, setServerData] = useState<{
+    permutation: string | null;
+    placementInstance: string | null;
+  } | null>(null);
 
-  // Handle transaction synthesis
-  const handleSynthesize = async () => {
-    setIsProcessing(true);
-    setStatus('Processing transaction on server...');
-    setResult(null);
-    setError(null);
+  const [activeTab, setActiveTab] = useState('storageLoad');
 
+  const processTransaction = async (txId: string) => {
     try {
-      const response = await fetch('/api/synthesize', {
+      setIsProcessing(true);
+      setStatus('Processing transaction on the server...');
+
+      // Clear old data
+      setStorageLoad([]);
+      setPlacementLogs([]);
+      setStorageStore([]);
+      setServerData(null);
+
+      // Call the separate Express server
+      const response = await fetch(`${API_URL}/api/parseTransaction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transactionHash }),
+        body: JSON.stringify({ txId }),
       });
-
-      const data = await response.json();
-      if (!data.ok) {
-        throw new Error(data.error || 'Unknown error from server');
+      if (!response.ok) {
+        throw new Error(`Server returned status ${response.status}`);
+      }
+      const json = await response.json();
+      if (!json.ok) {
+        throw new Error(json.error || 'Unknown server error.');
       }
 
-      // Update result to match the full API response from route.ts
-      setResult({
-        from: data.data.from,
-        to: data.data.to,
-        logs: data.data.logs,
-        storageLoad: data.data.storageLoad,
-        storageStore: data.data.storageStore,
-        permutation: data.data.permutation,
-        placementInstance: data.data.placementInstance,
+      // Extract data from server response
+      const { to, logs, storageLoad, storageStore, permutation, placementInstance } = json.data;
+
+      setEvmContractAddress(to);
+      setPlacementLogs(logs || []);
+      setStorageLoad(storageLoad || []);
+      setStorageStore(storageStore || []);
+      setServerData({
+        permutation: JSON.stringify(permutation),
+        placementInstance: JSON.stringify(placementInstance),
       });
+
       setStatus(null);
-    } catch (err: any) {
-      setError(err instanceof Error ? err.message : String(err));
-      setStatus(null);
+      sessionStorage.removeItem('pendingTransactionId');
+    } catch (error: any) {
+      console.error('Error:', error);
+      setStatus(`Error: ${error.message}`);
+      sessionStorage.removeItem('pendingTransactionId');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Handle token check
-  const handleTokenCheck = async (address: string) => {
-    try {
-      const response = await fetch('/api/token-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address }),
-      });
-      const data = await response.json();
-      if (!data.ok) {
-        throw new Error(data.error || 'Unknown error during token check');
-      }
-      setTokenData(data.tokenData);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setTokenData(null);
+  // Reload pending transaction if user refreshes
+  useEffect(() => {
+    const pendingTxId = sessionStorage.getItem('pendingTransactionId');
+    if (pendingTxId) {
+      setTransactionId(pendingTxId);
+      processTransaction(pendingTxId);
     }
+  }, []);
+
+  const handleSubmit = () => {
+    if (isProcessing) return;
+    sessionStorage.setItem('pendingTransactionId', transactionId);
+    window.location.reload();
   };
 
-  // Show error if synthesizer failed to initialize
-  if (!synthesizerInitialized) {
-    return (
-      <div className="text-red-500">
-        Failed to initialize synthesizer: {initError}
-      </div>
-    );
-  }
+  // Optional file download logic
+  const handleDownload = (fileContent: string | null, fileName: string) => {
+    if (!fileContent) return;
+    const blob = new Blob([fileContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <>
@@ -115,25 +114,16 @@ export default function PlaygroundClient({ synthesizerInitialized, initError }: 
       </div>
       <div className="container mx-auto p-4">
         <Header logo="/assets/logo.svg" onLogoClick={() => window.location.reload()} />
-        {/* TransactionForm now only collects the transaction hash */}
         <TransactionForm
-          transactionHash={transactionHash}
-          setTransactionHash={setTransactionHash}
-          handleSubmit={handleSynthesize}
+          transactionHash={transactionId}
+          setTransactionHash={setTransactionId}
+          handleSubmit={handleSubmit}
           isProcessing={isProcessing}
           error={status?.startsWith('Error')}
         />
-        <TokenForm onSubmit={handleTokenCheck} isProcessing={isProcessing} />
-        {error && (
+        {status?.startsWith('Error') && (
           <div className="p-4 mt-4 bg-red-800 rounded-lg text-white">
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
-        {tokenData && (
-          <div className="p-4 mt-4 bg-gray-800 rounded-lg text-white">
-            <h3 className="text-lg font-bold mb-2">Token Data</h3>
-            <p>Address: {tokenData.tokenAddress}</p>
-            <p>Balance: {tokenData.balance}</p>
+            <p className="text-sm">{status}</p>
           </div>
         )}
         {isProcessing ? (
@@ -141,16 +131,16 @@ export default function PlaygroundClient({ synthesizerInitialized, initError }: 
         ) : status && status.startsWith('Error') ? (
           <CustomErrorTab errorMessage={status.replace('Error: ', '')} />
         ) : null}
-        {result && (
+        {serverData && (
           <ResultDisplay
-            activeTab="result"
-            setActiveTab={() => {}}
-            storageLoad={result.storageLoad}
-            placementLogs={result.logs}  // Updated to use logs from the API
-            storageStore={result.storageStore}
-            evmContractAddress={result.to}  // Using 'to' as the contract address
-            handleDownload={() => {}}
-            serverData={result}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            storageLoad={storageLoad}
+            placementLogs={placementLogs}
+            storageStore={storageStore}
+            evmContractAddress={evmContractAddress}
+            handleDownload={handleDownload}
+            serverData={serverData}
           />
         )}
       </div>

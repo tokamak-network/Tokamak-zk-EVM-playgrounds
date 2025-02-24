@@ -3,15 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
+    "server": "tsx server/index.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@tokamak-zk-evm/synthesizer": "^0.0.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
     "axios": "^1.7.9",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "ethereum-cryptography": "^3.1.0",
+    "express": "^4.21.2",
+    "i": "^0.3.7",
     "next": "15.1.7",
+    "npm": "^10.9.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -20,12 +30,14 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "copy-webpack-plugin": "^12.0.2",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "ignore-loader": "^0.1.2",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
