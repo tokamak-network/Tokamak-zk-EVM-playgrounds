@@ -45,7 +45,7 @@ const ResultDisplay = ({
           </div>
         ))
       ) : (
-        <p className="text-gray-600 mt-4">No storage load data available.</p>
+        <p className="text-[#4A4A4A] mt-4 font-ibm-mono">No storage load data available.</p>
       );
     } else if (activeTab === 'logs') {
       return placementLogs && placementLogs.length > 0 ? (
@@ -83,7 +83,7 @@ const ResultDisplay = ({
           </div>
         ))
       ) : (
-        <p className="text-gray-600 mt-4">No logs data available.</p>
+        <p className="text-[#4A4A4A] mt-4 font-ibm-mono">No logs data available.</p>
       );
     } else if (activeTab === 'storageStore') {
       return storageStore && storageStore.length > 0 ? (
@@ -102,44 +102,44 @@ const ResultDisplay = ({
           </div>
         ))
       ) : (
-        <p className="text-gray-600 mt-4">No storage store data available.</p>
+        <p className="text-[#4A4A4A] mt-4 font-ibm-mono">No storage store data available.</p>
       );
     }
     return null;
   };
 
   return (
-    <div className="w-full flex flex-col">
+    <div className="absolute w-[728px] h-auto overflow-visible flex flex-col left-1/2 -translate-x-1/2 top-[512px] flex-grow-0 pb-[150px]">
       <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="bg-white border border-[#5f5f5f] p-4 min-h-[200px]">
-        <div className="flex flex-col gap-4">
-          {renderActiveTab()}
-          {serverData && (
-            <div className="mt-4 flex gap-4">
-              {serverData.permutation && (
-                <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-                  onMouseEnter={() => setPermutationHovered(true)}
-                  onMouseLeave={() => setPermutationHovered(false)}
-                  onClick={() => handleDownload(serverData.permutation, 'permutation.json')}
-                >
-                  Download Permutation
-                </button>
-              )}
-              {serverData.placementInstance && (
-                <button
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
-                  onMouseEnter={() => setPlacementHovered(true)}
-                  onMouseLeave={() => setPlacementHovered(false)}
-                  onClick={() => handleDownload(serverData.placementInstance, 'placement_instance.json')}
-                >
-                  Download Placement Instance
-                </button>
-              )}
-            </div>
+      <ScrollBar>
+        {renderActiveTab()}
+      </ScrollBar>
+      {serverData && (
+        <div className="w-[710px] h-[31px] flex justify-start gap-2 p-2 pt-[3px] bg-[#bdbdbd] font-ibm-mono">
+          {serverData.permutation && (
+            <button
+              onClick={() => handleDownload(serverData.permutation, 'permutation.json')}
+              onMouseEnter={() => setPermutationHovered(true)}
+              onMouseLeave={() => setPermutationHovered(false)}
+              className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
+                ${permutationHovered ? 'bg-[#6600b3]' : 'bg-[#55008A]'}`}
+            >
+              Download Permutation
+            </button>
+          )}
+          {serverData.placementInstance && (
+            <button
+              onClick={() => handleDownload(serverData.placementInstance, 'placement_instance.json')}
+              onMouseEnter={() => setPlacementHovered(true)}
+              onMouseLeave={() => setPlacementHovered(false)}
+              className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
+                ${placementHovered ? 'bg-[#008080]' : 'bg-[#008A4C]'}`}
+            >
+              Download Placement Instance
+            </button>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };
