@@ -55,7 +55,8 @@ export default function HomePage() {
       console.log('Response status:', response.status);
       
       if (!response.ok) {
-        throw new Error(`Server returned status ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Server returned status ${response.status}`);
       }
       
       const json = await response.json();
