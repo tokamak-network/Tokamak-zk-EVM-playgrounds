@@ -196,22 +196,22 @@ export default function HomePage() {
           <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
           <div>
-            {status && status.startsWith('Error') && (
+            {status && status.startsWith('Error') ? (
               <CustomErrorTab errorMessage={status.replace('Error: ', '')} />
-            )}
-            
-            {/* Show results if we have any data */}
-            {shouldShowResults && (
-              <ResultDisplay
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                storageLoad={storageLoad}
-                storageStore={storageStore}
-                placementLogs={placementLogs}
-                evmContractAddress={evmContractAddress}
-                handleDownload={handleDownload}
-                serverData={serverData}
-              />
+            ) : (
+              /* Show results if we have any data */
+              shouldShowResults && (
+                <ResultDisplay
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  storageLoad={storageLoad}
+                  storageStore={storageStore}
+                  placementLogs={placementLogs}
+                  evmContractAddress={evmContractAddress}
+                  handleDownload={handleDownload}
+                  serverData={serverData}
+                />
+              )
             )}
           </div>
         )}
