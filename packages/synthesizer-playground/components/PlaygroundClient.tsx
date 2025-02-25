@@ -18,6 +18,7 @@ export default function HomePage() {
   const [transactionId, setTransactionId] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [hasProcessedOnce, setHasProcessedOnce] = useState(false);
 
   // Data returned from the server
   const [storageLoad, setStorageLoad] = useState<any[]>([]);
@@ -125,6 +126,7 @@ export default function HomePage() {
         permutation: permutation ? JSON.stringify(permutation) : null,
         placementInstance: placementInstance ? JSON.stringify(placementInstance) : null,
       });
+      setHasProcessedOnce(true);
 
       setStatus(null);
       sessionStorage.removeItem('pendingTransactionId');
@@ -163,6 +165,8 @@ export default function HomePage() {
     URL.revokeObjectURL(url);
   };
 
+  const shouldShowResults = hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0);
+
   return (
     <>
       <div className="background-container">
@@ -173,7 +177,7 @@ export default function HomePage() {
         <Header 
           logo="/assets/logo.svg" 
           onLogoClick={() => window.location.reload()} 
-          isResultsShown={!!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0)}
+          isResultsShown={shouldShowResults}
         />
         <TransactionForm
           transactionHash={transactionId}
@@ -181,7 +185,7 @@ export default function HomePage() {
           handleSubmit={handleSubmit}
           isProcessing={isProcessing}
           error={status?.startsWith('Error')}
-          isResultsShown={!!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0)}
+          isResultsShown={shouldShowResults}
         />
         {status?.startsWith('Error') && (
           <div className="p-4 mt-4 bg-red-800 rounded-lg text-white">
@@ -189,7 +193,7 @@ export default function HomePage() {
           </div>
         )}
         {isProcessing ? (
-          <CustomLoading />
+          <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
           <div>
             {status && status.startsWith('Error') && (
@@ -197,12 +201,7 @@ export default function HomePage() {
             )}
             
             {/* Show results if we have any data */}
-            {(storageLoad.length > 0 || 
-              storageStore.length > 0 || 
-              placementLogs.length > 0 || 
-              evmContractAddress || 
-              serverData?.permutation || 
-              serverData?.placementInstance) && (
+            {shouldShowResults && (
               <ResultDisplay
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
