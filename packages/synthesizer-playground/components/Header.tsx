@@ -21,10 +21,21 @@ const Header = ({ logo, onLogoClick }: HeaderProps) => {
       </div>
       
       <div className="absolute z-[2] top-[280px] left-1/2 -translate-x-1/2 w-[736px]">
-        <h1 className="text-[96px] leading-[60px] -mt-[60px] text-yellow-400 font-jersey m-0" style={{ textShadow: '0 1px 0 #a17510, 0 2px 0 #a17510' }}>
+        <h1 
+          className="text-[96px] leading-[96px] -mt-[60px] font-jersey font-normal m-0 break-words" 
+          style={{ 
+            color: '#FAFE00',
+            textShadow: '0px 2px 0px rgba(161, 117, 16, 1.00)'
+          }}
+        >
           Synthesizer
         </h1>
-        <h2 className="text-[96px] leading-[60px] m-0 text-white font-jersey" style={{ textShadow: '0 1px 0 #a17510, 0 2px 0 #a17510' }}>
+        <h2 
+          className="text-[96px] leading-[96px] text-white font-jersey font-normal m-0 break-words" 
+          style={{ 
+            textShadow: '0px 2px 0px rgba(161, 117, 16, 1.00)'
+          }}
+        >
           Developer Playground
         </h2>
       </div>
