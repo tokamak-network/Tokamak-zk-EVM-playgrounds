@@ -5,6 +5,7 @@ interface CustomInputProps {
   onChange?: (value: string) => void;
   disabled?: boolean;
   error?: boolean;
+  onBlur?: () => void;
 }
 
 const CustomInput = ({
@@ -12,8 +13,14 @@ const CustomInput = ({
   onChange = () => {},
   disabled = false,
   error = false,
+  onBlur,
 }: CustomInputProps) => {
   const [active, setActive] = useState(false);
+
+  const handleBlur = () => {
+    setActive(false);
+    onBlur?.();
+  };
 
   return (
     <div className="w-[552px] h-[59px] flex-col justify-center items-start inline-flex">
@@ -31,7 +38,7 @@ const CustomInput = ({
             placeholder="Enter transaction ID"
             disabled={disabled}
             onFocus={() => setActive(true)}
-            onBlur={() => setActive(false)}
+            onBlur={handleBlur}
           />
         </div>
         <div className="w-px self-stretch bg-[#5f5f5f]" />

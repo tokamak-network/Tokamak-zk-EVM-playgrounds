@@ -109,7 +109,7 @@ const ResultDisplay = ({
   };
 
   return (
-    <div className="absolute w-[728px] h-auto overflow-visible flex flex-col left-1/2 -translate-x-1/2 top-[512px] flex-grow-0 pb-[150px]">
+    <div className="w-[728px] h-[714px] absolute left-1/2 -translate-x-1/2 top-[228px]">
       <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
       <ScrollBar>
         {renderActiveTab()}
