@@ -27,27 +27,13 @@ const TransactionForm = ({
     return `${hash.slice(0, 35)}...`;
   };
 
-  const handleStartEditing = () => {
-    setIsEditing(true);
-    setTransactionHash('');
-  };
-
-  const handleProcessClick = () => {
-    // Clear all session storage data
-    sessionStorage.clear();
-    // Set the new transaction ID
-    sessionStorage.setItem('pendingTransactionId', transactionHash);
-    // Force a clean reload of the page
-    window.location.href = window.location.pathname;
-  };
-
   return (
     <div className={`absolute left-1/2 -translate-x-1/2 ${isResultsShown ? 'top-[156px] h-[40px]' : 'top-[424px]'} flex items-center gap-4 transition-all duration-300`}>
       {isResultsShown ? (
         <div className="h-10 justify-start items-center gap-4 inline-flex">
           <div 
             className="w-[400px] h-10 flex-col justify-center items-start inline-flex overflow-hidden cursor-text"
-            onClick={handleStartEditing}
+            onClick={() => setIsEditing(true)}
           >
             <div className="self-stretch h-px bg-[#a8a8a8]" />
             <div className="self-stretch grow shrink basis-0 justify-center items-center gap-2 inline-flex">
@@ -81,7 +67,10 @@ const TransactionForm = ({
               <div className="grow shrink basis-0 bg-[#7c7c88] justify-center items-center gap-2 inline-flex">
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
-                  onClick={handleProcessClick}
+                  onClick={() => {
+                    handleSubmit();
+                    setIsEditing(false);
+                  }}
                   disabled={isDisabled}
                   className="px-1 pb-0.5 justify-center items-center gap-2 flex cursor-pointer disabled:cursor-not-allowed"
                 >
@@ -115,7 +104,7 @@ const TransactionForm = ({
               }`}>
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
-                  onClick={handleProcessClick}
+                  onClick={handleSubmit}
                   disabled={isDisabled}
                   className="px-1 pb-0.5 justify-center items-center gap-2 flex cursor-pointer disabled:cursor-not-allowed"
                 >

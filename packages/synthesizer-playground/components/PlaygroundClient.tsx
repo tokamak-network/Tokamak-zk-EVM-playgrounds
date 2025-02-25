@@ -170,13 +170,18 @@ export default function HomePage() {
         <RainbowImage />
       </div>
       <div className="container mx-auto p-4">
-        <Header logo="/assets/logo.svg" onLogoClick={() => window.location.reload()} />
+        <Header 
+          logo="/assets/logo.svg" 
+          onLogoClick={() => window.location.reload()} 
+          isResultsShown={!!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0)}
+        />
         <TransactionForm
           transactionHash={transactionId}
           setTransactionHash={setTransactionId}
           handleSubmit={handleSubmit}
           isProcessing={isProcessing}
           error={status?.startsWith('Error')}
+          isResultsShown={!!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0)}
         />
         {status?.startsWith('Error') && (
           <div className="p-4 mt-4 bg-red-800 rounded-lg text-white">
