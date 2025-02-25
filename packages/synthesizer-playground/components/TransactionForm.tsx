@@ -56,7 +56,7 @@ const TransactionForm = ({
                     autoFocus
                   />
                 ) : (
-                  <div className="text-[#999999] text-base font-normal font-ibm-mono">
+                  <div className={`text-base font-normal font-ibm-mono ${error ? 'text-[#da1f1f]' : 'text-[#999999]'}`}>
                     {truncateHash(transactionHash)}
                   </div>
                 )}
@@ -69,7 +69,7 @@ const TransactionForm = ({
           <div className="h-10 pr-px flex-col justify-center items-center inline-flex overflow-hidden">
             <div className="grow shrink basis-0 flex-col justify-center items-center flex">
               <div className="self-stretch h-px bg-[#a8a8a8]" />
-              <div className={`grow shrink basis-0 ${isEditing && transactionHash ? 'bg-[#2A72E5]' : 'bg-[#7c7c88]'} justify-center items-center gap-2 inline-flex`}>
+              <div className={`grow shrink basis-0 ${error ? 'bg-[#bc2828]' : (isEditing || isProcessing) && transactionHash ? 'bg-[#2A72E5]' : 'bg-[#7c7c88]'} justify-center items-center gap-2 inline-flex`}>
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
                   onClick={() => {
@@ -105,7 +105,7 @@ const TransactionForm = ({
             <div className="flex-col justify-center items-center flex">
               <div className="self-stretch h-px bg-[#a8a8a8]" />
               <div className={`h-14 justify-center items-center gap-2 inline-flex ${
-                isDisabled ? 'bg-[#7c7c88]' : error ? 'bg-[#BC2828]' : 'bg-[#2A72E5]'
+                !transactionHash ? 'bg-[#7c7c88]' : error ? 'bg-[#BC2828]' : 'bg-[#2A72E5]'
               }`}>
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
