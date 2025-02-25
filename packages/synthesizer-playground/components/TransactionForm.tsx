@@ -27,13 +27,18 @@ const TransactionForm = ({
     return `${hash.slice(0, 35)}...`;
   };
 
+  const handleInputFocus = () => {
+    setIsEditing(true);
+    setTransactionHash('');
+  };
+
   return (
     <div className={`absolute left-1/2 -translate-x-1/2 ${isResultsShown ? 'top-[156px] h-[40px]' : 'top-[424px]'} flex items-center gap-4 transition-all duration-300`}>
       {isResultsShown ? (
         <div className="h-10 justify-start items-center gap-4 inline-flex">
           <div 
             className="w-[400px] h-10 flex-col justify-center items-start inline-flex overflow-hidden cursor-text"
-            onClick={() => setIsEditing(true)}
+            onClick={handleInputFocus}
           >
             <div className="self-stretch h-px bg-[#a8a8a8]" />
             <div className="self-stretch grow shrink basis-0 justify-center items-center gap-2 inline-flex">
@@ -64,7 +69,7 @@ const TransactionForm = ({
           <div className="h-10 pr-px flex-col justify-center items-center inline-flex overflow-hidden">
             <div className="grow shrink basis-0 flex-col justify-center items-center flex">
               <div className="self-stretch h-px bg-[#a8a8a8]" />
-              <div className="grow shrink basis-0 bg-[#7c7c88] justify-center items-center gap-2 inline-flex">
+              <div className={`grow shrink basis-0 ${isEditing && transactionHash ? 'bg-[#2A72E5]' : 'bg-[#7c7c88]'} justify-center items-center gap-2 inline-flex`}>
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
                   onClick={() => {
