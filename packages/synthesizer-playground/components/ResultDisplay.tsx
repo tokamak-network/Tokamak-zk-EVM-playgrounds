@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomTabSwitcher from './CustomTabSwitcher';
 import LogCard from './LogCard';
 import ScrollBar from './ScrollBar';
@@ -27,6 +27,23 @@ const ResultDisplay = ({
 }: ResultDisplayProps) => {
   const [permutationHovered, setPermutationHovered] = useState(false);
   const [placementHovered, setPlacementHovered] = useState(false);
+  const [windowHeight, setWindowHeight] = useState(0);
+
+  // Update window height on mount and resize
+  useEffect(() => {
+    const updateWindowHeight = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    
+    // Set initial height
+    updateWindowHeight();
+    
+    // Add event listener
+    window.addEventListener('resize', updateWindowHeight);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', updateWindowHeight);
+  }, []);
 
   const renderActiveTab = () => {
     if (activeTab === 'storageLoad') {
@@ -109,37 +126,39 @@ const ResultDisplay = ({
   };
 
   return (
-    <div className="w-[728px] h-[714px] absolute left-1/2 -translate-x-1/2 top-[228px]">
-      <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
-      <ScrollBar>
-        {renderActiveTab()}
-      </ScrollBar>
-      {serverData && (
-        <div className="w-[710px] h-[31px] flex justify-start gap-2 p-2 pt-[3px] bg-[#bdbdbd] font-ibm-mono">
-          {serverData.permutation && (
-            <button
-              onClick={() => handleDownload(serverData.permutation, 'permutation.json')}
-              onMouseEnter={() => setPermutationHovered(true)}
-              onMouseLeave={() => setPermutationHovered(false)}
-              className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
-                ${permutationHovered ? 'bg-[#6600b3]' : 'bg-[#55008A]'}`}
-            >
-              Download Permutation
-            </button>
-          )}
-          {serverData.placementInstance && (
-            <button
-              onClick={() => handleDownload(serverData.placementInstance, 'placement_instance.json')}
-              onMouseEnter={() => setPlacementHovered(true)}
-              onMouseLeave={() => setPlacementHovered(false)}
-              className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
-                ${placementHovered ? 'bg-[#008080]' : 'bg-[#008A4C]'}`}
-            >
-              Download Placement Instance
-            </button>
-          )}
-        </div>
-      )}
+    <div className="absolute left-1/2 -translate-x-1/2 top-[228px] pb-[134px]">
+      <div className="w-[728px] h-[714px]">
+        <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
+        <ScrollBar>
+          {renderActiveTab()}
+        </ScrollBar>
+        {serverData && (
+          <div className="w-[710px] h-[31px] flex justify-start gap-2 p-2 pt-[3px] bg-[#bdbdbd] font-ibm-mono">
+            {serverData.permutation && (
+              <button
+                onClick={() => handleDownload(serverData.permutation, 'permutation.json')}
+                onMouseEnter={() => setPermutationHovered(true)}
+                onMouseLeave={() => setPermutationHovered(false)}
+                className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
+                  ${permutationHovered ? 'bg-[#6600b3]' : 'bg-[#55008A]'}`}
+              >
+                Download Permutation
+              </button>
+            )}
+            {serverData.placementInstance && (
+              <button
+                onClick={() => handleDownload(serverData.placementInstance, 'placement_instance.json')}
+                onMouseEnter={() => setPlacementHovered(true)}
+                onMouseLeave={() => setPlacementHovered(false)}
+                className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
+                  ${placementHovered ? 'bg-[#008080]' : 'bg-[#008A4C]'}`}
+              >
+                Download Placement Instance
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
