@@ -69,7 +69,7 @@ const ResultDisplay = ({
         placementLogs.map((log, index) => (
           <div key={index} className="relative mt-[30px] bg-white border border-[#5f5f5f] p-[15px] text-black font-tahoma text-xs">
             <div className="absolute -top-[25px] -left-[1px] font-ibm-mono bg-white tracking-[0.15px] text-[#3b48ff] text-left font-medium text-xs p-1 px-2 border-t border-l border-r border-[#5f5f5f] rounded-t">
-              Log #{index + 1}
+              Data #{index + 1}
             </div>
             <div>
               {log.topics && log.topics.length > 0 && (
@@ -78,7 +78,7 @@ const ResultDisplay = ({
                   {log.topics.map((topic: string, topicIndex: number) => (
                     <div key={topicIndex} className="mb-1">
                       <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono">
-                        {add0xPrefix(topic)}
+                        {topicIndex}: {add0xPrefix(topic)}
                       </span>
                     </div>
                   ))}
