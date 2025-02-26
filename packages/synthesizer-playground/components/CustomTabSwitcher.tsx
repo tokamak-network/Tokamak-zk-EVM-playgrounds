@@ -14,17 +14,17 @@ const CustomTabSwitcher = ({ activeTab, setActiveTab }: CustomTabSwitcherProps) 
         >
           <div className="bg-[#BDBDBD] flex flex-col justify-center items-center">
             <div className="self-stretch h-[1px] bg-[#DFDFDF]" />
-            <div className="h-10 flex justify-center items-center gap-2">
+            <div className="h-[39px] flex justify-center items-center">
               <div className="w-[1px] self-stretch bg-[#DFDFDF]" />
-              <div className="pb-0.5 px-2 flex justify-center items-start">
-                <div className="text-[#222222] text-base font-ibm-mono font-medium break-words">
+              <div className="px-4 flex justify-center items-center h-full">
+                <div className="text-[#222222] text-base font-ibm-mono font-medium tracking-[0.15px]">
                   {label}
                 </div>
               </div>
               <div className="w-[1px] self-stretch bg-[#5F5F5F]" />
             </div>
-            <div className="self-stretch h-[1px] bg-[#BDBDBD]" />
-            <div className="self-stretch h-[1px] bg-[#BDBDBD]" />
+            <div className="self-stretch h-[1px] bg-[#5F5F5F]" />
+            <div className="self-stretch h-[1px] bg-[#DFDFDF]" />
           </div>
         </div>
       );
@@ -33,14 +33,14 @@ const CustomTabSwitcher = ({ activeTab, setActiveTab }: CustomTabSwitcherProps) 
     return (
       <div
         onClick={() => setActiveTab(tabKey)}
-        className="cursor-pointer rounded-tl overflow-hidden flex flex-col justify-center items-center inline-flex"
+        className="cursor-pointer flex flex-col justify-center items-center inline-flex"
       >
         <div className="bg-[#BDBDBD] flex flex-col justify-center items-center">
           <div className="self-stretch h-[1px] bg-[#DFDFDF]" />
-          <div className="self-stretch h-9 flex justify-center items-center gap-2">
+          <div className="h-[39px] flex justify-center items-center">
             <div className="w-[1px] self-stretch bg-[#DFDFDF]" />
-            <div className="pb-0.5 px-2 flex justify-start items-start">
-              <div className="text-[#4A4A4A] text-base font-ibm-mono font-medium break-words">
+            <div className="px-4 flex justify-center items-center h-full">
+              <div className="text-[#4A4A4A] text-base font-ibm-mono font-medium tracking-[0.15px]">
                 {label}
               </div>
             </div>
@@ -54,7 +54,7 @@ const CustomTabSwitcher = ({ activeTab, setActiveTab }: CustomTabSwitcherProps) 
   };
 
   return (
-    <div className="w-full flex justify-start items-end inline-flex">
+    <div className="w-[728px] flex justify-start items-end">
       {renderTab('storageLoad', 'Storage Load', activeTab === 'storageLoad')}
       {renderTab('logs', 'Logs', activeTab === 'logs')}
       {renderTab('storageStore', 'Storage Store', activeTab === 'storageStore')}
