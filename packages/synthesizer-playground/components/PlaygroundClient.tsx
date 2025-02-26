@@ -172,9 +172,8 @@ export default function HomePage() {
     <>
       <div className="background-container">
         <Stars />
-        <RainbowImage />
       </div>
-      <div className="container mx-auto p-4">
+      <div className="container mx-auto p-4 overflow-x-hidden">
         <Header 
           logo="/assets/logo.svg" 
           onLogoClick={() => window.location.reload()} 
@@ -202,18 +201,30 @@ export default function HomePage() {
             ) : (
               /* Show results if we have any data */
               shouldShowResults && (
-                <ResultDisplay
-                  activeTab={activeTab}
-                  setActiveTab={setActiveTab}
-                  storageLoad={storageLoad}
-                  storageStore={storageStore}
-                  placementLogs={placementLogs}
-                  evmContractAddress={evmContractAddress}
-                  handleDownload={handleDownload}
-                  serverData={serverData}
-                />
+                <>
+                  <ResultDisplay
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    storageLoad={storageLoad}
+                    storageStore={storageStore}
+                    placementLogs={placementLogs}
+                    evmContractAddress={evmContractAddress}
+                    handleDownload={handleDownload}
+                    serverData={serverData}
+                  />
+                  <div className="absolute left-0 right-0 overflow-hidden" style={{ top: '1000px' }}>
+                    <RainbowImage />
+                  </div>
+                </>
               )
             )}
+          </div>
+        )}
+        
+        {/* Show rainbow fixed at the bottom when no results */}
+        {!shouldShowResults && (
+          <div className="fixed bottom-[44px] left-0 right-0 z-10 overflow-hidden">
+            <RainbowImage />
           </div>
         )}
       </div>
