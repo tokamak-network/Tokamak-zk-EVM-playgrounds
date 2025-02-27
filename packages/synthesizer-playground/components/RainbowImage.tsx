@@ -1,15 +1,15 @@
 import Image from 'next/image';
 
-const RainbowImage = () => {
+export default function RainbowImage() {
   return (
-    <Image
-      src="/assets/rainbow.svg"
-      alt=""
-      width={1920}
-      height={1080}
-      className="fixed bottom-[44px] left-0 w-full max-w-full object-contain z-[1000] pointer-events-none"
+    <div 
+      className="w-full h-[50px]" 
+      style={{ 
+        backgroundImage: "url('/assets/rainbow.svg')", 
+        backgroundRepeat: "repeat-x",
+        backgroundSize: "auto 100%",
+        backgroundPosition: "center bottom"
+      }}
     />
   );
-};
-
-export default RainbowImage; 
+} 
