@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tokamak ZK-EVM Synthesizer Playground
 
-## Getting Started
+A web-based playground for exploring and visualizing Tokamak ZK-EVM transactions using the Synthesizer library.
 
-First, run the development server:
+![Tokamak ZK-EVM Synthesizer Playground](public/assets/logo.svg)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Overview
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The Synthesizer Playground is an interactive web application that allows you to:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Parse and analyze Ethereum transactions
+- Visualize storage loads and stores
+- Examine transaction logs
+- Explore the ZK-EVM execution trace
+- Understand the placement indices used in the Synthesizer
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This tool is particularly useful for developers working with the Tokamak ZK-EVM ecosystem who need to debug transactions or understand how the Synthesizer processes EVM transactions.
 
-## Learn More
+## Features
 
-To learn more about Next.js, take a look at the following resources:
+- **Transaction Analysis**: Enter any Ethereum transaction hash to analyze its execution in the Tokamak ZK-EVM
+- **Storage Visualization**: View all storage slots that were read from or written to during transaction execution
+- **Log Inspection**: Examine event logs emitted during transaction execution
+- **Placement Indices**: Access to the Synthesizer's placement indices for advanced debugging
+- **Data Export**: Download execution data for further analysis
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Prerequisites
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Node.js 18.x or higher
+- npm
+- An Etherscan API key (for fetching transaction data)
 
-## Deploy on Vercel
+## Installation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/tokamak-network/tokamak-zk-evm-playgrounds.git
+   cd tokamak-zk-evm-playgrounds/packages/synthesizer-playground
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory with your Etherscan API key:
+   ```
+   ETHERSCAN_API_KEY=your_etherscan_api_key_here
+   NEXT_PUBLIC_API_URL=http://localhost:3002
+   ```
+
+## Running the Application
+
+The application consists of two parts: a Next.js frontend and an Express server for handling the Synthesizer operations.
+
+1. Start the Express server:
+   ```bash
+   npm run server
+   # or
+   yarn server
+   ```
+
+2. In a separate terminal, start the Next.js development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Open [http://localhost:3000](http://localhost:3000) in your browser to use the playground.
+
+## Usage
+
+1. Enter an Ethereum transaction hash in the input field
+2. Click "Process Transaction" to analyze the transaction
+3. View the results in the tabbed interface:
+   - **Storage Load**: Shows all storage slots read during execution
+   - **Logs**: Displays event logs emitted during execution
+   - **Storage Store**: Shows all storage slots written during execution
+
+## Acknowledgements
+
+- Tokamak Network for the ZK-EVM implementation
+- Ethereum Foundation for the EVM specification
+- Etherscan for transaction data access
