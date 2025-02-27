@@ -2,8 +2,6 @@
 
 A web-based playground for exploring and visualizing Tokamak ZK-EVM transactions using the Synthesizer library.
 
-![Tokamak ZK-EVM Synthesizer Playground](public/assets/logo.svg)
-
 ## Overview
 
 The Synthesizer Playground is an interactive web application that allows you to:
