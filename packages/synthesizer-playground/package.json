@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tokamak-zk-evm/synthesizer": "^0.0.5",
+    "@tokamak-zk-evm/synthesizer": "^0.0.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "axios": "^1.7.9",
