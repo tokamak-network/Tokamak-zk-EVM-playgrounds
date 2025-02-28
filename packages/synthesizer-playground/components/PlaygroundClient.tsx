@@ -8,6 +8,7 @@ import CustomLoading from '@/components/CustomLoading';
 import CustomErrorTab from '@/components/CustomErrorTab';
 import Stars from '@/components/Stars';
 import RainbowImage from '@/components/RainbowImage';
+import { StorageItem, StorageStoreItem, LogItem, ServerData, ApiResponse } from '@/types/api-types';
 
 // Determine the external API URL from env variable or fallback to localhost
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
@@ -19,14 +20,11 @@ export default function HomePage() {
   const [hasProcessedOnce, setHasProcessedOnce] = useState(false);
 
   // Data returned from the server
-  const [storageLoad, setStorageLoad] = useState<any[]>([]);
-  const [placementLogs, setPlacementLogs] = useState<any[]>([]);
-  const [storageStore, setStorageStore] = useState<any[]>([]);
+  const [storageLoad, setStorageLoad] = useState<StorageItem[]>([]);
+  const [placementLogs, setPlacementLogs] = useState<LogItem[]>([]);
+  const [storageStore, setStorageStore] = useState<StorageStoreItem[]>([]);
   const [evmContractAddress, setEvmContractAddress] = useState<string>('');
-  const [serverData, setServerData] = useState<{
-    permutation: string | null;
-    placementInstance: string | null;
-  } | null>(null);
+  const [serverData, setServerData] = useState<ServerData | null>(null);
 
   const [activeTab, setActiveTab] = useState('storageLoad');
 
@@ -57,7 +55,7 @@ export default function HomePage() {
         throw new Error(errorData.error || `Server returned status ${response.status}`);
       }
       
-      const json = await response.json();
+      const json = await response.json() as ApiResponse;
       console.log('Server response:', json);
       
       if (!json.ok) {
@@ -65,6 +63,10 @@ export default function HomePage() {
       }
 
       // Extract data from server response
+      if (!json.data) {
+        throw new Error('No data returned from server.');
+      }
+
       const { to, logs, storageLoad, storageStore, permutation, placementInstance } = json.data;
       
       console.log('Processing storageLoad:', storageLoad);
@@ -72,43 +74,42 @@ export default function HomePage() {
       console.log('Processing storageStore:', storageStore);
 
       // Transform logs data
-      const transformedLogs = logs?.map((log: any) => {
+      const transformedLogs = logs?.map((log) => {
         const topics = Array.isArray(log.topics) ? log.topics : [];
         return {
           topics: topics.map((topic: string) => topic.startsWith('0x') ? topic : `0x${topic}`),
-          valueDec: log.value?.toString() || log.valueDec?.toString() || '0',
+          valueDec: typeof log.valueDec === 'string' ? log.valueDec : '0',
           valueHex: log.valueHex?.startsWith('0x') ? log.valueHex : `0x${log.valueHex || '0'}`
         };
       }) || [];
 
       // Transform storage load data
-      const transformedStorageLoad = storageLoad?.map((item: any) => {
+      const transformedStorageLoad = storageLoad?.map((item) => {
         const contractAddr = item.contractAddress || to || '';
-        const key = typeof item.key === 'string' ? item.key : (item.key?.toString() || '');
-        const value = item.value?.toString() || '0';
+        const key = item.key || '';
+        const valueDecimal = typeof item.valueDecimal === 'string' ? item.valueDecimal : '0';
         const valueHex = item.valueHex || '';
         
         return {
           contractAddress: contractAddr.startsWith('0x') ? contractAddr : `0x${contractAddr}`,
           key: key.startsWith('0x') ? key : `0x${key}`,
-          valueDecimal: value,
+          valueDecimal,
           valueHex: valueHex.startsWith('0x') ? valueHex : `0x${valueHex}`
         };
       }) || [];
 
       // Transform storage store data
-      const transformedStorageStore = storageStore?.map((item: any) => {
-        const isArray = Array.isArray(item);
-        const contractAddr = isArray ? (item[0] || to) : (item.contractAddress || to);
-        const key = isArray ? item[1] : item.key;
-        const value = isArray ? item[2] : item.value;
-        const valueHex = isArray ? item[3] : item.valueHex;
+      const transformedStorageStore = storageStore?.map((item) => {
+        const contractAddr = item.contractAddress || to || '';
+        const key = item.key || '';
+        const value = item.value || '0';
+        const valueHex = item.valueHex || '';
 
         return {
           contractAddress: contractAddr.startsWith('0x') ? contractAddr : `0x${contractAddr}`,
-          key: typeof key === 'string' && key.startsWith('0x') ? key : `0x${key || ''}`,
-          value: value?.toString() || '0',
-          valueHex: valueHex?.startsWith('0x') ? valueHex : `0x${valueHex || '0'}`
+          key: key.startsWith('0x') ? key : `0x${key}`,
+          value,
+          valueHex: valueHex.startsWith('0x') ? valueHex : `0x${valueHex}`
         };
       }) || [];
 
@@ -129,9 +130,10 @@ export default function HomePage() {
 
       setStatus(null);
       sessionStorage.removeItem('pendingTransactionId');
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error('Error:', error);
-      setStatus(`Error: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setStatus(`Error: ${errorMessage}`);
       sessionStorage.removeItem('pendingTransactionId');
     } finally {
       setIsProcessing(false);
