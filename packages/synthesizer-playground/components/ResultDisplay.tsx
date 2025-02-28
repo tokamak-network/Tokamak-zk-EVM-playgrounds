@@ -3,16 +3,17 @@ import CustomTabSwitcher from './CustomTabSwitcher';
 import LogCard from './LogCard';
 import ScrollBar from './ScrollBar';
 import { add0xPrefix } from '../helpers/helpers';
+import { StorageItem, StorageStoreItem, LogItem, ServerData } from '@/types/api-types';
 
 type ResultDisplayProps = {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  storageLoad: any[];
-  placementLogs: any[];
-  storageStore: any[];
+  storageLoad: StorageItem[];
+  placementLogs: LogItem[];
+  storageStore: StorageStoreItem[];
   evmContractAddress: string;
   handleDownload: (fileContent: string | null, fileName: string) => void;
-  serverData: { permutation: string | null; placementInstance: string | null } | null;
+  serverData: ServerData | null;
 };
 
 const ResultDisplay = ({
