@@ -1,5 +1,5 @@
 // app/api/parseTransaction/route.ts
-import { NextResponse } from 'next/server';
+/*import { NextResponse } from 'next/server';
 import { fetchTransactionBytecode } from '../../utils/etherscanApi';
 
 export async function POST(request: Request) {
@@ -77,3 +77,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }
+*/
