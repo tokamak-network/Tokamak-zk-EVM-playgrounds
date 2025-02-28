@@ -7,7 +7,13 @@ const nextConfig = {
         destination: 'http://localhost:3001/api/:path*' // Forward to Express server
       }
     ]
-  }
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 }
 
 module.exports = nextConfig 

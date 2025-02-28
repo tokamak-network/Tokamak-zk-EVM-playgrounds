@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import CustomTabSwitcher from './CustomTabSwitcher';
 import LogCard from './LogCard';
 import ScrollBar from './ScrollBar';
-import { add0xPrefix, summarizeHex } from '../helpers/helpers';
+import { add0xPrefix } from '../helpers/helpers';
 
 type ResultDisplayProps = {
   activeTab: string;
@@ -27,7 +27,7 @@ const ResultDisplay = ({
 }: ResultDisplayProps) => {
   const [permutationHovered, setPermutationHovered] = useState(false);
   const [placementHovered, setPlacementHovered] = useState(false);
-  const [windowHeight, setWindowHeight] = useState(0);
+  const [, setWindowHeight] = useState(0);
 
   // Update window height on mount and resize
   useEffect(() => {
