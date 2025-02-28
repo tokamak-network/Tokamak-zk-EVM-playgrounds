@@ -8,12 +8,6 @@ const nextConfig = {
       }
     ]
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   // Add WebAssembly support
   webpack: (config, { isServer }) => {
     // Allow WebAssembly to be imported
