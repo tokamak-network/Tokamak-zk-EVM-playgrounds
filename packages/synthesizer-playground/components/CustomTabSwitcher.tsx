@@ -54,7 +54,7 @@ const CustomTabSwitcher = ({ activeTab, setActiveTab }: CustomTabSwitcherProps) 
   };
 
   return (
-    <div className="w-[728px] flex justify-start items-end">
+    <div className="w-[729px] flex justify-start items-end">
       {renderTab('storageLoad', 'Storage Load', activeTab === 'storageLoad')}
       {renderTab('logs', 'Logs', activeTab === 'logs')}
       {renderTab('storageStore', 'Storage Store', activeTab === 'storageStore')}
