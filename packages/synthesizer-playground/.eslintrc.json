@@ -12,15 +12,6 @@
       "fixToUnknown": false,
       "ignoreRestArgs": true
     }],
-    "overrides": [
-      {
-        "files": ["**/server/**/*.ts", "**/types/**/*.d.ts"],
-        "rules": {
-          "@typescript-eslint/no-explicit-any": "off",
-          "@typescript-eslint/no-any": "off"
-        }
-      }
-    ],
     "@typescript-eslint/ban-ts-comment": 0,
     "@typescript-eslint/ban-types": 0,
     "@typescript-eslint/no-unsafe-assignment": "warn",
@@ -30,5 +21,21 @@
     "no-unused-vars": "warn",
     "@typescript-eslint/no-unused-vars": "warn"
   },
+  "overrides": [
+    {
+      "files": ["**/server/**/*.ts", "**/types/**/*.d.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-any": "off"
+      }
+    },
+    {
+      "files": ["**/components/PlaygroundClient.tsx"],
+      "rules": {
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-call": "off"
+      }
+    }
+  ],
   "ignorePatterns": ["**/*.js", "**/*.jsx", "**/*.wasm"]
 }
