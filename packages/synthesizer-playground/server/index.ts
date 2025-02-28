@@ -4,11 +4,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import { SynthesizerAdapter } from '@tokamak-zk-evm/synthesizer';
 
-// Define placement indices based on @tokamak-zk-evm/synthesizer/src/tokamak/constant/constants.ts
-const STORAGE_IN_PLACEMENT_INDEX = 0;    // Storage load operations
-const STORAGE_OUT_PLACEMENT_INDEX = 1;   // Storage store operations
-const RETURN_PLACEMENT_INDEX = 3;        // Log operations
-
+// Remove hardcoded constants and use the adapter's placementIndices instead
 // Adjust the import path if needed—here we assume your utils are compiled from your Next.js app
 import { fetchTransactionBytecode } from '../app/utils/etherscanApi.js';
 
@@ -16,7 +12,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-app.post('/api/parseTransaction', async (req: Request, res: Response) => {
+app.post('/api/parseTransaction', async (req: express.Request, res: express.Response) => {
   try {
     const { txId } = req.body;
     if (!txId) {
@@ -59,16 +55,19 @@ app.post('/api/parseTransaction', async (req: Request, res: Response) => {
     console.log('Placements map size:', placementsMap.size);
     console.log('Available placement indices:', Array.from(placementsMap.keys()));
 
+    // Get placement indices from the adapter instead of using hardcoded values
+    const { storageIn, return: returnIndex, storageOut } = adapter.placementIndices;
+
     // Log the actual values of the placement indices
     console.log('Placement indices:', {
-      STORAGE_IN_PLACEMENT_INDEX,
-      RETURN_PLACEMENT_INDEX,
-      STORAGE_OUT_PLACEMENT_INDEX
+      storageIn,
+      returnIndex,
+      storageOut
     });
 
-    const storageLoadPlacement = placementsMap.get(STORAGE_IN_PLACEMENT_INDEX);
-    const logsPlacement = placementsMap.get(RETURN_PLACEMENT_INDEX);
-    const storageStorePlacement = placementsMap.get(STORAGE_OUT_PLACEMENT_INDEX);
+    const storageLoadPlacement = placementsMap.get(storageIn);
+    const logsPlacement = placementsMap.get(returnIndex);
+    const storageStorePlacement = placementsMap.get(storageOut);
 
     console.log('Placement data found:', {
       hasStorageLoad: !!storageLoadPlacement,
