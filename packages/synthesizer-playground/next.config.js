@@ -14,6 +14,22 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Add WebAssembly support
+  webpack: (config, { isServer }) => {
+    // Allow WebAssembly to be imported
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+    };
+
+    // Add a rule to handle .wasm files
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'webassembly/async',
+    });
+
+    return config;
+  },
 }
 
 module.exports = nextConfig 
