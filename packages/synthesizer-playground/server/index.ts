@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import express, { Request, Response } from 'express';
+import express from 'express';
+import { Request, Response } from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { SynthesizerAdapter } from '@tokamak-zk-evm/synthesizer';
@@ -12,7 +13,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-app.post('/api/parseTransaction', async (req: express.Request, res: express.Response) => {
+app.post('/api/parseTransaction', async (req: Request, res: Response) => {
   try {
     const { txId } = req.body;
     if (!txId) {
