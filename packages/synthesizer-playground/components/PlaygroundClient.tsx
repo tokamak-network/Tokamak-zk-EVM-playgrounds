@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Buffer } from 'buffer';
-
 import Header from '@/components/Header';
 import TransactionForm from '@/components/TransactionForm';
 import ResultDisplay from '@/components/ResultDisplay';
