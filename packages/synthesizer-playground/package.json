@@ -6,7 +6,7 @@
     "dev": "next dev",
     "server": "tsx server/index.ts",
     "build": "next build",
-    "start": "next start",
+    "start": "concurrently \"next start\" \"npm run server\"",
     "lint": "next lint",
     "start:dev": "concurrently \"npm run dev\" \"npm run server\""
   },
