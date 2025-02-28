@@ -128,7 +128,7 @@ const ResultDisplay = ({
 
   return (
     <div className="absolute left-1/2 -translate-x-1/2 top-[228px] pb-[134px] flex flex-col gap-4">
-      <div className="w-[728px]">
+      <div className="w-[729px]">
         <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
         <ScrollBar>
           {renderActiveTab()}
@@ -136,7 +136,7 @@ const ResultDisplay = ({
       </div>
       
       {serverData && (
-        <div className="h-9 justify-start items-center gap-5 inline-flex w-[728px] mt-4">
+        <div className="h-9 justify-start items-center gap-5 inline-flex w-[729px] mt-4">
           {serverData.permutation && (
             <div className="grow shrink basis-0 h-9 flex-col justify-center items-center inline-flex overflow-hidden">
               <div className="self-stretch grow shrink basis-0 flex-col justify-center items-center flex">

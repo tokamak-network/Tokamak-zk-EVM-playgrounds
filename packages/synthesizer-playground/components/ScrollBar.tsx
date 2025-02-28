@@ -42,7 +42,7 @@ const ScrollBar = ({ children, maxHeight = '655px' }: ScrollBarProps) => {
         }
       `}</style>
       <div 
-        className={`relative w-[708px] bg-[#bdbdbd] h-[calc(100%-40px)] border-[9px] border-[#bdbdbd] overflow-y-auto left-0 top-0 custom-scrollbar`}
+        className={`relative w-[729px] bg-[#bdbdbd] h-[calc(100%-40px)] border-[9px] border-[#bdbdbd] overflow-y-auto left-0 top-0 custom-scrollbar`}
         style={{ maxHeight }}
       >
         {children}
