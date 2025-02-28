@@ -1,5 +1,0 @@
-{
-  "buildCommand": "cd packages/synthesizer-playground && npm run build",
-  "outputDirectory": "packages/synthesizer-playground/dist",
-  "installCommand": "npm install"
-}
