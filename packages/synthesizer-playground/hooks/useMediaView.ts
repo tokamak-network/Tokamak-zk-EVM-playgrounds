@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 type ViewportConfig = {
   minWidth?: number;
@@ -34,8 +34,12 @@ export const useViewport = ({ minWidth = 960, minHeight = 540 }: ViewportConfig 
       window.removeEventListener("resize", checkViewport);
     };
   }, [minWidth, minHeight]);
+
+  const isOverBreakpoint = useMemo(() => {
+    return window.innerWidth > 1099;
+  }, [window.innerWidth])
     
   const isViewportSatisfied = requiredMinimumWidth && requiredMinimumHeight;
 
-  return { isViewportSatisfied , width: viewport.width, height: viewport.height};
+  return { isViewportSatisfied , width: viewport.width, height: viewport.height, isOverBreakpoint};
 };
