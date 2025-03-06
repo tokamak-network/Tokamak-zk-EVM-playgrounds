@@ -9,6 +9,7 @@ import CustomErrorTab from '@/components/CustomErrorTab';
 import Stars from '@/components/Stars';
 import RainbowImage from '@/components/RainbowImage';
 import { StorageItem, StorageStoreItem, LogItem, ServerData, ApiResponse } from '@/types/api-types';
+import FormTitle from './FormTitle';
 
 // Determine the external API URL from env variable or fallback to localhost
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
@@ -169,16 +170,18 @@ export default function HomePage() {
   const shouldShowResults = hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0);
 
   return (
-    <>
-      <div className="background-container">
+    <div className='min-h-screen flex flex-col justify-center pb-[88px]'>
+   
+      {/* <div className="background-container">
         <Stars />
-      </div>
-      <div className="container mx-auto p-4 overflow-x-hidden">
+      </div> */}
         <Header 
           logo="/assets/logo.svg" 
           onLogoClick={() => window.location.reload()} 
           isResultsShown={shouldShowResults}
         />
+      <div className="flex flex-col justify-center items-center gap-y-[35px]">
+        <FormTitle isResultsShown={shouldShowResults} />
         <TransactionForm
           transactionHash={transactionId}
           setTransactionHash={setTransactionId}
@@ -221,13 +224,12 @@ export default function HomePage() {
           </div>
         )}
         
-        {/* Show rainbow fixed at the bottom when no results */}
         {!shouldShowResults && (
           <div className="fixed bottom-[19.5px] left-0 right-0 z-10 overflow-hidden">
             <RainbowImage />
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
