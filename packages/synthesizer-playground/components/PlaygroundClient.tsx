@@ -170,7 +170,7 @@ export default function HomePage() {
   const shouldShowResults = hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0);
 
   return (
-    <div className='flex flex-col justify-center items-center h-screen'>
+    <div className='flex flex-col justify-center items-center h-screen overflow-auto pt-[75px]'>
    
       {/* <div className="background-container">
         <Stars />
@@ -195,7 +195,7 @@ export default function HomePage() {
             <p className="text-sm">{status}</p>
           </div>
         )}
-        {true ? (
+        {isProcessing  ? (
           <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
           <div>
@@ -219,7 +219,7 @@ export default function HomePage() {
           </div>
         )}
       </div>
-        <div className="w-full mb-[22px]">
+        <div className="w-full mb-[22px] mt-[18px]">
           <RainbowImage />
         </div>
     </div>
