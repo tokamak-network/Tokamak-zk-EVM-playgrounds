@@ -1,14 +1,21 @@
 import Image from 'next/image';
+import BG_IMAGE from '../assets/background.svg'
 
 const Stars = () => {
   return (
-    <Image
-      src="/assets/Stars.svg"
-      alt=""
-      width={1920}
-      height={1080}
-      className="fixed bottom-0 left-0 w-full max-w-full object-contain z-[1000] pointer-events-none"
-    />
+    <div className='absolute flex bottom-0 left-0 w-full h-full justify-center items-end z-[-100]'>      
+      <Image
+        src={BG_IMAGE}
+        alt="bg-image"
+        className='w-full'
+        style={{
+          minHeight: '415px',
+          maxHeight: '630px',
+          objectFit: 'cover',
+        }}
+        priority
+        />
+    </div>
   );
 };
 

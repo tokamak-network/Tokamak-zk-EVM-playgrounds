@@ -170,11 +170,11 @@ export default function HomePage() {
   const shouldShowResults = hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0);
 
   return (
-    <div className='flex flex-col justify-center items-center h-screen overflow-auto pt-[75px]'>
+    <div className='flex flex-col justify-center items-center h-screen overflow-auto pt-[75px] relative'>
    
-      {/* <div className="background-container">
-        <Stars />
-      </div> */}
+      {/* This starts component located in the bottom of the page with absolute position */}
+      <Stars />
+      
         <Header 
           logo="/assets/logo.svg" 
           onLogoClick={() => window.location.reload()} 
