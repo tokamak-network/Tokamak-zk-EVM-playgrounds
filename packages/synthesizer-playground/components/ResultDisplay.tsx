@@ -4,6 +4,7 @@ import LogCard from './LogCard';
 import ScrollBar from './ScrollBar';
 import { add0xPrefix } from '../helpers/helpers';
 import { StorageItem, StorageStoreItem, LogItem, ServerData } from '@/types/api-types';
+import { useViewport } from '@/hooks/useMediaView';
 
 type ResultDisplayProps = {
   activeTab: string;
@@ -28,23 +29,7 @@ const ResultDisplay = ({
 }: ResultDisplayProps) => {
   const [permutationHovered, setPermutationHovered] = useState(false);
   const [placementHovered, setPlacementHovered] = useState(false);
-  const [, setWindowHeight] = useState(0);
-
-  // Update window height on mount and resize
-  useEffect(() => {
-    const updateWindowHeight = () => {
-      setWindowHeight(window.innerHeight);
-    };
-    
-    // Set initial height
-    updateWindowHeight();
-    
-    // Add event listener
-    window.addEventListener('resize', updateWindowHeight);
-    
-    // Clean up
-    return () => window.removeEventListener('resize', updateWindowHeight);
-  }, []);
+  const { isViewportSatisfied, width, height } = useViewport();
 
   const renderActiveTab = () => {
     if (activeTab === 'storageLoad') {
@@ -127,12 +112,14 @@ const ResultDisplay = ({
   };
 
   return (
-    <div className="absolute left-1/2 -translate-x-1/2 top-[228px] pb-[134px] flex flex-col gap-4">
+    <div className="left-1/2 -translate-x-1/2 top-[228px] pb-[134px] flex flex-col gap-4">
       <div className="w-[729px]">
         <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
-        <ScrollBar>
-          {renderActiveTab()}
-        </ScrollBar>
+        {/* <ScrollBar> */}
+          <div className="h-[10%]">
+            {renderActiveTab()}
+            </div>
+        {/* </ScrollBar> */}
       </div>
       
       {serverData && (
