@@ -170,7 +170,7 @@ export default function HomePage() {
   const shouldShowResults = hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0);
 
   return (
-    <div className='min-h-screen flex flex-col justify-center pb-[88px]'>
+    <div className='flex flex-col justify-center items-center h-screen'>
    
       {/* <div className="background-container">
         <Stars />
@@ -180,7 +180,7 @@ export default function HomePage() {
           onLogoClick={() => window.location.reload()} 
           isResultsShown={shouldShowResults}
         />
-      <div className="flex flex-col justify-center items-center gap-y-[35px]">
+      <div className="flex flex-1 flex-col justify-center items-center gap-y-[35px]">
         <FormTitle isResultsShown={shouldShowResults} />
         <TransactionForm
           transactionHash={transactionId}
@@ -195,7 +195,7 @@ export default function HomePage() {
             <p className="text-sm">{status}</p>
           </div>
         )}
-        {isProcessing ? (
+        {true ? (
           <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
           <div>
@@ -204,7 +204,6 @@ export default function HomePage() {
             ) : (
               /* Show results if we have any data */
               shouldShowResults && (
-                <>
                   <ResultDisplay
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
@@ -215,21 +214,14 @@ export default function HomePage() {
                     handleDownload={handleDownload}
                     serverData={serverData}
                   />
-                  <div className="absolute left-0 right-0 overflow-hidden" style={{ top: '1011.5px' }}>
-                    <RainbowImage />
-                  </div>
-                </>
               )
             )}
           </div>
         )}
-        
-        {!shouldShowResults && (
-          <div className="fixed bottom-[19.5px] left-0 right-0 z-10 overflow-hidden">
-            <RainbowImage />
-          </div>
-        )}
       </div>
+        <div className="w-full mb-[22px]">
+          <RainbowImage />
+        </div>
     </div>
   );
 }

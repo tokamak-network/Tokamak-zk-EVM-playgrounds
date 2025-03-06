@@ -14,7 +14,7 @@ const CustomErrorTab = ({
   };
 
   return (
-    <div className="absolute top-[512px] left-1/2 -translate-x-1/2 w-[402px] h-[195px] inline-flex justify-center items-center z-10">
+    <div className="w-[402px] h-[195px] inline-flex justify-center items-center z-10">
       {/* Left vertical border */}
       <div className="w-[1px] self-stretch bg-[#DFDFDF]" />
 

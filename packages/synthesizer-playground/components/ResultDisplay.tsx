@@ -112,7 +112,7 @@ const ResultDisplay = ({
   };
 
   return (
-    <div className="left-1/2 -translate-x-1/2 top-[228px] pb-[134px] flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div className="w-[729px]">
         <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
         {/* <ScrollBar> */}
