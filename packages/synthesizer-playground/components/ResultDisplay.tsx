@@ -115,11 +115,11 @@ const ResultDisplay = ({
     <div className="flex flex-col gap-4">
       <div className="w-[729px]">
         <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
-        {/* <ScrollBar> */}
+        <ScrollBar>
           <div className="h-[10%]">
             {renderActiveTab()}
             </div>
-        {/* </ScrollBar> */}
+        </ScrollBar>
       </div>
       
       {serverData && (
