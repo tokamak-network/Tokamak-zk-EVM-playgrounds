@@ -9,7 +9,7 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
   const {height} = useViewport()
 
   const maxHeight = useMemo(() => {
-    return `${height - 400}px`
+    return `${height - 450}px`
   }, [height])
   
   return (
