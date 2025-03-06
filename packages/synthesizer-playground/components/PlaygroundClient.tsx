@@ -212,7 +212,7 @@ export default function HomePage() {
                     handleDownload={handleDownload}
                     serverData={serverData}
                   />
-                  <div className="absolute left-0 right-0 overflow-hidden" style={{ top: '1000px' }}>
+                  <div className="absolute left-0 right-0 overflow-hidden" style={{ top: '1011.5px' }}>
                     <RainbowImage />
                   </div>
                 </>
@@ -223,7 +223,7 @@ export default function HomePage() {
         
         {/* Show rainbow fixed at the bottom when no results */}
         {!shouldShowResults && (
-          <div className="fixed bottom-[44px] left-0 right-0 z-10 overflow-hidden">
+          <div className="fixed bottom-[19.5px] left-0 right-0 z-10 overflow-hidden">
             <RainbowImage />
           </div>
         )}

@@ -127,39 +127,61 @@ const ResultDisplay = ({
   };
 
   return (
-    <div className="absolute left-1/2 -translate-x-1/2 top-[228px] pb-[134px]">
-      <div className="w-[728px] h-[714px]">
+    <div className="absolute left-1/2 -translate-x-1/2 top-[228px] pb-[134px] flex flex-col gap-4">
+      <div className="w-[729px]">
         <CustomTabSwitcher activeTab={activeTab} setActiveTab={setActiveTab} />
         <ScrollBar>
           {renderActiveTab()}
         </ScrollBar>
-        {serverData && (
-          <div className="w-[710px] h-[31px] flex justify-start gap-2 p-2 pt-[3px] bg-[#bdbdbd] font-ibm-mono">
-            {serverData.permutation && (
-              <button
-                onClick={() => handleDownload(serverData.permutation, 'permutation.json')}
-                onMouseEnter={() => setPermutationHovered(true)}
-                onMouseLeave={() => setPermutationHovered(false)}
-                className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
-                  ${permutationHovered ? 'bg-[#6600b3]' : 'bg-[#55008A]'}`}
-              >
-                Download Permutation
-              </button>
-            )}
-            {serverData.placementInstance && (
-              <button
-                onClick={() => handleDownload(serverData.placementInstance, 'placement_instance.json')}
-                onMouseEnter={() => setPlacementHovered(true)}
-                onMouseLeave={() => setPlacementHovered(false)}
-                className={`font-ibm-mono text-sm font-normal w-[350px] flex items-center justify-center cursor-pointer rounded-none border-l border-t border-[#a8a8a8] border-b border-r border-b-[#5f5f5f] border-r-[#5f5f5f] text-[#F8F8F8] transition-colors duration-200
-                  ${placementHovered ? 'bg-[#008080]' : 'bg-[#008A4C]'}`}
-              >
-                Download Placement Instance
-              </button>
-            )}
-          </div>
-        )}
       </div>
+      
+      {serverData && (
+        <div className="h-9 justify-start items-center gap-5 inline-flex w-[729px] mt-4">
+          {serverData.permutation && (
+            <div className="grow shrink basis-0 h-9 flex-col justify-center items-center inline-flex overflow-hidden">
+              <div className="self-stretch grow shrink basis-0 flex-col justify-center items-center flex">
+                <div className="self-stretch h-px bg-[#a8a8a8]" />
+                <div 
+                  className={`self-stretch grow shrink basis-0 ${permutationHovered ? 'bg-[#6600b3]' : 'bg-[#55008a]'} justify-center items-center gap-2 inline-flex cursor-pointer`}
+                  onClick={() => handleDownload(serverData.permutation, 'permutation.json')}
+                  onMouseEnter={() => setPermutationHovered(true)}
+                  onMouseLeave={() => setPermutationHovered(false)}
+                >
+                  <div className="w-px self-stretch bg-[#a8a8a8]" />
+                  <div className="grow shrink basis-0 self-stretch px-1 pt-0.5 justify-center items-center gap-3 flex">
+                    <div className="text-[#f8f8f8] text-[13px] font-medium font-ibm-mono">Download Permutation</div>
+                  </div>
+                  <div className="w-px self-stretch bg-[#5f5f5f]" />
+                </div>
+                <div className="self-stretch h-px bg-[#5f5f5f]" />
+                <div className="self-stretch h-px" />
+              </div>
+            </div>
+          )}
+          
+          {serverData.placementInstance && (
+            <div className="grow shrink basis-0 h-9 flex-col justify-center items-center inline-flex overflow-hidden">
+              <div className="self-stretch grow shrink basis-0 flex-col justify-center items-center flex">
+                <div className="self-stretch h-px bg-[#a8a8a8]" />
+                <div 
+                  className={`self-stretch grow shrink basis-0 ${placementHovered ? 'bg-[#008080]' : 'bg-[#008a4b]'} justify-center items-center gap-2 inline-flex cursor-pointer`}
+                  onClick={() => handleDownload(serverData.placementInstance, 'placement_instance.json')}
+                  onMouseEnter={() => setPlacementHovered(true)}
+                  onMouseLeave={() => setPlacementHovered(false)}
+                >
+                  <div className="w-px self-stretch bg-[#a8a8a8]" />
+                  <div className="grow shrink basis-0 h-[19px] px-1 pt-0.5 justify-center items-center gap-3 flex">
+                    <div className="text-[#f8f8f8] text-[13px] font-medium font-ibm-mono">Download Placement Instance</div>
+                  </div>
+                  <div className="w-px self-stretch bg-[#5f5f5f]" />
+                </div>
+                <div className="self-stretch h-px bg-[#5f5f5f]" />
+                <div className="self-stretch h-px" />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
