@@ -223,9 +223,8 @@ export default function HomePage() {
           </div>
         )}
       </div>
-        <div className="w-full mb-[22px] mt-[18px]">
+        <div className="w-full mb-[15px]">
         <RainbowImage />
-        
         </div>
     </div>
   );
