@@ -10,6 +10,7 @@ import Stars from '@/components/Stars';
 import RainbowImage from '@/components/RainbowImage';
 import { StorageItem, StorageStoreItem, LogItem, ServerData, ApiResponse } from '@/types/api-types';
 import FormTitle from './FormTitle';
+import HeaderTitle from './HeaderTitle';
 
 // Determine the external API URL from env variable or fallback to localhost
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
@@ -174,14 +175,14 @@ export default function HomePage() {
    
       {/* This starts component located in the bottom of the page with absolute position */}
       <Stars />
-      
         <Header 
           logo="/assets/logo.svg" 
           onLogoClick={() => window.location.reload()} 
           isResultsShown={shouldShowResults}
         />
       <div className="flex flex-1 flex-col justify-center items-center gap-y-[35px]">
-        <FormTitle isResultsShown={shouldShowResults} />
+        <HeaderTitle shouldShowResults={shouldShowResults}>
+       {<> <FormTitle isResultsShown={shouldShowResults} />
         <TransactionForm
           transactionHash={transactionId}
           setTransactionHash={setTransactionId}
@@ -189,7 +190,10 @@ export default function HomePage() {
           isProcessing={isProcessing}
           error={status?.startsWith('Error')}
           isResultsShown={shouldShowResults}
-        />
+            />
+            </>
+          }
+          </HeaderTitle>
         {status?.startsWith('Error') && (
           <div className="p-4 mt-4 bg-red-800 rounded-lg text-white">
             <p className="text-sm">{status}</p>
