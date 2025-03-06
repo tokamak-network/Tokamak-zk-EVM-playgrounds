@@ -21,7 +21,7 @@ const Header = ({ logo, onLogoClick, isResultsShown = false }: HeaderProps) => {
         />
       </div>
       
-      <div className={`absolute left-1/2 -translate-x-1/2 ${isResultsShown ? 'top-[95px] w-[507px] h-[45px]' : 'top-[280px] w-[736px]'} text-center transition-all duration-300`}>
+      <div className={`absolute left-1/2 -translate-x-1/2 ${isResultsShown ? 'top-[72px] w-[507px] h-[45px]' : 'top-[280px] w-[736px]'} text-center transition-all duration-300`}>
         <h1 
           className={`${isResultsShown ? 'text-[42px] leading-[42px]' : 'text-[96px] leading-[96px] -mt-[60px]'} font-jersey font-normal m-0 break-words text-[#FAFE00]`}
           style={{ 
