@@ -4,9 +4,7 @@ import Bani from "../assets/bani.svg"
 export default function RainbowImage() {
  
   return (
-    <div className='flex w-full h-[100px] relative overflow-hidden'
- 
-    > 
+    <div className='flex w-full h-[100px] relative overflow-hidden'> 
     <div 
       className="w-full h-[50px] z-[1000] top-[40px] absolute" 
       style={{ 

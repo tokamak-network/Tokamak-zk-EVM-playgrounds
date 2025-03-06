@@ -7,14 +7,37 @@ const Stars = () => {
       <Image
         src={BG_IMAGE}
         alt="bg-image"
-        className='w-full'
+        className='w-full animate-twinkle'
         style={{
           minHeight: '415px',
           maxHeight: '630px',
           objectFit: 'cover',
         }}
         priority
-        />
+      />
+        <style jsx global>{`
+        @keyframes twinkle {
+          0% {
+            opacity: 1;
+          }
+          25% {
+            opacity: 0.3;
+          }
+          50% {
+            opacity: 0.7;
+          }
+          75% {
+            opacity: 0.5;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+        
+        .animate-twinkle {
+          animation: twinkle 4s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };
