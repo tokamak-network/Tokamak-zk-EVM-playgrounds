@@ -31,9 +31,9 @@ const TransactionForm = ({
     setIsEditing(true);
     setTransactionHash('');
   };
-
+// ${isResultsShown ? 'top-[156px] h-[40px]' : 'top-[424px]'}
   return (
-    <div className={`absolute left-1/2 -translate-x-1/2 ${isResultsShown ? 'top-[156px] h-[40px]' : 'top-[424px]'} flex items-center gap-4 transition-all duration-300`}>
+    <div className={`flex items-center gap-4 transition-all duration-300`}>
       {isResultsShown ? (
         <div className="h-10 justify-start items-center gap-4 inline-flex">
           <div 
