@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface CustomInputProps {
   value?: string;
@@ -36,9 +36,9 @@ const CustomInput = ({
         onBlur={handleBlur}
       />
      {/* 배경용 div */}
-      <div className={`absolute inset-0 bg-[#5B9AFF] opacity-0 pointer-events-none ${active ? 'animate-focusEffect' : ''}`} />
+      <div className={`absolute inset-0 bg-[#5B9AFF] opacity-0 pointer-events-none ${active && !disabled ? 'animate-focusEffect' : ''}`} />
       {/* 테두리용 div */}
-      <div className={`absolute inset-0 border-2 border-[#5B9AFF] opacity-0 pointer-events-none ${active ? 'animate-focusEffect' : ''}`} />
+      <div className={`absolute inset-0 border-2 border-[#5B9AFF] opacity-0 pointer-events-none ${active && !disabled ? 'animate-focusEffect' : ''}`} />
     </div>
   );
 };
