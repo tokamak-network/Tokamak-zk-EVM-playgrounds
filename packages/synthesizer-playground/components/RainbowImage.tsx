@@ -21,7 +21,7 @@ export default function RainbowImage() {
         }}
       >
         <Image src={Bani} alt="Rainbow"
-          width={113} height={73} className='absolute top-[25px] right-[-113px]'
+          width={113} height={73} className='absolute top-[25px] right-[-95px]'
        
         />
       </div>
