@@ -19,6 +19,15 @@ export default {
       dropShadow: {
         'title': '0 1px 0 #a17510, 0 2px 0 #a17510',
       },
+       keyframes: {
+        focusEffect: {
+          '0%': { opacity: '0.5'},
+          '100%': { opacity: '0'}
+        }
+      },
+      animation: {
+        focusEffect: 'focusEffect 1s ease-in-out'
+      }
     },
   },
   plugins: [],

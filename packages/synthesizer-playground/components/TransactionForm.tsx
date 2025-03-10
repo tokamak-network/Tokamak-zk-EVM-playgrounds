@@ -52,8 +52,9 @@ const TransactionForm = ({
                     onChange={(e) => setTransactionHash(e.target.value)}
                     placeholder="Enter transaction ID"
                     disabled={isProcessing}
-                    onBlur={() => setIsEditing(false)}
-                    autoFocus
+                    onBlur={() => {
+                      setIsEditing(false)
+                    }}
                   />
                 ) : (
                   <div className={`text-base font-normal font-ibm-mono ${error ? 'text-[#da1f1f]' : 'text-[#999999]'}`}>
