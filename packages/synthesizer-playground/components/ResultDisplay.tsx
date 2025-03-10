@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import CustomTabSwitcher from './CustomTabSwitcher';
 import LogCard from './LogCard';
 import ScrollBar from './ScrollBar';
 import { add0xPrefix } from '../helpers/helpers';
 import { StorageItem, StorageStoreItem, LogItem, ServerData } from '@/types/api-types';
-import { useViewport } from '@/hooks/useMediaView';
 
 type ResultDisplayProps = {
   activeTab: string;
@@ -29,7 +28,6 @@ const ResultDisplay = ({
 }: ResultDisplayProps) => {
   const [permutationHovered, setPermutationHovered] = useState(false);
   const [placementHovered, setPlacementHovered] = useState(false);
-  const { isViewportSatisfied, width, height } = useViewport();
 
   const renderActiveTab = () => {
     if (activeTab === 'storageLoad') {
