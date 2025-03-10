@@ -20,6 +20,7 @@ export default function HomePage() {
   const [status, setStatus] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasProcessedOnce, setHasProcessedOnce] = useState(false);
+  const [isFirstQuery, setIsFirstQuery] = useState(true);
 
   // Data returned from the server
   const [storageLoad, setStorageLoad] = useState<StorageItem[]>([]);
@@ -129,7 +130,7 @@ export default function HomePage() {
         placementInstance: placementInstance ? JSON.stringify(placementInstance) : null,
       });
       setHasProcessedOnce(true);
-
+      setIsFirstQuery(false);
       setStatus(null);
       sessionStorage.removeItem('pendingTransactionId');
     } catch (error: Error | unknown) {
@@ -147,6 +148,7 @@ export default function HomePage() {
     const pendingTxId = sessionStorage.getItem('pendingTransactionId');
     if (pendingTxId) {
       setTransactionId(pendingTxId);
+      setIsFirstQuery(false);
       processTransaction(pendingTxId);
     }
   }, []);
@@ -169,6 +171,8 @@ export default function HomePage() {
   };
 
   const shouldShowResults = hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0);
+
+  console.log(shouldShowResults)
 
   return (
     <div className='flex flex-col justify-center items-center h-screen overflow-auto pt-[75px] relative'>
@@ -193,12 +197,8 @@ export default function HomePage() {
             />
             </>
           }
-          </HeaderTitle>
-        {status?.startsWith('Error') && (
-          <div className="p-4 mt-4 bg-red-800 rounded-lg text-white">
-            <p className="text-sm">{status}</p>
-          </div>
-        )}
+        </HeaderTitle>
+       <div className={`w-full ${isFirstQuery ? '' : 'h-full'}  flex flex-col justify-center items-center`}>
         {isProcessing  ? (
           <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
@@ -221,7 +221,8 @@ export default function HomePage() {
               )
             )}
           </div>
-        )}
+          )}
+          </div>
       </div>
         <div className="w-full mb-[15px]">
         <RainbowImage />

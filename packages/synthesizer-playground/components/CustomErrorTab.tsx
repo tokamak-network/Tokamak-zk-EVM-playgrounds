@@ -89,10 +89,8 @@ const CustomErrorTab = ({
             </div>
           </div>
         </div>
-
         <div className="self-stretch h-[1px] bg-[#5F5F5F]" />
       </div>
-
       <div className="w-[1px] self-stretch bg-[#5F5F5F]" />
     </div>
   );

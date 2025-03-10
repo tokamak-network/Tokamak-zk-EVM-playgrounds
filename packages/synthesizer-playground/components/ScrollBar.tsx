@@ -1,16 +1,12 @@
-import { useViewport } from '@/hooks/useMediaView';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode } from 'react';
+import { useContentView } from '@/hooks/useContentView';
 
 interface ScrollBarProps {
   children: ReactNode;
 }
 
 const ScrollBar = ({ children }: ScrollBarProps) => {
-  const {height} = useViewport()
-
-  const maxHeight = useMemo(() => {
-    return `${height - 450}px`
-  }, [height])
+  const {maxHeight} = useContentView()
   
   return (
     <>
