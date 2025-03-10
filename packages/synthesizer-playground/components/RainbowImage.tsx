@@ -12,12 +12,12 @@ export default function RainbowImage() {
         backgroundRepeat: "repeat-x",
         backgroundSize: "auto 100%",
         backgroundPosition: "center bottom",
-        animation: "moveRainbow 4s linear"
+        animation: "moveRainbow 6s linear"
       }}
     />
       <div className='absolute w-full h-[73px]'
            style={{
-          animation: "moveBani 4s linear"
+          animation: "moveBani 6s linear"
         }}
       >
         <Image src={Bani} alt="Rainbow"
