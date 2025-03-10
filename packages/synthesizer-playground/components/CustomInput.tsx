@@ -31,7 +31,7 @@ const CustomInput = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter transaction ID"
-        disabled={disabled}
+        // disabled={disabled}
         onFocus={() => setActive(true)}
         onBlur={handleBlur}
       />
