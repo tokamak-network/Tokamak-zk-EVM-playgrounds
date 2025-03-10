@@ -16,7 +16,7 @@ export default function RainbowImage() {
         animation: "moveRainbow 6s linear"
       }}
     />
-      <div className='absolute w-full h-[73px] z-[9999999]'
+      <div className='absolute w-full h-[73px] z-[9999999] opacity-0'
            style={{
           animation: "moveBani 6s linear"
         }}
@@ -36,12 +36,16 @@ export default function RainbowImage() {
           }
         }
             @keyframes moveBani {
-          from {
+          0% {
             transform: translateX(-100%);
-           
+            opacity: 1
           }
-          to {
-            transform: translateX(0%);  
+          99% {
+            opacity: 1
+          }
+          100% {
+            transform: translateX(0%);
+            opacity: 0;  
           }
         }
       `}</style>

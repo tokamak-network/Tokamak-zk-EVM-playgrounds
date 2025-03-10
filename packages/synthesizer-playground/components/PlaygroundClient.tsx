@@ -186,15 +186,16 @@ export default function HomePage() {
         />
       <div className="flex flex-1 flex-col justify-center items-center gap-y-[35px]">
         <HeaderTitle shouldShowResults={shouldShowResults}>
-       {<> <FormTitle isResultsShown={shouldShowResults} />
-        <TransactionForm
-          transactionHash={transactionId}
-          setTransactionHash={setTransactionId}
-          handleSubmit={handleSubmit}
-          isProcessing={isProcessing}
-          error={status?.startsWith('Error')}
-          isResultsShown={shouldShowResults}
-            />
+          {<>
+            <FormTitle isResultsShown={shouldShowResults} />
+            <TransactionForm
+              transactionHash={transactionId}
+              setTransactionHash={setTransactionId}
+              handleSubmit={handleSubmit}
+              isProcessing={isProcessing}
+              error={status?.startsWith('Error')}
+              isResultsShown={shouldShowResults}
+                />
             </>
           }
         </HeaderTitle>
