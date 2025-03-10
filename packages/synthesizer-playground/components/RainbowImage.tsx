@@ -1,12 +1,13 @@
 import Image from 'next/image';
 import Bani from "../assets/bani.svg"
-
+import { useViewport } from "@/hooks/useMediaView";
 export default function RainbowImage() {
- 
+  const { isOverBreakpoint } = useViewport();
+
   return (
     <div className='flex w-full h-[100px] relative overflow-hidden'> 
     <div 
-      className="w-full h-[50px] z-[1000] top-[40px] absolute" 
+      className={`w-full ${isOverBreakpoint ? 'h-[50px]' : 'h-[36px]'} z-[1000] top-[40px] absolute`} 
       style={{ 
         backgroundImage: "url('/assets/rainbow.svg')", 
         backgroundRepeat: "repeat-x",
@@ -15,13 +16,13 @@ export default function RainbowImage() {
         animation: "moveRainbow 6s linear"
       }}
     />
-      <div className='absolute w-full h-[73px]'
+      <div className='absolute w-full h-[73px] z-[9999999]'
            style={{
           animation: "moveBani 6s linear"
         }}
       >
         <Image src={Bani} alt="Rainbow"
-          width={113} height={73} className='absolute top-[25px] right-[-95px]'
+          width={isOverBreakpoint ? 113 : 92} height={isOverBreakpoint ? 73 : 60} className={`absolute top-[25px] ${isOverBreakpoint ? 'right-[-95px]' : 'right-[-78px]'}`}
        
         />
       </div>
