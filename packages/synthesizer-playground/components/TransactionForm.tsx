@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CustomInput from './CustomInput';
+import { useAnimation } from '@/context/AnimationContext';
 
 type TransactionFormProps = {
   transactionHash: string;
@@ -26,6 +27,8 @@ const TransactionForm = ({
     if (hash.length <= 35) return hash;
     return `${hash.slice(0, 35)}...`;
   };
+
+  const { updateAnimationKey } = useAnimation();
 
   const error = transactionHash === '' || transactionHash === undefined || transactionHash === null ? false : isError;
 
@@ -78,6 +81,7 @@ const TransactionForm = ({
                   onClick={() => {
                     handleSubmit();
                     setIsEditing(false);
+                    updateAnimationKey()
                   }}
                   disabled={isDisabled}
                   className="px-1 pb-0.5 justify-center items-center gap-2 flex cursor-pointer disabled:cursor-not-allowed"
@@ -119,7 +123,10 @@ const TransactionForm = ({
                 >
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    handleSubmit();
+                    updateAnimationKey()
+                  }}
                   disabled={isDisabled}
                     className="px-1 pb-0.5 justify-center items-center gap-2 flex cursor-pointer disabled:cursor-not-allowed"
                 >
