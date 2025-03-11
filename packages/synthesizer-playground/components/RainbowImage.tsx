@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Bani from "../assets/bani.svg"
 import { useViewport } from "@/hooks/useMediaView";
 import { useAnimation } from '@/context/AnimationContext';
+
 export default function RainbowImage() {
   const { isOverBreakpoint } = useViewport();
   const { animationKey } = useAnimation();
