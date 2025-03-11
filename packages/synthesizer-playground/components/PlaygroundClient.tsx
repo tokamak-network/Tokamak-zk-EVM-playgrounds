@@ -211,7 +211,7 @@ export default function HomePage() {
       <div className="flex flex-1 flex-col justify-center items-center gap-y-[35px]">
         <HeaderTitle shouldShowResults={shouldShowResults}>
           {<>
-            <FormTitle isResultsShown={shouldShowResults} isProcessing={isProcessing} />
+            <FormTitle isResultsShown={shouldShowResults} isProcessing={isProcessing} needToExpand={needToExpand} />
             <TransactionForm
               transactionHash={transactionId}
               setTransactionHash={setTransactionId}
@@ -219,6 +219,7 @@ export default function HomePage() {
               isProcessing={isProcessing}
               isError={status?.startsWith('Error')}
               isResultsShown={shouldShowResults}
+              needToExpand={needToExpand}
                 />
             </>
           }

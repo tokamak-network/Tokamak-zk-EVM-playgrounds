@@ -9,6 +9,7 @@ type TransactionFormProps = {
   isProcessing: boolean;
   isError?: boolean;
   isResultsShown?: boolean;
+  needToExpand: boolean;
 };
 
 const TransactionForm = ({
@@ -18,6 +19,7 @@ const TransactionForm = ({
   isProcessing,
   isError = false,
   isResultsShown = false,
+  needToExpand
 }: TransactionFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const isDisabled = !transactionHash || isProcessing;
@@ -34,7 +36,7 @@ const TransactionForm = ({
 
   return (
     <div className={`flex items-center gap-4 transition-all duration-300`}>
-      {isResultsShown ? (
+      {isResultsShown || needToExpand ? (
         <div className="h-10 justify-start items-center gap-4 inline-flex">
           <div 
             className="w-[400px] h-10 flex-col justify-center items-start inline-flex overflow-hidden cursor-text"
