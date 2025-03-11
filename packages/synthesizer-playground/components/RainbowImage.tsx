@@ -8,10 +8,10 @@ export default function RainbowImage() {
   const { animationKey } = useAnimation();
 
   return (
-    <div className='flex w-full h-[81px] relative overflow-hidden'> 
+    <div className={`flex w-full ${isOverBreakpoint ? 'h-[75px]' : 'h-[63px]'} relative overflow-hidden `}> 
       
     <div 
-        className={`absolute w-full ${isOverBreakpoint ? 'h-[50px]' : 'h-[36px]'} z-[1000] bottom-[20px]
+        className={`absolute w-full ${isOverBreakpoint ? 'h-[50px]' : 'h-[36px]'} z-[1000] bottom-[11px]
         '} 
       `} 
       style={{ 
@@ -24,15 +24,14 @@ export default function RainbowImage() {
         key={animationKey}
       
       />
-      <div className='absolute w-full h-[81px] z-[9999999] opacity-0'
+      <div className={`absolute w-full ${isOverBreakpoint ? 'h-[75px]' : 'h-[63px]'} z-[9999999] opacity-0`}
            style={{
           animation: "moveBani 6s linear"
         }}
         key={animationKey+1}
-        
       >
         <Image src={Bani} alt="Rainbow"
-          width={isOverBreakpoint ? 113 : 92} height={isOverBreakpoint ? 73 : 60} className={`absolute bottom-[8px] ${isOverBreakpoint ? 'right-[-95px]' : 'right-[-78px]'}`}
+          width={isOverBreakpoint ? 113 : 92} height={isOverBreakpoint ? 73 : 60} className={`absolute bottom-[6px] ${isOverBreakpoint ? 'right-[-95px]' : 'right-[-78px]'}`}
           />
       </div>
        <style jsx>{`
