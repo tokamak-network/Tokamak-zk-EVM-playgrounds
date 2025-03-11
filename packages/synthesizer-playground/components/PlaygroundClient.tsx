@@ -153,6 +153,8 @@ export default function HomePage() {
     }
   }, []);
 
+
+
   const handleSubmit = () => {
     if (isProcessing) return;
     processTransaction(transactionId);
@@ -174,6 +176,21 @@ export default function HomePage() {
 
   const transactionIdDefined = transactionId !== '' && transactionId !== undefined && transactionId !== null;
 
+  // Debounce the status reset to prevent flickering
+  // When input field is cleared, we want to reset the status,
+  // but immediate state updates can cause visual jitter.
+  // Using setTimeout moves the state update to the next event loop tick,
+  // allowing the UI to settle before the status change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (transactionId === '') {
+        setStatus('');
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [transactionId]);
+  
   return (
     <div className='flex flex-col justify-center items-center h-screen overflow-auto pt-[75px] relative'>
    
