@@ -6,6 +6,7 @@ interface CustomInputProps {
   disabled?: boolean;
   error?: boolean;
   onBlur?: () => void;
+  setTransactionHash: (value: string) => void;
 }
 
 const CustomInput = ({
@@ -14,6 +15,7 @@ const CustomInput = ({
   disabled = false,
   error = false,
   onBlur,
+  setTransactionHash
 }: CustomInputProps) => {
   const [active, setActive] = useState(false);
 
@@ -32,7 +34,11 @@ const CustomInput = ({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter transaction ID"
         // disabled={disabled}
-        onFocus={() => setActive(true)}
+        onFocus={() => {
+          setActive(true)
+          setTransactionHash('')
+
+        }}
         onBlur={handleBlur}
       />
       {/* <div className={`absolute inset-0 bg-[#5B9AFF] opacity-0 pointer-events-none ${active && !disabled ? 'animate-focusEffect' : ''}`} />

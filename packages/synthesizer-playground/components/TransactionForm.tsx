@@ -6,7 +6,7 @@ type TransactionFormProps = {
   setTransactionHash: (value: string) => void;
   handleSubmit: () => void;
   isProcessing: boolean;
-  error?: boolean;
+  isError?: boolean;
   isResultsShown?: boolean;
 };
 
@@ -15,7 +15,7 @@ const TransactionForm = ({
   setTransactionHash,
   handleSubmit,
   isProcessing,
-  error = false,
+  isError = false,
   isResultsShown = false,
 }: TransactionFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -27,18 +27,15 @@ const TransactionForm = ({
     return `${hash.slice(0, 35)}...`;
   };
 
-  const handleInputFocus = () => {
-    setIsEditing(true);
-    setTransactionHash('');
-  };
-// ${isResultsShown ? 'top-[156px] h-[40px]' : 'top-[424px]'}
+  const error = transactionHash === '' || transactionHash === undefined || transactionHash === null ? false : isError;
+
   return (
     <div className={`flex items-center gap-4 transition-all duration-300`}>
       {isResultsShown ? (
         <div className="h-10 justify-start items-center gap-4 inline-flex">
           <div 
             className="w-[400px] h-10 flex-col justify-center items-start inline-flex overflow-hidden cursor-text"
-            onClick={handleInputFocus}
+            onClick={()=>setIsEditing(true)}
           >
             <div className="self-stretch h-px bg-[#a8a8a8]" />
             <div className="self-stretch grow shrink basis-0 justify-center items-center gap-2 inline-flex">
@@ -47,7 +44,7 @@ const TransactionForm = ({
                 {isEditing ? (
                   <input
                     type="text"
-                    className="w-full h-full border-none bg-transparent px-0 font-ibm-mono text-base font-normal text-[#999999] outline-none placeholder:text-[#999999] focus:placeholder:opacity-0"
+                    className="w-full h-full border-none bg-transparent px-0 font-ibm-mono text-base font-normal text-[#999999] outline-none placeholder:text-[#999999]"
                     value={transactionHash}
                     onChange={(e) => setTransactionHash(e.target.value)}
                     placeholder="Enter transaction ID"
@@ -57,8 +54,9 @@ const TransactionForm = ({
                     }}
                     onFocus={() => {
                       setIsEditing(true)
-                      setTransactionHash('')
-                    }}
+                     setTransactionHash('')
+                   }}
+                   autoFocus  
                   />
                 ) : (
                   <div className={`text-base font-normal font-ibm-mono ${error ? 'text-[#da1f1f]' : 'text-[#999999]'}`}>
@@ -74,7 +72,7 @@ const TransactionForm = ({
           <div className="h-10 pr-px flex-col justify-center items-center inline-flex overflow-hidden">
             <div className="grow shrink basis-0 flex-col justify-center items-center flex">
               <div className="self-stretch h-px bg-[#a8a8a8]" />
-              <div className={`grow shrink basis-0 ${error ? 'bg-[#bc2828] bg-[#BC2828] hover:bg-[#EC3030]' : (isEditing || isProcessing) && transactionHash ? 'bg-[#2A72E5] hover:bg-[#5B9AFF] active:bg-[#1057C9]' : 'bg-[#7c7c88]'} justify-center items-center gap-2 inline-flex`}>
+              <div className={`grow shrink basis-0 ${error ? 'bg-[#bc2828] hover:bg-[#EC3030]' : (isEditing || isProcessing) && transactionHash ? 'bg-[#2A72E5] hover:bg-[#5B9AFF] active:bg-[#1057C9]' : 'bg-[#7c7c88]'} justify-center items-center gap-2 inline-flex`}>
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
                   onClick={() => {
@@ -104,7 +102,8 @@ const TransactionForm = ({
             value={transactionHash}
             onChange={setTransactionHash}
             disabled={isProcessing}
-            error={error}
+              error={error}
+              setTransactionHash={setTransactionHash}
           />
           <div className="w-40 h-[59px] pr-px flex-col justify-center items-center inline-flex overflow-hidden">
             <div className="flex-col justify-center items-center flex">
