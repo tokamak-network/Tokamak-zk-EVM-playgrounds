@@ -14,7 +14,7 @@ const CustomTabSwitcher = ({ activeTab, setActiveTab }: CustomTabSwitcherProps) 
         >
           <div className="bg-[#BDBDBD] flex flex-col justify-center items-center">
             <div className="self-stretch h-[1px] bg-[#DFDFDF]" />
-            <div className="h-[40px] flex justify-center items-center">
+            <div className="h-[44px] flex justify-center items-center">
               <div className="w-[1px] self-stretch bg-[#DFDFDF]" />
               <div className="px-4 flex justify-center items-center h-full">
                 <div className="text-[#222222] text-base font-ibm-mono font-medium tracking-[0.15px]">
