@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 type CustomErrorTabProps = {
   errorMessage?: string;
@@ -8,18 +8,31 @@ const CustomErrorTab = ({
   errorMessage = "Failed to fetch transaction bytecode.\nPlease check the transaction ID and try again.",
 }: CustomErrorTabProps) => {
   const [isHovered, setIsHovered] = useState(false);
-
   const handleGoToMain = () => {
     window.location.reload();
   };
 
+  const errorMessageForInterface = useMemo(() => {
+    switch (true) {
+      case errorMessage.includes('Invalid API KEY'):
+        return `Etherscan API key missing or invalid.
+        Please set a valid API key in the settings and try again.`;
+      case errorMessage.includes('Unsupported'):
+        return `Invalid token selected. Please select TON,USDC or USDT and try again.`;
+      // case errorMessage.includes('Unsupported'):
+      //   return `Unsupported function. Please use standard ERC20 functions only. TON's approveAndCall function is not supported. `;
+      default:
+        return "Failed to fetch transaction bytecode.\nPlease check the transaction ID and try again.";
+    }
+  }, [errorMessage]);
+
   return (
-    <div className="w-[402px] h-[195px] inline-flex justify-center items-center z-10">
+    <div className="w-[402px] inline-flex justify-center items-center z-10">
       {/* Left vertical border */}
       <div className="w-[1px] self-stretch bg-[#DFDFDF]" />
 
       {/* Main error container */}
-      <div className="w-[400px] h-[195px] self-stretch bg-[#BDBDBD] flex flex-col justify-start items-start">
+      <div className="w-[400px] self-stretch bg-[#BDBDBD] flex flex-col justify-start items-start">
         {/* Header */}
         <div className="self-stretch h-[23px] flex flex-col justify-start items-start">
           <div className="self-stretch h-[1px] bg-[#DFDFDF]" />
@@ -59,7 +72,7 @@ const CustomErrorTab = ({
           {/* Error message and button */}
           <div className="flex flex-col justify-start items-start gap-4">
             <div className="self-stretch text-[#222] text-sm font-ibm-mono leading-[23px] whitespace-pre-line text-left">
-              {errorMessage}
+              {errorMessageForInterface}
             </div>
 
             {/* Back to main button */}

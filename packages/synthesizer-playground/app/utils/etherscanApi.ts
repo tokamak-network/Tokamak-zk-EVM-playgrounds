@@ -32,7 +32,8 @@ export async function fetchTransactionBytecode(transactionId: string): Promise<{
       },
     });
 
-    console.log('response', response);
+    console.log("*******")
+    console.log('response', response.data);
 
     // Validate the response
     if (
@@ -41,6 +42,9 @@ export async function fetchTransactionBytecode(transactionId: string): Promise<{
       !response.data.result ||
       !response.data.result.input
     ) {
+      if(response.data.result.includes("Invalid API Key"))  {
+        throw new Error('Invalid API KEY');
+      }
       throw new Error('Transaction bytecode not found or invalid response from Etherscan.');
     }
 
@@ -50,7 +54,9 @@ export async function fetchTransactionBytecode(transactionId: string): Promise<{
       to: response.data.result.to,
     };
   } catch (error) {
-    console.error('Error fetching transaction bytecode:', error);
+    if(error instanceof Error) {
+      throw error;
+    }
     throw new Error('Failed to fetch transaction bytecode. Please check the transaction ID and try again.');
   }
 }

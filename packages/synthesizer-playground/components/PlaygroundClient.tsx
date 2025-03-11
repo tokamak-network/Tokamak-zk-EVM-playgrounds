@@ -142,7 +142,7 @@ export default function HomePage() {
       setIsProcessing(false);
     }
   };
-
+  
   // Reload pending transaction if user refreshes
   useEffect(() => {
     const pendingTxId = sessionStorage.getItem('pendingTransactionId');
