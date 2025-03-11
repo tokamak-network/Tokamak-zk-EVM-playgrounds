@@ -71,7 +71,7 @@ const CustomErrorTab = ({
 
           {/* Error message and button */}
           <div className="flex flex-col justify-start items-start gap-4">
-            <div className="self-stretch text-[#222] text-sm font-ibm-mono leading-[23px] whitespace-pre-line text-left">
+            <div className="self-stretch text-[#222] text-sm font-ibm-mono leading-[23px] whitespace-pre-line text-left tracking-[-0.28px]">
               {errorMessageForInterface}
             </div>
 
