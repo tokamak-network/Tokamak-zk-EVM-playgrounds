@@ -172,6 +172,8 @@ export default function HomePage() {
 
   const shouldShowResults = hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0);
 
+  const transactionIdDefined = transactionId !== '' && transactionId !== undefined && transactionId !== null;
+
   return (
     <div className='flex flex-col justify-center items-center h-screen overflow-auto pt-[75px] relative'>
    
@@ -202,7 +204,7 @@ export default function HomePage() {
           <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
           <div>
-            {status && status.startsWith('Error') ? (
+            {status && status.startsWith('Error') && transactionIdDefined ? (
               <CustomErrorTab errorMessage={status.replace('Error: ', '')} />
             ) : (
               /* Show results if we have any data */
