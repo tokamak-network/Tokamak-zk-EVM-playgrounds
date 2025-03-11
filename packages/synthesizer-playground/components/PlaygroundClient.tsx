@@ -11,6 +11,7 @@ import RainbowImage from '@/components/RainbowImage';
 import { StorageItem, StorageStoreItem, LogItem, ServerData, ApiResponse } from '@/types/api-types';
 import FormTitle from './FormTitle';
 import HeaderTitle from './HeaderTitle';
+import { useViewport } from '@/hooks/useMediaView';
 
 // Determine the external API URL from env variable or fallback to localhost
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
@@ -130,8 +131,8 @@ export default function HomePage() {
         placementInstance: placementInstance ? JSON.stringify(placementInstance) : null,
       });
       setHasProcessedOnce(true);
-      setIsFirstQuery(false);
       setStatus(null);
+      setIsFirstQuery(false);
       sessionStorage.removeItem('pendingTransactionId');
     } catch (error: Error | unknown) {
       console.error('Error:', error);
@@ -140,7 +141,10 @@ export default function HomePage() {
       sessionStorage.removeItem('pendingTransactionId');
     } finally {
       setIsProcessing(false);
-    }
+      if(!isOverBreakpoint) {
+        setIsFirstQuery(false);
+      }
+    } 
   };
   
   // Reload pending transaction if user refreshes
@@ -190,7 +194,10 @@ export default function HomePage() {
 
     return () => clearTimeout(timer);
   }, [transactionId]);
-  
+
+  const { isOverBreakpoint } = useViewport();
+  const needToExpand = (!isOverBreakpoint && (isProcessing || status && status.startsWith('Error') || !isFirstQuery)) || isOverBreakpoint && !isFirstQuery;
+
   return (
     <div className='flex flex-col justify-center items-center h-screen overflow-auto pt-[75px] relative'>
    
@@ -204,7 +211,7 @@ export default function HomePage() {
       <div className="flex flex-1 flex-col justify-center items-center gap-y-[35px]">
         <HeaderTitle shouldShowResults={shouldShowResults}>
           {<>
-            <FormTitle isResultsShown={shouldShowResults} />
+            <FormTitle isResultsShown={shouldShowResults} isProcessing={isProcessing} />
             <TransactionForm
               transactionHash={transactionId}
               setTransactionHash={setTransactionId}
@@ -216,7 +223,7 @@ export default function HomePage() {
             </>
           }
         </HeaderTitle>
-       <div className={`w-full ${isFirstQuery ? '' : 'h-full'}  flex flex-col justify-start items-center`}>
+       <div className={`w-full ${isFirstQuery && !needToExpand ? '' : 'h-full'}  flex flex-col ${needToExpand ? 'justify-center' : 'justify-start'} items-center`}>
         {isProcessing  ? (
           <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
