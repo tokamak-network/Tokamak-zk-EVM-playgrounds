@@ -176,7 +176,7 @@ export default function HomePage() {
     URL.revokeObjectURL(url);
   };
 
-  const shouldShowResults = hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0);
+  const shouldShowResults = (hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0)) && status === null;
 
   const transactionIdDefined = transactionId !== '' && transactionId !== undefined && transactionId !== null;
 
