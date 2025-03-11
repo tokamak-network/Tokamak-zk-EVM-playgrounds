@@ -1,9 +1,11 @@
 import Image from 'next/image';
 import Bani from "../assets/bani.svg"
 import { useViewport } from "@/hooks/useMediaView";
+import { useAnimation } from '@/context/AnimationContext';
 export default function RainbowImage() {
   const { isOverBreakpoint } = useViewport();
-
+  const { animationKey } = useAnimation();
+  
   return (
     <div className='flex w-full h-[100px] relative overflow-hidden'> 
     <div 
@@ -14,12 +16,16 @@ export default function RainbowImage() {
         backgroundSize: "auto 100%",
         backgroundPosition: "center bottom",
         animation: "moveRainbow 6s linear"
-      }}
+        }}
+        key={animationKey}
+      
     />
       <div className='absolute w-full h-[73px] z-[9999999] opacity-0'
            style={{
           animation: "moveBani 6s linear"
         }}
+        key={animationKey+1}
+        
       >
         <Image src={Bani} alt="Rainbow"
           width={isOverBreakpoint ? 113 : 92} height={isOverBreakpoint ? 73 : 60} className={`absolute top-[25px] ${isOverBreakpoint ? 'right-[-95px]' : 'right-[-78px]'}`}

@@ -68,7 +68,7 @@ const CustomErrorTab = ({
                 <div className="self-stretch h-[31px] flex flex-col justify-center items-center">
                   <div className="self-stretch h-[1px] bg-[#A8A8A8]" />
                   <button
-                    className={`self-stretch h-7 flex items-center justify-center transition-colors duration-200
+                    className={`self-stretch h-7 flex items-center justify-center transition-colors no-underline
                       ${isHovered ? 'bg-[#A5A5A5]' : 'bg-[#BDBDBD]'}`}
                     onClick={handleGoToMain}
                     onMouseEnter={() => setIsHovered(true)}
@@ -76,7 +76,7 @@ const CustomErrorTab = ({
                   >
                     <div className="w-[1px] self-stretch bg-[#A8A8A8]" />
                     <div className="flex-1 h-[19px] pt-0.5 px-1 flex justify-center items-center gap-3">
-                      <div className="text-[#222222] text-sm font-ibm-mono whitespace-pre-line">
+                      <div className="text-[#222222] text-sm font-ibm-mono whitespace-pre-line no-underline text-decoration-none">
                         Back to main page
                       </div>
                     </div>

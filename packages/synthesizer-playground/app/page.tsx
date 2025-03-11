@@ -1,6 +1,8 @@
-import Playground from '@/components/Playground';
 import PlaygroundClient from '@/components/PlaygroundClient';
+import { AnimationProvider } from '@/context/AnimationContext';
 
 export default function Home() {
-  return <PlaygroundClient />;
+  return <AnimationProvider>
+          <PlaygroundClient />
+        </AnimationProvider>;
 }

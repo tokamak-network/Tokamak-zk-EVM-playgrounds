@@ -221,7 +221,7 @@ export default function HomePage() {
             )}
           </div>
           )}
-          </div>
+        </div>
       </div>
         <div className="w-full mb-[15px]">
         <RainbowImage />
