@@ -23,13 +23,13 @@ const CustomErrorTab = ({
         {/* Header */}
         <div className="self-stretch h-[23px] flex flex-col justify-start items-start">
           <div className="self-stretch h-[1px] bg-[#DFDFDF]" />
-          <div className="w-[385px] h-[22px] pb-0.5 px-2 bg-[#0F2058] flex justify-start items-center gap-3">
+          <div className="w-full h-[22px] pb-0.5 px-2 bg-[#0F2058] flex justify-start items-center gap-3">
             <div className="text-white text-xs font-ibm-mono">Error</div>
           </div>
         </div>
 
         {/* Body */}
-        <div className="self-stretch h-[140px] px-2 py-4 flex flex-col justify-start items-start gap-3">
+        <div className="self-stretch px-2 py-4 flex flex-col justify-start items-start gap-3">
           {/* Decorative error indicator */}
           <div className="pb-[1px] pr-[1px] flex flex-col justify-center items-center">
             <div className="bg-[#F2F2F2] flex flex-col justify-center items-center">
