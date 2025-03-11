@@ -197,7 +197,7 @@ export default function HomePage() {
             </>
           }
         </HeaderTitle>
-       <div className={`w-full ${isFirstQuery ? '' : 'h-full'}  flex flex-col justify-center items-center`}>
+       <div className={`w-full ${isFirstQuery ? '' : 'h-full'}  flex flex-col justify-start items-center`}>
         {isProcessing  ? (
           <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
