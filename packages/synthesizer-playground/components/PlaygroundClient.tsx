@@ -191,7 +191,7 @@ export default function HomePage() {
               setTransactionHash={setTransactionId}
               handleSubmit={handleSubmit}
               isProcessing={isProcessing}
-              error={status?.startsWith('Error')}
+              isError={status?.startsWith('Error')}
               isResultsShown={shouldShowResults}
                 />
             </>
