@@ -172,8 +172,6 @@ export default function HomePage() {
 
   const shouldShowResults = hasProcessedOnce || !!(storageLoad.length > 0 || storageStore.length > 0 || placementLogs.length > 0);
 
-  console.log(shouldShowResults)
-
   return (
     <div className='flex flex-col justify-center items-center h-screen overflow-auto pt-[75px] relative'>
    

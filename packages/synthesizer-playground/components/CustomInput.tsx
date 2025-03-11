@@ -35,10 +35,8 @@ const CustomInput = ({
         onFocus={() => setActive(true)}
         onBlur={handleBlur}
       />
-     {/* 배경용 div */}
-      <div className={`absolute inset-0 bg-[#5B9AFF] opacity-0 pointer-events-none ${active && !disabled ? 'animate-focusEffect' : ''}`} />
-      {/* 테두리용 div */}
-      <div className={`absolute inset-0 border-2 border-[#5B9AFF] opacity-0 pointer-events-none ${active && !disabled ? 'animate-focusEffect' : ''}`} />
+      {/* <div className={`absolute inset-0 bg-[#5B9AFF] opacity-0 pointer-events-none ${active && !disabled ? 'animate-focusEffect' : ''}`} />
+      <div className={`absolute inset-0 border-2 border-[#5B9AFF] opacity-0 pointer-events-none ${active && !disabled ? 'animate-focusEffect' : ''}`} /> */}
     </div>
   );
 };

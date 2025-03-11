@@ -55,6 +55,10 @@ const TransactionForm = ({
                     onBlur={() => {
                       setIsEditing(false)
                     }}
+                    onFocus={() => {
+                      setIsEditing(true)
+                      setTransactionHash('')
+                    }}
                   />
                 ) : (
                   <div className={`text-base font-normal font-ibm-mono ${error ? 'text-[#da1f1f]' : 'text-[#999999]'}`}>
@@ -70,7 +74,7 @@ const TransactionForm = ({
           <div className="h-10 pr-px flex-col justify-center items-center inline-flex overflow-hidden">
             <div className="grow shrink basis-0 flex-col justify-center items-center flex">
               <div className="self-stretch h-px bg-[#a8a8a8]" />
-              <div className={`grow shrink basis-0 ${error ? 'bg-[#bc2828]' : (isEditing || isProcessing) && transactionHash ? 'bg-[#2A72E5]' : 'bg-[#7c7c88]'} justify-center items-center gap-2 inline-flex`}>
+              <div className={`grow shrink basis-0 ${error ? 'bg-[#bc2828] bg-[#BC2828] hover:bg-[#EC3030]' : (isEditing || isProcessing) && transactionHash ? 'bg-[#2A72E5] hover:bg-[#5B9AFF] active:bg-[#1057C9]' : 'bg-[#7c7c88]'} justify-center items-center gap-2 inline-flex`}>
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
                   onClick={() => {
@@ -105,14 +109,20 @@ const TransactionForm = ({
           <div className="w-40 h-[59px] pr-px flex-col justify-center items-center inline-flex overflow-hidden">
             <div className="flex-col justify-center items-center flex">
               <div className="self-stretch h-px bg-[#a8a8a8]" />
-              <div className={`h-14 justify-center items-center gap-2 inline-flex ${
-                !transactionHash ? 'bg-[#7c7c88]' : error ? 'bg-[#BC2828]' : 'bg-[#2A72E5]'
-              }`}>
+              <div 
+                className={`h-14 justify-center items-center gap-2 inline-flex transition-colors cursor-pointer
+                  ${!transactionHash 
+                    ? 'bg-[#7c7c88] hover:bg-[#696975]' 
+                    : error 
+                      ? 'bg-[#BC2828] hover:bg-[#EC3030]' 
+                      : 'bg-[#2A72E5] hover:bg-[#5B9AFF] active:bg-[#1057C9]'
+                  }`}
+                >
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
                   onClick={handleSubmit}
                   disabled={isDisabled}
-                  className="px-1 pb-0.5 justify-center items-center gap-2 flex cursor-pointer disabled:cursor-not-allowed"
+                    className="px-1 pb-0.5 justify-center items-center gap-2 flex cursor-pointer disabled:cursor-not-allowed"
                 >
                   <div data-svg-wrapper className="relative">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
