@@ -208,7 +208,7 @@ export default function HomePage() {
           onLogoClick={() => window.location.reload()} 
           isResultsShown={shouldShowResults}
         />
-      <div className="flex flex-1 flex-col justify-center items-center gap-y-[35px]">
+      <div className="flex flex-1 flex-col justify-center items-center gap-y-[24px]">
         <HeaderTitle shouldShowResults={shouldShowResults}>
           {<>
             <FormTitle isResultsShown={shouldShowResults} isProcessing={isProcessing} needToExpand={needToExpand} />
