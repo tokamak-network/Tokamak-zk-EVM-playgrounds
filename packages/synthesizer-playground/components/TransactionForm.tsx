@@ -103,7 +103,7 @@ const TransactionForm = ({
           </div>
         </div>
       ) : (
-        <div className="w-[728px] h-[59px] flex items-center gap-4">
+        <div className="w-[728px] h-[59px] flex items-center">
           <CustomInput
             value={transactionHash}
             onChange={setTransactionHash}
