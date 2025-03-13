@@ -208,7 +208,7 @@ export default function HomePage() {
           onLogoClick={() => window.location.reload()} 
           isResultsShown={shouldShowResults}
         />
-      <div className="flex flex-1 flex-col justify-center items-center gap-y-[24px]">
+      <div className={`flex flex-1 flex-col ${needToExpand ? 'justify-between' : 'justify-center'} items-center gap-y-[24px]`}>
         <HeaderTitle shouldShowResults={shouldShowResults} isSmallScreen={needToExpand}>
           {<>
             <FormTitle isResultsShown={shouldShowResults} isProcessing={isProcessing} needToExpand={needToExpand} />
@@ -224,7 +224,7 @@ export default function HomePage() {
             </>
           }
         </HeaderTitle>
-       <div className={`w-full ${isFirstQuery && !needToExpand ? '' : 'h-full'}  flex flex-col ${needToExpand ? 'justify-center' : 'justify-start'} items-center`}>
+       <div className={`w-full ${isFirstQuery && !needToExpand ? '' : 'h-full'}  flex flex-col ${!needToExpand ? 'justify-center' : 'justify-start'} items-center`}>
         {isProcessing  ? (
           <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
