@@ -37,7 +37,7 @@ const TransactionForm = ({
   return (
     <div className={`flex items-center gap-4 transition-all duration-300`}>
       {isResultsShown || needToExpand ? (
-        <div className="h-10 justify-start items-center gap-4 inline-flex">
+        <div className="h-10 justify-start items-center gap-4 inline-flex col">
           <div 
             className="w-[400px] h-10 flex-col justify-center items-start inline-flex overflow-hidden cursor-text"
             onClick={()=>setIsEditing(true)}
@@ -77,7 +77,7 @@ const TransactionForm = ({
           <div className="h-10 pr-px flex-col justify-center items-center inline-flex overflow-hidden">
             <div className="grow shrink basis-0 flex-col justify-center items-center flex">
               <div className="self-stretch h-px bg-[#a8a8a8]" />
-              <div className={`grow shrink basis-0 ${error ? 'bg-[#bc2828] hover:bg-[#EC3030]' : (isEditing || isProcessing) && transactionHash ? 'bg-[#2A72E5] hover:bg-[#5B9AFF] active:bg-[#1057C9]' : 'bg-[#7c7c88]'} justify-center items-center gap-2 inline-flex`}>
+              <div className={`grow shrink basis-0 ${error ? 'bg-[#bc2828] hover:bg-[#EC3030]' : (isEditing || isProcessing) && transactionHash ? 'bg-[#2A72E5] hover:bg-[#5B9AFF] active:bg-[#1057C9]' : 'bg-[#7c7c88]'} justify-center items-center gap-2 inline-flex h-[59px]`}>
                 <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
                   onClick={() => {
@@ -103,7 +103,7 @@ const TransactionForm = ({
           </div>
         </div>
       ) : (
-        <div className="w-[728px] h-[59px] flex items-center">
+        <div className="w-[728px] h-[59px] flex items-center gap-x-[16px]">
           <CustomInput
             value={transactionHash}
             onChange={setTransactionHash}
@@ -113,7 +113,6 @@ const TransactionForm = ({
           />
           <div className="w-40 h-[59px] pr-px flex-col justify-center items-center inline-flex overflow-hidden">
             <div className="flex-col justify-center items-center flex">
-              <div className="self-stretch h-px bg-[#a8a8a8]" />
               <div 
                 className={`h-14 justify-center items-center gap-2 inline-flex transition-colors cursor-pointer
                   ${!transactionHash 
@@ -121,16 +120,15 @@ const TransactionForm = ({
                     : error 
                       ? 'bg-[#BC2828] hover:bg-[#EC3030]' 
                       : 'bg-[#2A72E5] hover:bg-[#5B9AFF] active:bg-[#1057C9]'
-                  }`}
+                  } h-[59px] w-[160px] border-[1px] border-t-[#A8A8A8] border-l-[#A8A8A8] border-r-[#5F5F5F] border-b-[#5F5F5F]`}
                 >
-                <div className="w-px self-stretch bg-[#a8a8a8]" />
                 <button
                   onClick={() => {
                     handleSubmit();
                     updateAnimationKey()
                   }}
                   disabled={isDisabled}
-                    className="px-1 pb-0.5 justify-center items-center gap-2 flex cursor-pointer disabled:cursor-not-allowed"
+                    className="px-1 pb-0.5 justify-center items-center gap-2 flex cursor-pointer disabled:cursor-not-allowed h-[100%]"
                 >
                   <div data-svg-wrapper className="relative">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -138,14 +136,11 @@ const TransactionForm = ({
                     </svg>
                   </div>
                   <div className="text-[#dfdfdf] text-2xl font-ibm-mono font-medium leading-[31.2px]">Process</div>
-                </button>
-                <div className="w-px self-stretch bg-[#5f5f5f]" />
+                  </button>
+                </div>
               </div>
-              <div className="self-stretch h-px bg-[#5f5f5f]" />
-              <div className="self-stretch h-px" />
             </div>
           </div>
-        </div>
       )}
     </div>
   );
