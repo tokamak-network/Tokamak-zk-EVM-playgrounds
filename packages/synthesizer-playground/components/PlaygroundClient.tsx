@@ -209,7 +209,7 @@ export default function HomePage() {
           isResultsShown={shouldShowResults}
         />
       <div className="flex flex-1 flex-col justify-center items-center gap-y-[24px]">
-        <HeaderTitle shouldShowResults={shouldShowResults}>
+        <HeaderTitle shouldShowResults={shouldShowResults} isSmallScreen={needToExpand}>
           {<>
             <FormTitle isResultsShown={shouldShowResults} isProcessing={isProcessing} needToExpand={needToExpand} />
             <TransactionForm
