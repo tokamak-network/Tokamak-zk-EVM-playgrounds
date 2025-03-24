@@ -224,7 +224,7 @@ export default function HomePage() {
             </>
           }
         </HeaderTitle>
-       <div className={`w-full ${isFirstQuery && !needToExpand ? '' : 'h-full'}  flex flex-col ${needToExpand ? 'justify-center' : 'justify-start'} items-center`}>
+       <div className={`w-full ${isFirstQuery && !needToExpand ? '' : 'h-full'}  flex flex-col ${needToExpand && isProcessing ? 'justify-center' : 'justify-start'} items-center`}>
         {isProcessing  ? (
           <CustomLoading isResultsShown={shouldShowResults} />
         ) : (
