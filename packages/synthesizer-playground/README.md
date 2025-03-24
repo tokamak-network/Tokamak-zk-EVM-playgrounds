@@ -51,17 +51,12 @@ This tool is particularly useful for developers working with the Tokamak ZK-EVM 
 
 The application consists of two parts: a Next.js frontend and an Express server for handling the Synthesizer operations.
 
-1. Start the Express server:
+1. Start the Express server and develop server with a single command:
    ```bash
-   npm run server
+   npm run start:dev
    ```
 
-2. In a separate terminal, start the Next.js development server:
-   ```bash
-   npm run dev
-   ```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser to use the playground.
+2. Open [http://localhost:3000](http://localhost:3000) in your browser to use the playground.
 
 ## Usage
 
