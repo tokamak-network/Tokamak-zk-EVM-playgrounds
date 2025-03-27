@@ -17,6 +17,8 @@ const CustomErrorTab = ({
       case errorMessage.includes('Invalid API KEY'):
         return `Etherscan API key missing or invalid.
         Please set a valid API key in the settings and try again.`;
+      case errorMessage.includes("Unsupported method"):
+        return `Unsupported function. Please use standard ERC20 functions only. TON's approveAndCall function is not supported. `
       case errorMessage.includes('Unsupported'):
         return `Invalid token selected. Please select TON,USDC or USDT and try again.`;
       // case errorMessage.includes('Unsupported'):
