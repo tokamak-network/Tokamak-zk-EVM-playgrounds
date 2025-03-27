@@ -59,6 +59,8 @@ app.post('/api/parseTransaction', async (req: Request, res: Response) => {
     // Get placement indices from the adapter instead of using hardcoded values
     const { storageIn, return: returnIndex, storageOut } = adapter.placementIndices;
 
+    console.log("placementsMap * ", placementsMap)
+
     // Log the actual values of the placement indices
     console.log('Placement indices:', {
       storageIn,
@@ -71,9 +73,9 @@ app.post('/api/parseTransaction', async (req: Request, res: Response) => {
     const storageStorePlacement = placementsMap.get(storageOut);
 
     console.log('Placement data found:', {
-      hasStorageLoad: !!storageLoadPlacement,
-      hasLogs: !!logsPlacement,
-      hasStorageStore: !!storageStorePlacement
+      hasStorageLoad: storageLoadPlacement?.inPts.length,
+      hasLogs: logsPlacement?.outPts.length,
+      hasStorageStore: storageStorePlacement?.outPts.length
     });
 
     const storageLoad = storageLoadPlacement?.inPts || [];

@@ -157,8 +157,6 @@ export default function HomePage() {
     }
   }, []);
 
-
-
   const handleSubmit = () => {
     if (isProcessing) return;
     processTransaction(transactionId);
