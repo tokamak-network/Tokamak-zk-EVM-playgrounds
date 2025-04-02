@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import ICON_1 from '../assets/background_images/Brightness Low.svg'
 import ICON_2 from '../assets/background_images/Ellipses Horizontal.svg'
-import ICON_3 from '../assets/background_images/Spinner.svg'
 import ICON_4 from '../assets/background_images/Spinner2.svg'
 import ICON_5 from '../assets/background_images/Vector.svg'
 import ICON_6 from '../assets/background_images/Vector2.svg'
