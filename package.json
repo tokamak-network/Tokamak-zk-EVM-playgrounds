@@ -11,9 +11,12 @@
     "lint": "lerna run lint"
   },
   "devDependencies": {
-    "lerna": "^8.0.0",
-    "typescript": "^5.0.0",
+    "autoprefixer": "^10.4.21",
     "eslint": "^8.0.0",
-    "prettier": "^3.0.0"
+    "lerna": "^8.0.0",
+    "postcss": "^8.5.3",
+    "prettier": "^3.0.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5.0.0"
   }
-} 
+}
