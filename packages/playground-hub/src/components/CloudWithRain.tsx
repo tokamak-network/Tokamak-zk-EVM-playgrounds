@@ -28,7 +28,7 @@ export default function CloudWithRain({
   };
 
   return (
-    <div className={`absolute ${position} `}>
+    <div className={`absolute ${position}`}>
       <img
         src={cloudImage}
         alt={`cloud-${cloudType}`}
