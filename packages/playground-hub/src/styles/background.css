@@ -1,0 +1,8 @@
+.grid-background {
+  background-color: #e6f7ff;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+  background-size: 30px 30px; /* grid cell size */
+  background-position: 0 0;
+}
