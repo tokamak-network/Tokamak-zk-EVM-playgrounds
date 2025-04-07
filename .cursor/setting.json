@@ -1,0 +1,24 @@
+{
+  "language": {
+    "comments": "en",
+    "documentation": "en",
+    "variables": "en"
+  },
+  "codeGeneration": {
+    "commentStyle": "descriptive",
+    "preferredLanguage": "en",
+    "includeDocumentation": true
+  },
+  "formatting": {
+    "indentSize": 2,
+    "useTabs": false,
+    "lineWidth": 100
+  },
+  "editor": {
+    "defaultLanguage": "en"
+  },
+  "assistant": {
+    "responseLanguage": "ko",
+    "codeCommentLanguage": "en"
+  }
+}

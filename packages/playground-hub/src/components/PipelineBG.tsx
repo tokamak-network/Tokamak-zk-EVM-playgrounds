@@ -1,9 +1,8 @@
 import outlinePipeline from "../assets/images/outline-pipe.png";
 import smallPipeline from "../assets/images/small-pipe.png";
 import pipeline from "../assets/images/pipe.png";
-import cloudBlue from "../assets/images/cloud-blue.svg";
-import cloudSkyblue from "../assets/images/cloud-skyblue.svg";
 import tank from "../assets/images/tank.png";
+import CloudWithRain from "./CloudWithRain";
 
 export default function PipelineBG() {
   return (
@@ -23,16 +22,19 @@ export default function PipelineBG() {
         alt="smallPipeline-bg"
         className="absolute max-w-full max-h-full object-contain mt-[155px]"
       />
-      <img
-        src={cloudBlue}
-        alt="cloudBlue"
-        className="absolute max-w-full max-h-full object-contain top-[113px] left-[305px]"
+
+      <CloudWithRain
+        position="top-[113px] left-[300px]"
+        cloudType="blue"
+        showRain={true}
       />
-      <img
-        src={cloudSkyblue}
-        alt="cloudSkyblue"
-        className="absolute max-w-full max-h-full object-contain top-[113px] right-[355px]"
+
+      <CloudWithRain
+        position="top-[113px] right-[355px]"
+        cloudType="skyblue"
+        showRain={true}
       />
+
       <img
         src={tank}
         alt="tank"
