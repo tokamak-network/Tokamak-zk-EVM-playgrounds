@@ -4,6 +4,7 @@ import pipeline from "../assets/images/pipe.png";
 import tank from "../assets/images/tank.png";
 import CloudWithRain from "./CloudWithRain";
 import Handle from "./Handle";
+import Bubbles from "./Bubble";
 
 export default function PipelineBG() {
   return (
@@ -41,7 +42,7 @@ export default function PipelineBG() {
         className="absolute max-w-full max-h-full object-contain bottom-[10px] right-[25px]"
       />
 
-      <div className="w-full h-full relative">
+      <div className="w-full h-full absolute">
         <Handle type="orange" className="top-[400px] left-[70px]" />
         <Handle type="orange" className="top-[535px] left-[482px]" />
         <Handle type="green" className="top-[575px] left-[216px]" />
@@ -49,6 +50,7 @@ export default function PipelineBG() {
         <Handle type="green" className="top-[695px] left-[695px]" />
         <Handle type="pink" className="top-[588px] left-[875px]" />
       </div>
+      <Bubbles />
     </div>
   );
 }
