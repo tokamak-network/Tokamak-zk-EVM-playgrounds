@@ -12,175 +12,249 @@ interface PixelFlowProps {
 const PixelFlow: React.FC<PixelFlowProps> = ({
   className,
   pipelinePath,
-  maxPixels = 300,
+  maxPixels: userMaxPixels,
   animationSpeed = 1,
-  maxYCells = 20, // 아래로 더 많은 셀 허용
-  maxXCells = 6, // X포인트 포함 오른쪽으로 6칸
+  maxYCells = 50, // Y축 길이 조절
+  maxXCells = 6, // X축 범위 (열 수)
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    // maxPixels를 maxXCells * maxYCells에 비례하게 설정
+    // 기본값은 각 셀당 평균 1.5개의 픽셀 (적절한 밀도를 위해)
+    const maxPixels =
+      userMaxPixels || Math.max(300, Math.ceil(maxXCells * maxYCells * 1.5));
+
+    console.log("PixelFlow mounted with:", { maxYCells, maxXCells, maxPixels });
 
     const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let width: number, height: number;
-    let pixels: Array<[number, number, number, number, string, number]> = [];
-    let coloredPixels: Array<{
-      x: number;
-      y: number;
-      alpha: number;
-      color: string;
-      vx: number;
-      vy: number;
-    }> = [];
+    // 캔버스 크기 설정
+    const updateCanvasSize = () => {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+    };
 
-    // 이미지에 맞게 X축 기준 색상 배열 (열별)
+    updateCanvasSize();
+
+    // 픽셀 크기 설정
+    const PIXEL_SIZE = 6;
+
+    // 색상 배열 (X축 열별)
     const colors = [
-      "#365969", // 첫번째 열 - 진한 파란색
-      "#159CFC", // 두번째 열 - 진한 회청색
-      "#7AC8FF", // 세번째 열 - 밝은 파란색
-      "#159CFC", // 네번째 열 - 하늘색
-      "#0079D0", // 다섯번째 열 - 밝은 파란색
-      "#365969", // 여섯번째 열 - 진한 파란색
+      "#0079D0", // 첫번째 열 - 진한 파란색
+      "#365969", // 두번째 열 - 진한 회청색
+      "#159CFC", // 세번째 열 - 밝은 파란색
+      "#7AC8FF", // 네번째 열 - 하늘색
+      "#159CFC", // 다섯번째 열 - 밝은 파란색
+      "#0079D0", // 여섯번째 열 - 진한 파란색
     ];
 
-    let currentPixel = 0;
+    // 시작점 설정
+    const startPoint =
+      pipelinePath && pipelinePath.length > 0
+        ? pipelinePath[0]
+        : { x: canvas.width / 2, y: 50 };
 
-    // 픽셀 크기와 그리드 간격을 6px로 설정
-    const PIXEL_SIZE = 6;
-    const GRID_SIZE = 6;
+    // 시작점의 그리드 좌표
+    const startGridX = Math.floor(startPoint.x / PIXEL_SIZE);
+    const startGridY = Math.floor(startPoint.y / PIXEL_SIZE);
 
-    // 시작점 설정 (파이프라인 경로 또는 기본값)
-    const defaultPoint = { x: canvas.width / 2, y: 50 };
-    const xPoint =
-      pipelinePath && pipelinePath.length > 0 ? pipelinePath[0] : defaultPoint;
+    // 고정된 픽셀 저장 (그리드 좌표 -> 색상)
+    const fixedPixels = new Map<string, string>();
 
-    const resize = () => {
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
-      canvas.width = width;
-      canvas.height = height;
+    // 파티클 클래스 정의
+    class Particle {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      color: string;
+      alpha: number;
+      column: number;
 
-      // 그리드 초기화
-      pixels = [];
-
-      // 전체 화면에 그리드 생성
-      for (let y = 0; y < Math.ceil(height / GRID_SIZE); y++) {
-        for (let x = 0; x < Math.ceil(width / GRID_SIZE); x++) {
-          pixels.push([
-            x * GRID_SIZE,
-            y * GRID_SIZE,
-            PIXEL_SIZE,
-            PIXEL_SIZE,
-            "transparent", // 배경 투명
-            0, // 알파값 0으로 설정
-          ]);
-        }
+      constructor() {
+        this.reset();
       }
-    };
 
-    const initColoredPixels = () => {
-      coloredPixels = [];
-      for (let i = 0; i < maxPixels; i++) {
-        coloredPixels.push({
-          x: xPoint.x,
-          y: xPoint.y,
-          alpha: 0,
-          color: colors[i % colors.length],
-          vx: (-0.3 + Math.random() * 0.6) * animationSpeed, // X 방향 속도 감소
-          vy: (0.5 + Math.random() * 0.5) * animationSpeed, // Y 방향은 항상 양수 (아래로만)
-        });
+      reset() {
+        // 0부터 maxXCells-1 사이의 열 인덱스 선택
+        this.column = Math.floor(Math.random() * maxXCells);
+
+        // X 좌표 계산 (시작점 + 열 인덱스)
+        this.x = (startGridX + this.column) * PIXEL_SIZE;
+
+        // Y 좌표는 시작점
+        this.y = startGridY * PIXEL_SIZE;
+
+        // 속도 설정
+        this.vx = (-0.1 + Math.random() * 0.2) * animationSpeed;
+        this.vy = (0.5 + Math.random() * 0.5) * animationSpeed;
+
+        // 색상 설정 (열 인덱스에 해당하는 색상)
+        this.color = colors[Math.min(this.column, colors.length - 1)];
+
+        // 알파값 설정
+        this.alpha = 1;
       }
-    };
 
-    const launchPixel = () => {
-      coloredPixels[currentPixel].x = xPoint.x + (-5 + Math.random() * 10); // 약간의 X 변동
-      coloredPixels[currentPixel].y = xPoint.y;
-      coloredPixels[currentPixel].alpha = 1;
+      update() {
+        // 위치 업데이트
+        this.x += this.vx;
+        this.y += this.vy;
 
-      // 속도 재설정 - 아래로만 이동하도록
-      coloredPixels[currentPixel].vx =
-        (-0.3 + Math.random() * 0.6) * animationSpeed;
-      coloredPixels[currentPixel].vy =
-        (0.5 + Math.random() * 0.5) * animationSpeed;
+        // 알파값 감소
+        this.alpha -= 0.005 * animationSpeed;
 
-      currentPixel++;
-      if (currentPixel >= maxPixels) currentPixel = 0;
-    };
+        // 그리드 좌표 계산
+        const gridX = Math.floor(this.x / PIXEL_SIZE);
+        const gridY = Math.floor(this.y / PIXEL_SIZE);
 
-    const drawGrid = () => {
-      ctx.clearRect(0, 0, width, height);
+        // X축 범위 체크
+        const inXRange = gridX >= startGridX && gridX < startGridX + maxXCells;
 
-      // 컬러 픽셀 업데이트
-      for (let i = 0; i < coloredPixels.length; i++) {
-        // 픽셀 위치를 그리드 인덱스로 변환
-        const gridX = Math.floor(coloredPixels[i].x / GRID_SIZE);
-        const gridY = Math.floor(coloredPixels[i].y / GRID_SIZE);
+        // Y축 최대 길이 체크
+        const maxGridY = startGridY + maxYCells;
+        const inYRange = gridY <= maxGridY;
 
-        // X포인트 기준 열 인덱스 계산
-        const xPointGridX = Math.floor(xPoint.x / GRID_SIZE);
-        const relativeX = gridX - xPointGridX;
-
-        // X포인트와 오른쪽 5칸 (총 6칸) 내에 있는지 확인
-        if (relativeX >= 0 && relativeX < maxXCells) {
-          const pix = gridY * Math.ceil(width / GRID_SIZE) + gridX;
-
-          if (pix >= 0 && pix < pixels.length) {
-            // 해당 열에 맞는 색상 적용
-            pixels[pix][4] = colors[relativeX];
-            pixels[pix][5] = coloredPixels[i].alpha;
+        // 범위 내에 있고 알파값이 충분히 높으면 고정 픽셀로 설정
+        if (inXRange && inYRange && this.alpha > 0.7) {
+          const key = `${gridX},${gridY}`;
+          if (!fixedPixels.has(key)) {
+            fixedPixels.set(key, this.color);
           }
         }
 
-        // 알파값 감소
-        if (coloredPixels[i].alpha > 0)
-          coloredPixels[i].alpha -= 0.008 * animationSpeed;
-        if (coloredPixels[i].alpha < 0) coloredPixels[i].alpha = 0;
-
-        // 위치 업데이트
-        coloredPixels[i].x += coloredPixels[i].vx;
-        coloredPixels[i].y += coloredPixels[i].vy;
-      }
-
-      // 픽셀 그리기 (배경 그리지 않음)
-      for (let i = 0; i < pixels.length; i++) {
-        if (pixels[i][5] > 0) {
-          ctx.globalAlpha = pixels[i][5];
-          ctx.fillStyle = pixels[i][4];
-          ctx.fillRect(pixels[i][0], pixels[i][1], pixels[i][2], pixels[i][3]);
+        // 범위를 벗어나거나 알파값이 0 이하면 재설정
+        if (!inXRange || !inYRange || this.alpha <= 0) {
+          this.reset();
         }
       }
-    };
 
-    const draw = () => {
-      launchPixel();
-      drawGrid();
-      animationFrameId = requestAnimationFrame(draw);
-    };
+      draw() {
+        if (this.alpha <= 0) return;
 
-    // 초기화 및 애니메이션 시작
-    resize();
-    initColoredPixels();
+        // 그리드 좌표 계산
+        const gridX = Math.floor(this.x / PIXEL_SIZE);
+        const gridY = Math.floor(this.y / PIXEL_SIZE);
 
-    let animationFrameId = requestAnimationFrame(draw);
+        // X축 범위 체크
+        const inXRange = gridX >= startGridX && gridX < startGridX + maxXCells;
+
+        // Y축 최대 길이 체크
+        const maxGridY = startGridY + maxYCells;
+        const inYRange = gridY <= maxGridY;
+
+        // 범위 내에 있으면 그리기
+        if (inXRange && inYRange) {
+          ctx!.globalAlpha = this.alpha;
+          ctx!.fillStyle = this.color;
+          ctx!.fillRect(
+            gridX * PIXEL_SIZE,
+            gridY * PIXEL_SIZE,
+            PIXEL_SIZE,
+            PIXEL_SIZE
+          );
+        }
+      }
+    }
+
+    // 파티클 배열 생성
+    const particles: Particle[] = [];
+    for (let i = 0; i < maxPixels; i++) {
+      particles.push(new Particle());
+    }
+
+    // 초기 행 설정
+    for (let x = 0; x < maxXCells; x++) {
+      const gridX = startGridX + x;
+      const key = `${gridX},${startGridY}`;
+      fixedPixels.set(key, colors[Math.min(x, colors.length - 1)]);
+    }
+
+    // 애니메이션 함수
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 경계선 그리기 (디버깅용)
+      const maxGridY = startGridY + maxYCells;
+
+      // Y축 최대 경계선
+      ctx.strokeStyle = "red";
+      ctx.beginPath();
+      ctx.moveTo(0, maxGridY * PIXEL_SIZE);
+      ctx.lineTo(canvas.width, maxGridY * PIXEL_SIZE);
+      ctx.stroke();
+
+      // X축 경계선
+      ctx.strokeStyle = "yellow";
+      ctx.beginPath();
+      ctx.moveTo(startGridX * PIXEL_SIZE, 0);
+      ctx.lineTo(startGridX * PIXEL_SIZE, canvas.height);
+      ctx.stroke();
+
+      ctx.strokeStyle = "yellow";
+      ctx.beginPath();
+      ctx.moveTo((startGridX + maxXCells) * PIXEL_SIZE, 0);
+      ctx.lineTo((startGridX + maxXCells) * PIXEL_SIZE, canvas.height);
+      ctx.stroke();
+
+      // 고정된 픽셀 그리기
+      fixedPixels.forEach((color, key) => {
+        const [x, y] = key.split(",").map(Number);
+
+        // X축 범위 체크
+        const inXRange = x >= startGridX && x < startGridX + maxXCells;
+
+        // Y축 범위 체크
+        const inYRange = y <= maxGridY;
+
+        if (inXRange && inYRange) {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = color;
+          ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+        }
+      });
+
+      // 파티클 업데이트 및 그리기
+      for (const particle of particles) {
+        particle.update();
+        particle.draw();
+      }
+
+      // 디버깅 정보
+      ctx.fillStyle = "white";
+      ctx.font = "12px Arial";
+      ctx.globalAlpha = 1;
+      ctx.fillText(`maxYCells: ${maxYCells}`, 10, 20);
+      ctx.fillText(`maxXCells: ${maxXCells}`, 10, 40);
+      ctx.fillText(`maxPixels: ${maxPixels}`, 10, 60);
+      ctx.fillText(
+        `X range: ${startGridX} to ${startGridX + maxXCells - 1}`,
+        10,
+        80
+      );
+
+      requestAnimationFrame(animate);
+    }
+
+    // 애니메이션 시작
+    const animationId = requestAnimationFrame(animate);
 
     // 리사이즈 이벤트 처리
-    const handleResize = () => {
-      resize();
-      initColoredPixels();
-    };
+    window.addEventListener("resize", updateCanvasSize);
 
-    window.addEventListener("resize", handleResize);
-
-    // 클린업 함수
+    // 클린업
     return () => {
-      window.removeEventListener("resize", handleResize);
-      cancelAnimationFrame(animationFrameId);
+      console.log("PixelFlow unmounted");
+      window.removeEventListener("resize", updateCanvasSize);
+      cancelAnimationFrame(animationId);
     };
-  }, [pipelinePath, maxPixels, animationSpeed, maxYCells, maxXCells]);
+  }, [pipelinePath, userMaxPixels, animationSpeed, maxYCells, maxXCells]);
 
   return (
     <canvas
