@@ -1,0 +1,118 @@
+import PipelineSection from "./PipelineSection";
+
+// 파이프라인 섹션 정의
+const EVM_TO_QAP_SECTION = {
+  id: "evm-to-qap",
+  segments: [
+    {
+      id: "segment1",
+      startX: 65,
+      startY: 0,
+      endX: 75,
+      endY: 90,
+      direction: "vertical" as const,
+      animationDuration: 1000,
+    },
+    {
+      id: "segment2",
+      startX: 60,
+      startY: 92,
+      endX: 400,
+      endY: 92,
+      direction: "horizontal" as const,
+      animationDuration: 1800,
+      delay: -600,
+    },
+    {
+      id: "segment3",
+      startX: 363,
+      startY: 88,
+      endX: 360,
+      endY: 210,
+      direction: "vertical" as const,
+      animationDuration: 1000,
+      delay: -800,
+    },
+    {
+      id: "segment4",
+      startX: 368,
+      startY: 215,
+      endX: 150,
+      endY: 215,
+      direction: "horizontal" as const,
+      animationDuration: 1300,
+      delay: -450,
+    },
+    {
+      id: "segment5",
+      startX: 190,
+      startY: 215,
+      endX: 190,
+      endY: 100,
+      direction: "vertical" as const,
+      animationDuration: 1000,
+      delay: -700,
+    },
+    {
+      id: "segment6",
+      startX: 180,
+      startY: 160,
+      endX: 100,
+      endY: 160,
+      direction: "horizontal" as const,
+      animationDuration: 800,
+      delay: -600,
+    },
+    {
+      id: "segment7",
+      startX: 120,
+      startY: 175,
+      endX: 120,
+      endY: 215,
+      direction: "vertical" as const,
+      animationDuration: 1000,
+      delay: -500,
+    },
+    {
+      id: "segment8",
+      startX: 120,
+      startY: 218,
+      endX: 30,
+      endY: 218,
+      direction: "horizontal" as const,
+      animationDuration: 1000,
+      delay: -600,
+    },
+  ],
+};
+
+interface EvmToQAPProps {
+  isActive?: boolean; // 외부에서 전달되는 활성화 트리거
+  onComplete?: () => void; // 애니메이션 완료 콜백
+}
+
+export default function EvmToQAP({
+  isActive = false,
+  onComplete,
+}: EvmToQAPProps) {
+  // 섹션 완료 핸들러
+  const handleSectionComplete = () => {
+    console.log("EVM to QAP animation completed");
+    if (onComplete) {
+      onComplete();
+    }
+  };
+
+  return (
+    <div className="absolute w-full h-full bottom-[5px]">
+      {/* 파이프라인 섹션 */}
+      <PipelineSection
+        id={EVM_TO_QAP_SECTION.id}
+        segments={EVM_TO_QAP_SECTION.segments}
+        isActive={isActive}
+        onComplete={handleSectionComplete}
+        baseDelay={0}
+      />
+    </div>
+  );
+}
