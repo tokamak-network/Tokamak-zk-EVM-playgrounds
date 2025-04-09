@@ -39,34 +39,6 @@ export default function PipelineBG() {
         className="absolute max-w-full max-h-full object-contain mr-[27px]"
       />
 
-      {/* 물이 흐르는 애니메이션을 위한 SVG 오버레이 */}
-      {/* <div className="absolute max-w-full max-h-full mt-[155px] pipeline-water-container">
-        <svg
-          width="100%"
-          height="100%"
-          viewBox="0 0 1000 800"
-          preserveAspectRatio="none"
-          className="pipeline-svg"
-        >
-          <path
-            d="M50,100 L300,100 C350,100 350,200 400,200 L700,200 C750,200 750,300 800,300 L950,300"
-            className="pipeline-path"
-            fill="none"
-            stroke="transparent"
-            strokeWidth="20"
-          />
-          <path
-            d="M50,100 L300,100 C350,100 350,200 400,200 L700,200 C750,200 750,300 800,300 L950,300"
-            className="water-animation"
-            fill="none"
-            stroke="#4FC3F7"
-            strokeWidth="18"
-            strokeDasharray="1000"
-            strokeDashoffset="1000"
-          />
-        </svg>
-      </div> */}
-
       {/* 픽셀 흐름 애니메이션 */}
       {/* <div className="absolute max-w-full max-h-full mt-[155px] w-full h-full">
         <PixelFlow pipelinePath={pipelinePath} />
@@ -100,6 +72,17 @@ export default function PipelineBG() {
         />
       )} */}
 
+      <CloudWithRain
+        position="top-[113px] left-[105px]"
+        cloudType="blue"
+        showRain={true}
+      />
+      <CloudWithRain
+        position="top-[113px] right-[155px]"
+        cloudType="skyblue"
+        showRain={true}
+      />
+
       <div className="w-full h-full absolute">
         <Handle type="orange" className="top-[400px] left-[70px]" />
         <Handle type="orange" className="top-[535px] left-[482px]" />
@@ -108,7 +91,7 @@ export default function PipelineBG() {
         <Handle type="green" className="top-[695px] left-[695px]" />
         <Handle type="pink" className="top-[588px] left-[875px]" />
       </div>
-      {/* <Bubbles /> */}
+      <Bubbles />
     </div>
   );
 }
