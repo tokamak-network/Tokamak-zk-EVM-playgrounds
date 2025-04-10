@@ -4,6 +4,8 @@ import cloudBlue from "../assets/images/cloud-blue.svg";
 import blueRain from "../assets/images/rain-blue.svg";
 import skyblueRain from "../assets/images/rain-skyblue.svg";
 import "../style.css";
+import { useAtom } from "jotai";
+import { activeSectionAtom } from "../atoms/pipelineAnimation";
 
 interface CloudWithRainProps {
   position: string;
@@ -20,6 +22,8 @@ export default function CloudWithRain({
 }: CloudWithRainProps) {
   const cloudImage = cloudType === "blue" ? cloudBlue : cloudSkyblue;
   const rainRef = useRef<HTMLDivElement>(null);
+
+  const [activeSection, setActiveSection] = useAtom(activeSectionAtom);
 
   // SVG 내부의 빗방울들에 개별 애니메이션 적용
   useEffect(() => {
@@ -50,14 +54,19 @@ export default function CloudWithRain({
   }, [showRain]);
 
   return (
-    <div className={`absolute ${position}`}>
+    <div className={`absolute ${position} z-[100]`}>
       <img
         src={cloudImage}
         alt={`cloud-${cloudType}`}
-        className="max-w-full max-h-full object-contain"
+        className="max-w-full max-h-full object-contain z-[100] cursor-pointer"
+        onClick={() =>
+          setActiveSection(
+            cloudType === "blue" ? "evm-to-qap" : "transaction-to-synthesizer"
+          )
+        }
       />
       {showRain && (
-        <div ref={rainRef} className={`absolute ${rainOffset}`}>
+        <div ref={rainRef} className={`absolute ${rainOffset} z-[50]`}>
           <object
             data={cloudType === "blue" ? blueRain : skyblueRain}
             type="image/svg+xml"
