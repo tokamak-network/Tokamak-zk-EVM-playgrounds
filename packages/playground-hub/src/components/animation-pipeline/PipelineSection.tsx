@@ -11,6 +11,7 @@ interface PipelineSegment {
   direction: "horizontal" | "vertical";
   animationDuration?: number;
   delay?: number; // 이전 세그먼트로부터의 지연 시간 (ms)
+  fillHeight?: number; // 채우기 높이
 }
 
 interface PipelineSectionProps {
@@ -145,6 +146,7 @@ export default function PipelineSection({
           persistent={true}
           delay={0} // 지연은 이 컴포넌트에서 직접 관리
           onFillComplete={() => handleSegmentComplete(segment.id)}
+          fillHeight={segment.fillHeight}
         />
       ))}
     </>
