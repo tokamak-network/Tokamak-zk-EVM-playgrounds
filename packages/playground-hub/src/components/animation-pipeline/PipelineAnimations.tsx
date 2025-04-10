@@ -3,6 +3,7 @@ import pipeline from "../../assets/images/pipe.png";
 import { useAtom } from "jotai";
 import { Section, activeSectionAtom } from "../../atoms/pipelineAnimation";
 import QAPToSetup from "./QAPToSetup";
+import TransactionToSynthesizer from "./TransactionToSynthesizer";
 
 export default function PipelineAnimations() {
   // 각 섹션의 활성화 상태 관리
@@ -28,6 +29,10 @@ export default function PipelineAnimations() {
       />
       <QAPToSetup
         isActive={activeSection === "qap-to-setup-synthesizer"}
+        onComplete={handleEvmToQAPComplete}
+      />
+      <TransactionToSynthesizer
+        isActive={activeSection === "transaction-to-synthesizer"}
         onComplete={handleEvmToQAPComplete}
       />
       {/* 기본 파이프라인 이미지 (배경) */}

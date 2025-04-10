@@ -5,4 +5,5 @@ export type Section =
   | "evm-to-qap"
   | "qap-to-setup-synthesizer"
   | "transaction-to-synthesizer";
-export const activeSectionAtom = atom<Section>("none");
+// export const activeSectionAtom = atom<Section>("none");
+export const activeSectionAtom = atom<Section>("transaction-to-synthesizer");
