@@ -15,6 +15,7 @@ interface PipelinesProps {
   onFillComplete?: () => void; // 채우기가 완료되었을 때 호출되는 콜백
   delay?: number; // 애니메이션 시작 지연 시간 (ms)
   persistent?: boolean; // 채워진 상태 유지 여부 (true: 유지, false: 다음 컴포넌트 실행 시 초기화)
+  fillHeight?: number; // 채우기 높이
 }
 
 // 전역 상태로 채워진 파이프라인 ID 관리
@@ -33,6 +34,7 @@ export default function Pipelines({
   onFillComplete,
   delay = 0,
   persistent = true,
+  fillHeight = 18,
 }: PipelinesProps) {
   const [currentFill, setCurrentFill] = useState(
     filledPipelines.has(id) ? 100 : fillPercentage
@@ -128,14 +130,15 @@ export default function Pipelines({
           // 수평 방향 채우기 (왼쪽에서 오른쪽 또는 오른쪽에서 왼쪽)
           const width = Math.abs(endX - startX);
           const fillWidth = width * (currentFill / 100);
+          const height = "25px";
 
           if (endX > startX) {
             // 왼쪽에서 오른쪽으로
             clipValue = `polygon(
               ${startX}px ${startY - 18}px, 
               ${startX + fillWidth}px ${startY - 18}px, 
-              ${startX + fillWidth}px ${startY + 18}px, 
-              ${startX}px ${startY + 18}px
+              ${startX + fillWidth}px ${startY + fillHeight}px, 
+              ${startX}px ${startY + fillHeight}px
             )`;
           } else {
             // 오른쪽에서 왼쪽으로

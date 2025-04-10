@@ -10,6 +10,7 @@ import PixelatedPipeline from "./PixelatedPipeline";
 import PixelFlow from "./PixelFlow";
 import Pipelines from "./Pipelines";
 import PipelineAnimations from "./animation-pipeline/PipelineAnimations";
+import PeipelineHandles from "./PeipelineHandles";
 
 // 이미지에 맞게 X축 기준 색상 배열 (열별)
 const colors = [
@@ -83,14 +84,7 @@ export default function PipelineBG() {
         showRain={true}
       />
 
-      <div className="w-full h-full absolute">
-        <Handle type="orange" className="top-[400px] left-[70px]" />
-        <Handle type="orange" className="top-[535px] left-[482px]" />
-        <Handle type="green" className="top-[575px] left-[216px]" />
-        <Handle type="green" className="top-[775px] left-[395px]" />
-        <Handle type="green" className="top-[695px] left-[695px]" />
-        <Handle type="pink" className="top-[588px] left-[875px]" />
-      </div>
+      <PeipelineHandles />
       <Bubbles />
     </div>
   );

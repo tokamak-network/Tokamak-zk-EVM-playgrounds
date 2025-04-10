@@ -2,6 +2,7 @@ import EvmToQAP from "./EvmToQAP";
 import pipeline from "../../assets/images/pipe.png";
 import { useAtom } from "jotai";
 import { Section, activeSectionAtom } from "../../atoms/pipelineAnimation";
+import QAPToSetup from "./QAPToSetup";
 
 export default function PipelineAnimations() {
   // 각 섹션의 활성화 상태 관리
@@ -23,6 +24,10 @@ export default function PipelineAnimations() {
       {/* EVM to QAP 파이프라인 */}
       <EvmToQAP
         isActive={activeSection === "evm-to-qap"}
+        onComplete={handleEvmToQAPComplete}
+      />
+      <QAPToSetup
+        isActive={activeSection === "qap-to-setup-synthesizer"}
         onComplete={handleEvmToQAPComplete}
       />
       {/* 기본 파이프라인 이미지 (배경) */}
