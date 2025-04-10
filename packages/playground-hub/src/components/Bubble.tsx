@@ -45,7 +45,7 @@ export default function Bubbles() {
     <div className="w-full h-full absolute">
       <Bubble type="evm" className="absolute top-[60px] left-[140px]" />
       <Bubble type="transaction" className="absolute top-[60px] left-[855px]" />
-      <Bubble type="compiler" className="absolute top-[345px] left-[85px]" />
+      <Bubble type="compiler" className="absolute top-[340px] left-[85px]" />
       <Bubble
         type="synthesizer"
         className="absolute top-[480px] left-[497px]"

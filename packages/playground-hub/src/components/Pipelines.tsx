@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-import pipeline from "../assets/images/pipe.png";
+import { useState, useEffect, useRef } from "react";
 import pipelineFilled from "../assets/images/pipe-filled.png";
 
 interface PipelinesProps {

@@ -9,7 +9,7 @@ export default function PeipelineHandles() {
     <div className="w-full h-full absolute">
       <Handle
         type="orange"
-        className="top-[400px] left-[70px]"
+        className="top-[395px] left-[70px]"
         onClick={() => setActiveSection("qap-to-setup-synthesizer")}
       />
       <Handle

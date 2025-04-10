@@ -84,8 +84,8 @@ export default function PipelineBG() {
         showRain={true}
       />
 
-      <PeipelineHandles />
-      <Bubbles />
+      {/* <PeipelineHandles />
+      <Bubbles /> */}
     </div>
   );
 }
