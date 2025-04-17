@@ -7,7 +7,7 @@ import Handle from "./Handle";
 import Bubbles from "./Bubble";
 import "../styles/pipelineAnimation.css";
 import PixelatedPipeline from "./PixelatedPipeline";
-import PixelFlow from "./PixelFlow";
+import PixelFlow from "./temp/PixelFlow";
 import Pipelines from "./Pipelines";
 import PipelineAnimations from "./animation-pipeline/PipelineAnimations";
 import PeipelineHandles from "./PeipelineHandles";
@@ -84,8 +84,8 @@ export default function PipelineBG() {
         showRain={true}
       />
 
-      {/* <PeipelineHandles />
-      <Bubbles /> */}
+      <PeipelineHandles />
+      <Bubbles />
     </div>
   );
 }
