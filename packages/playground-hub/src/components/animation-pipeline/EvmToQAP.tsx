@@ -1,4 +1,7 @@
+import PipelinePixelAnimation from "./PipelinePixelAnimation";
+import PipelineFlickerEffect from "./PipelinePixelAnimation";
 import PipelineSection from "./PipelineSection";
+import PixelFlow from "./PixelFlow";
 
 // 파이프라인 섹션 정의
 const EVM_TO_QAP_SECTION = {
@@ -113,6 +116,30 @@ export default function EvmToQAP({
         onComplete={handleSectionComplete}
         baseDelay={0}
       />
+
+      {EVM_TO_QAP_SECTION.segments.map((segment, index) => (
+        <PipelinePixelAnimation
+          key={`pixel-${segment.id}`}
+          startX={segment.startX}
+          startY={segment.startY}
+          endX={segment.endX}
+          endY={segment.endY}
+          direction={segment.direction}
+          isActive={isActive}
+          animationDuration={segment.animationDuration * 0.5} // PipelineSection보다 10% 짧게
+          delay={500}
+          pixelSize={4}
+          pixelDensity={1.5}
+          colors={[
+            "#365969",
+            "#159CFC",
+            "#7AC8FF",
+            "#159CFC",
+            "#0079D0",
+            "#365969",
+          ]}
+        />
+      ))}
     </div>
   );
 }
