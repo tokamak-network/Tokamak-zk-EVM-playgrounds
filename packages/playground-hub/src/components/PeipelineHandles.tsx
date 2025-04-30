@@ -35,7 +35,10 @@ export default function PeipelineHandles() {
         type="orange"
         className="top-[395px] left-[70px]"
         onClick={() => {
-          executeCommand("echo '핑크 핸들 클릭됨'");
+          // executeCommand("cargo run -p trusted-setup");
+          // executeCommand("cargo run -p preprocess");
+          executeCommand("cargo run -p protocol-script");
+
           setActiveSection("qap-to-setup-synthesizer");
         }}
       />

@@ -55,7 +55,7 @@ export default function PipelineSection({
   // isActive 변경 시 애니메이션 시작/중지
   useEffect(() => {
     if (isActive) {
-      console.log(`Section ${id} activated with baseDelay: ${baseDelay}ms`);
+      // console.log(`Section ${id} activated with baseDelay: ${baseDelay}ms`);
 
       // 이전 타임아웃 정리
       clearAllTimeouts();
@@ -99,18 +99,18 @@ export default function PipelineSection({
         const currentStartTime = prevStartTime + prevDuration + currentDelay;
         segmentStartTimes[currentSegment.id] = currentStartTime;
 
-        console.log(
-          `Scheduling segment ${currentSegment.id} to start at ${currentStartTime}ms`
-        );
-        console.log(
-          `  (prev start: ${prevStartTime}, prev duration: ${prevDuration}, delay: ${currentDelay})`
-        );
+        // console.log(
+        //   `Scheduling segment ${currentSegment.id} to start at ${currentStartTime}ms`
+        // );
+        // console.log(
+        //   `  (prev start: ${prevStartTime}, prev duration: ${prevDuration}, delay: ${currentDelay})`
+        // );
 
         // 현재 세그먼트 활성화 타임아웃 설정
         const timeout = setTimeout(() => {
-          console.log(
-            `Activating segment ${currentSegment.id} after ${currentStartTime}ms`
-          );
+          // console.log(
+          //   `Activating segment ${currentSegment.id} after ${currentStartTime}ms`
+          // );
           setActiveSegments((prev) => ({
             ...prev,
             [currentSegment.id]: true,
