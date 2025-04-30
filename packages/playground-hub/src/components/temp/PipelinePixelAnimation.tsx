@@ -62,19 +62,19 @@ const PipelinePixelAnimation: React.FC<PipelinePixelAnimationProps> = ({
     initParticles();
 
     // 디버깅 정보 출력
-    console.log("Pipeline pixel animation initialized", {
-      direction,
-      startX,
-      startY,
-      endX,
-      endY,
-      isRightToLeft,
-      isBottomToTop,
-      pipelineWidth,
-      pipelineHeight,
-      pipelineLeft,
-      pipelineTop,
-    });
+    // console.log("Pipeline pixel animation initialized", {
+    //   direction,
+    //   startX,
+    //   startY,
+    //   endX,
+    //   endY,
+    //   isRightToLeft,
+    //   isBottomToTop,
+    //   pipelineWidth,
+    //   pipelineHeight,
+    //   pipelineLeft,
+    //   pipelineTop,
+    // });
 
     return () => {
       if (animationFrameRef.current) {
