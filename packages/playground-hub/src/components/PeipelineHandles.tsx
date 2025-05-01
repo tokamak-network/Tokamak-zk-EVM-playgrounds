@@ -35,10 +35,6 @@ export default function PeipelineHandles() {
         type="orange"
         className="top-[395px] left-[70px]"
         onClick={() => {
-          // executeCommand("cargo run -p trusted-setup");
-          // executeCommand("cargo run -p preprocess");
-          executeCommand("cargo run -p protocol-script");
-
           setActiveSection("qap-to-setup-synthesizer");
         }}
       />
@@ -47,9 +43,21 @@ export default function PeipelineHandles() {
         className="top-[535px] left-[482px]"
         onClick={() => setActiveSection("qap-to-setup-synthesizer")}
       />
-      <Handle type="green" className="top-[575px] left-[216px]" />
+      <Handle
+        type="green"
+        className="top-[575px] left-[216px]"
+        onClick={() => {
+          executeCommand("cargo run -p trusted-setup");
+        }}
+      />
       <Handle type="green" className="top-[775px] left-[395px]" />
-      <Handle type="green" className="top-[695px] left-[695px]" />
+      <Handle
+        type="green"
+        className="top-[695px] left-[695px]"
+        onClick={() => {
+          executeCommand("cargo run -p protocol-script");
+        }}
+      />
       <Handle type="pink" className="top-[588px] left-[875px]" />
     </div>
   );
