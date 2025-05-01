@@ -12,7 +12,7 @@ if (started) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 1400,
+    width: 600,
     height: 900,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -120,7 +120,7 @@ const getPaths = () => {
 const { backendPath, qapCompilerPath, synthesizerPath } = getPaths();
 
 // Check if path exists
-const checkPath = (pathToCheck, name) => {
+const checkPath = (pathToCheck: string, name: string) => {
   if (fs.existsSync(pathToCheck)) {
     console.log(`${name} path exists: ${pathToCheck}`);
     return true;
