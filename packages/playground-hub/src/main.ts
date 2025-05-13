@@ -1,8 +1,26 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  MenuItemConstructorOptions,
+} from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import { spawn } from "child_process";
 import fs from "fs";
+import Store from "electron-store";
+
+// 설정을 위한 인터페이스
+interface AppSettings {
+  backendPath?: string;
+  qapCompilerPath?: string;
+  synthesizerPath?: string;
+}
+
+// 설정 저장소 초기화
+const store = new Store<AppSettings>();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -30,7 +48,105 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+
+  // 메뉴 생성
+  createMenu();
 };
+
+// 메뉴 생성 함수
+function createMenu(): void {
+  const isMac = process.platform === "darwin";
+
+  const template: MenuItemConstructorOptions[] = [
+    // macOS에서는 첫 번째 메뉴가 앱 이름
+    ...(isMac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: "about" },
+              { type: "separator" },
+              { role: "services" },
+              { type: "separator" },
+              { role: "hide" },
+              { role: "hideOthers" },
+              { role: "unhide" },
+              { type: "separator" },
+              { role: "quit" },
+            ],
+          },
+        ]
+      : []),
+    {
+      label: "View",
+      submenu: [
+        { role: "reload" },
+        { role: "forceReload" },
+        { role: "toggleDevTools" },
+        { type: "separator" },
+        { role: "resetZoom" },
+        { role: "zoomIn" },
+        { role: "zoomOut" },
+        { type: "separator" },
+        { role: "togglefullscreen" },
+      ],
+    },
+    {
+      label: "Settings",
+      submenu: [
+        {
+          label: "Environment Paths",
+          click: openSettingsWindow,
+        },
+        { type: "separator" },
+        {
+          label: "Reset Paths",
+          click: resetSettings,
+        },
+      ],
+    },
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
+function resetSettings(): void {
+  dialog.showMessageBox({
+    type: "question",
+    buttons: ["Yes", "No"],
+    title: "Reset Paths",
+    message: "경로 설정을 초기화하시겠습니까?",
+  });
+  // .then((result) => {
+  //   if (result.response === 0) {
+  //     store.store = {}; // 모든 설정 초기화
+  //     // 또는 개별 속성 제거
+  //     store.store.backendPath = undefined;
+  //     store.store.qapCompilerPath = undefined;
+  //     store.store.synthesizerPath = undefined;
+  //   }
+  // });
+}
+
+function openSettingsWindow(): void {
+  const settingsWindow = new BrowserWindow({
+    width: 600,
+    height: 400,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+    },
+  });
+
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    settingsWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}#/settings`);
+  } else {
+    settingsWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+      { hash: "settings" }
+    );
+  }
+}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
