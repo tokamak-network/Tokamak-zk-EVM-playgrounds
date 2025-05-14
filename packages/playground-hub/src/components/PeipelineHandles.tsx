@@ -1,31 +1,40 @@
+import { useDocker } from "../hooks/useDocker";
 import { activeSectionAtom } from "../atoms/pipelineAnimation";
 import Handle from "./Handle";
 import { useAtom } from "jotai";
-import { useState } from "react";
+
 export default function PeipelineHandles() {
   const [, setActiveSection] = useAtom(activeSectionAtom);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [commandOutput, setCommandOutput] = useState("");
+  const {
+    loadImages,
+    loadContainers,
+    runContainer,
+    stopContainer,
+    executeCommand,
+  } = useDocker();
 
-  const executeCommand = async (command: string) => {
-    if (isExecuting) return;
-
-    setIsExecuting(true);
-    setCommandOutput("명령어 실행 중...");
-
+  // 다양한 디렉토리 탐색
+  const exploreDirectories = async () => {
     try {
-      const result = await window.electronAPI.executeCommand(command);
-      console.log("명령어 실행 결과:", result);
-      setCommandOutput(result.stdout || "명령어가 실행되었습니다.");
+      // 1단계: 스크립트 실행하고 결과를 파일에 저장
+      await executeCommand("8fc1f017fb83", [
+        "bash",
+        "-c",
+        `cd /app/frontend/qap-compiler && 
+         bash ./scripts/compile_fixed.sh > /tmp/compile_results.txt 2>&1`,
+      ]);
 
-      if (result.stderr) {
-        console.warn("stderr:", result.stderr);
-      }
-    } catch (error) {
-      console.error("명령어 실행 오류:", error);
-      setCommandOutput(`오류: ${error}`);
-    } finally {
-      setIsExecuting(false);
+      // 2단계: 결과 파일 읽기
+      const result = await executeCommand("8fc1f017fb83", [
+        "bash",
+        "-c",
+        "cat /tmp/compile_results.txt",
+      ]);
+
+      console.log("스크립트 실행 결과:");
+      console.log(result);
+    } catch (err) {
+      console.error("스크립트 실행 오류:", err);
     }
   };
 
@@ -47,7 +56,8 @@ export default function PeipelineHandles() {
         type="green"
         className="top-[575px] left-[216px]"
         onClick={() => {
-          executeCommand("cargo run -p trusted-setup");
+          runContainer("tokamak-zk-evm-3");
+          // loadContainers();
         }}
       />
       <Handle type="green" className="top-[775px] left-[395px]" />
@@ -55,7 +65,7 @@ export default function PeipelineHandles() {
         type="green"
         className="top-[695px] left-[695px]"
         onClick={() => {
-          executeCommand("cargo run -p protocol-script");
+          exploreDirectories();
         }}
       />
       <Handle type="pink" className="top-[588px] left-[875px]" />
