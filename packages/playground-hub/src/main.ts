@@ -150,8 +150,8 @@ function resetSettings(): void {
 
 function openSettingsWindow(): void {
   const settingsWindow = new BrowserWindow({
-    width: 600,
-    height: 400,
+    width: 430,
+    height: 210,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
