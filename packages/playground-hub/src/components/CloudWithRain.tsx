@@ -63,11 +63,11 @@ export default function CloudWithRain({
         alt={`cloud-${cloudType}`}
         className="max-w-full max-h-full object-contain z-[100] cursor-pointer"
         onClick={() => {
-          setActiveSection(
-            isEVMSpec ? "evm-to-qap" : "transaction-to-synthesizer"
-          );
-
-          setActiveModal("transaction-input");
+          if (isEVMSpec) {
+            return setActiveSection("evm-to-qap");
+          }
+          // setActiveSection("transaction-to-synthesizer");
+          return setActiveModal("transaction-input");
         }}
       />
       {showRain && (
