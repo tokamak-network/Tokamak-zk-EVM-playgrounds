@@ -41,7 +41,6 @@ const createWindow = () => {
       preload: path.join(__dirname, "preload.js"),
     },
   });
-
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -214,6 +213,20 @@ function setupIpcHandlers() {
 }
 
 app.whenReady().then(() => {
+  // macOS에서만 dock 아이콘 설정
+  if (process.platform === "darwin") {
+    try {
+      // 실제 소스 코드의 아이콘 파일 경로 (개발 모드 고려)
+      const iconPath = path.resolve(
+        process.cwd(),
+        "src/assets/icons/app-icon.png"
+      );
+      console.log("Setting dock icon:", iconPath);
+      app.dock.setIcon(iconPath);
+    } catch (error) {
+      console.error("Failed to set dock icon:", error);
+    }
+  }
   setupIpcHandlers();
 });
 

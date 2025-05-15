@@ -15,6 +15,18 @@
     "build:cjs": "tsc --module commonjs --outDir dist/cjs",
     "build:esm": "tsc --module es2020 --outDir dist/esm"
   },
+  "build": {
+    "appId": "tokamak-zk-evm-playground-hub",
+    "mac": {
+      "icon": "src/assets/icons/app-icon.png"
+    },
+    "win": {
+      "icon": "src/assets/icons/app-icon.png"
+    },
+    "linux": {
+      "icon": "src/assets/icons/app-icon.png"
+    }
+  },
   "keywords": [],
   "author": {
     "name": "SonYoungsung",
