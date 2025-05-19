@@ -11,3 +11,7 @@ contextBridge.exposeInMainWorld("docker", {
   executeCommand: (containerId: string, command: string[]) =>
     ipcRenderer.invoke("execute-command-in-container", containerId, command),
 });
+
+contextBridge.exposeInMainWorld("electron", {
+  closeSettingsWindow: () => ipcRenderer.invoke("close-settings-window"),
+});

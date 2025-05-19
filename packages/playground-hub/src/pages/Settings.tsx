@@ -1,53 +1,106 @@
 import { useMemo } from "react";
 import { useSystemTheme } from "../hooks/useSystemTheme";
+import { etherscanApiKeyAtom } from "../atoms/api";
+import { useAtom } from "jotai";
+import { useDebouncedEtherscanValidation } from "../hooks/useEtherscanApi";
+import WarningIconImage from "../assets/modals/warning-icon.svg";
+
+declare global {
+  interface Window {
+    electron: {
+      closeSettingsWindow: () => void;
+    };
+  }
+}
 
 export default function Settings() {
   const isDarkMode = useSystemTheme();
   console.log("isDarkMode", isDarkMode);
+  const [etherscanApiKey, setEtherscanApiKey] = useAtom(etherscanApiKeyAtom);
 
   // 다크모드에 따라 배경색 클래스 적용
   const bgColor = isDarkMode ? "black" : "white";
 
+  const isValid = useDebouncedEtherscanValidation(etherscanApiKey);
+
+  const isKeyValid = useMemo(() => {
+    if (etherscanApiKey.length === 0 || isValid === null) return undefined;
+    return isValid;
+  }, [isValid, etherscanApiKey]);
+
   const isActive = useMemo(() => {
-    return false;
-  }, []);
+    if (isKeyValid === undefined) return false;
+    return isKeyValid;
+  }, [isKeyValid]);
+
+  const handleSave = () => {
+    console.log("go");
+    if (isActive) {
+      return window.electron.closeSettingsWindow();
+    }
+  };
+
+  const showWarning = !isKeyValid && isKeyValid !== undefined;
+
+  console.log("isValid", isValid);
+  console.log("isKeyValid", isKeyValid);
+  console.log("isActive", isActive);
 
   return (
     <div
-      className={`w-full h-full flex flex-col items-center justify-center py-[24px] px-[20px]`}
+      className={`w-full h-full flex flex-col items-center justify-center py-[24px] `}
       style={{
         backgroundColor: bgColor,
-        color: isDarkMode ? "white" : "#282828",
+        color: isDarkMode ? "#282828" : "#282828",
         boxShadow:
           "0px 0px 20px 0px rgba(0, 0, 0, 0.15), 0px 25px 30px 0px rgba(0, 0, 0, 0.35)",
       }}
     >
-      <div className="flex items-center justify-center font-[500] mb-[17px]">
-        <h3
-          style={{
-            fontSize: "14px",
+      <div className="flex flex-col items-center justify-center w-[430px] px-[20px]">
+        <div className="flex items-center justify-center font-[500] mb-[17px]">
+          <h3
+            style={{
+              fontSize: "14px",
+              color: "#ffffff",
+            }}
+          >
+            Enter your API key to authenticate and continue.
+          </h3>
+        </div>
+        <input
+          className={`w-full max-w-[390px] h-[40px] ${
+            showWarning ? "mb-[10px]" : "mb-[24px]"
+          } focus:outline-none focus:ring-0 focus:border-none text-[16px] px-[12px]`}
+          type="text"
+          placeholder="API key"
+          onChange={(e) => {
+            if (typeof e.target.value === "string") {
+              setEtherscanApiKey(e.target.value);
+            }
           }}
+        />
+        {showWarning && (
+          <div className="flex w-full gap-[6px] mb-[16px]">
+            <img src={WarningIconImage}></img>
+            <p className="text-[14px] text-[#DD140E]">
+              This API key is invalid.
+            </p>
+          </div>
+        )}
+        <button
+          className="w-[140px] h-[36px] cursor-pointer"
+          style={{
+            backgroundColor: isActive ? "#F43DE3" : "#5E5E5E",
+            borderTop: "1px solid #A8A8A8",
+            borderLeft: "1px solid #A8A8A8",
+            borderRight: "1px solid #4B4B4B",
+            borderBottom: "1px solid #4B4B4B",
+          }}
+          onClick={handleSave}
         >
-          Enter your API key to authenticate and continue.
-        </h3>
+          Save
+        </button>
       </div>
-      <input
-        className="w-full max-w-[390px] h-[40px] mb-[24px] cursor-pointer"
-        type="text"
-        placeholder="API key"
-      />
-      <button
-        className="w-[140px] h-[36px]"
-        style={{
-          backgroundColor: isActive ? "#F43DE3" : "#5E5E5E",
-          borderTop: "1px solid #A8A8A8",
-          borderLeft: "1px solid #A8A8A8",
-          borderRight: "1px solid #4B4B4B",
-          borderBottom: "1px solid #4B4B4B",
-        }}
-      >
-        Save
-      </button>
     </div>
   );
 }
