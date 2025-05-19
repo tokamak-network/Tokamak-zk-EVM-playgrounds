@@ -1,6 +1,7 @@
 // src/preload.ts
 import { contextBridge, ipcRenderer } from "electron";
 
+//Docker
 contextBridge.exposeInMainWorld("docker", {
   getImages: () => ipcRenderer.invoke("get-docker-images"),
   runContainer: (imageName: string, options: string[] = []) =>
@@ -12,6 +13,7 @@ contextBridge.exposeInMainWorld("docker", {
     ipcRenderer.invoke("execute-command-in-container", containerId, command),
 });
 
+//Settings
 contextBridge.exposeInMainWorld("electron", {
   closeSettingsWindow: () => ipcRenderer.invoke("close-settings-window"),
 });

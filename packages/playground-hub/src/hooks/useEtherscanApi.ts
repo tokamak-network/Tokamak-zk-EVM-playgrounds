@@ -25,5 +25,5 @@ export const useDebouncedEtherscanValidation = (etherscanApiKey: string) => {
     };
   }, [etherscanApiKey]);
 
-  return isValid;
+  return { isValid };
 };

@@ -21,7 +21,7 @@ export default function Settings() {
   // 다크모드에 따라 배경색 클래스 적용
   const bgColor = isDarkMode ? "black" : "white";
 
-  const isValid = useDebouncedEtherscanValidation(etherscanApiKey);
+  const { isValid } = useDebouncedEtherscanValidation(etherscanApiKey);
 
   const isKeyValid = useMemo(() => {
     if (etherscanApiKey.length === 0 || isValid === null) return undefined;
@@ -41,10 +41,6 @@ export default function Settings() {
   };
 
   const showWarning = !isKeyValid && isKeyValid !== undefined;
-
-  console.log("isValid", isValid);
-  console.log("isKeyValid", isKeyValid);
-  console.log("isActive", isActive);
 
   return (
     <div
@@ -71,6 +67,7 @@ export default function Settings() {
           className={`w-full max-w-[390px] h-[40px] ${
             showWarning ? "mb-[10px]" : "mb-[24px]"
           } focus:outline-none focus:ring-0 focus:border-none text-[16px] px-[12px]`}
+          value={etherscanApiKey}
           type="text"
           placeholder="API key"
           onChange={(e) => {
