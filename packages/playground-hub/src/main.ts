@@ -210,6 +210,11 @@ function setupIpcHandlers() {
       return await executeCommandInContainer(containerId, command);
     }
   );
+
+  ipcMain.handle("close-settings-window", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.close();
+  });
 }
 
 app.whenReady().then(() => {
@@ -219,7 +224,7 @@ app.whenReady().then(() => {
       // 실제 소스 코드의 아이콘 파일 경로 (개발 모드 고려)
       const iconPath = path.resolve(
         process.cwd(),
-        "src/assets/icons/app-icon.png"
+        "src/assets/icons/app-icon.icns"
       );
       console.log("Setting dock icon:", iconPath);
       app.dock.setIcon(iconPath);

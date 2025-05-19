@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 
-type ApiKey = string | null;
-type TransactionHash = string | null;
+export type ApiKey = string;
+export type TransactionHash = string;
 
-export const etherscanApiKeyAtom = atom<ApiKey>(null);
-export const transactionHashAtom = atom<TransactionHash>(null);
+export const etherscanApiKeyAtom = atom<ApiKey>("");
+export const transactionHashAtom = atom<TransactionHash>("");
