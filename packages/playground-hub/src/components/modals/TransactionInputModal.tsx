@@ -6,14 +6,12 @@ import InputButtonInactiveImage from "../../assets/modals/input-button-inactive.
 import InputButtonActiveImage from "../../assets/modals/input-button-active.svg";
 import WarningIconImage from "../../assets/modals/warning-icon.svg";
 import { etherscanApiKeyAtom, transactionHashAtom } from "../../atoms/api";
-import { validateEtherscanApiKey } from "../../utils/checkEtherscanApi";
+import { useDebouncedEtherscanValidation } from "../../hooks/useEtherscanApi";
 
 const TransactionInputModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
   const apiKey = useAtomValue(etherscanApiKeyAtom);
   const setTransaction = useSetAtom(transactionHashAtom);
-  const [isValidKey, setIsValidKey] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   // API 키 입력 핸들러
   const handleTransactionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,13 +19,7 @@ const TransactionInputModal: React.FC = () => {
     setTransaction(value);
   };
 
-  const validateKey = async () => {
-    setIsLoading(true);
-
-    // try {
-    const isValid = await validateEtherscanApiKey(apiKey);
-    setIsValidKey(isValid);
-  };
+  const { isValid } = useDebouncedEtherscanValidation(apiKey);
 
   const isOpen = useMemo(
     () => activeModal === "transaction-input",
@@ -38,21 +30,17 @@ const TransactionInputModal: React.FC = () => {
     setActiveModal("none");
   };
 
-  if (!isOpen) return null;
-
   const isActive = useMemo(() => {
     return false;
   }, []);
 
   const errorMessage = useMemo(() => {
-    if (!isValidKey) return "Invalid API key. Update in settings.";
+    if (!isValid) return "Invalid API key. Update in settings.";
     // if (errorMessage) return errorMessage;
     return null;
-  }, [isValidKey]);
+  }, [isValid]);
 
-  useEffect(() => {
-    validateKey();
-  }, [apiKey]);
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
