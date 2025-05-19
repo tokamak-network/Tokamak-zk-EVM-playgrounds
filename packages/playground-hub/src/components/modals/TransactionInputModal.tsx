@@ -5,40 +5,61 @@ import TransactionInputModalImage from "../../assets/modals/transaction-input-mo
 import InputButtonInactiveImage from "../../assets/modals/input-button-inactive.svg";
 import InputButtonActiveImage from "../../assets/modals/input-button-active.svg";
 import WarningIconImage from "../../assets/modals/warning-icon.svg";
-import { etherscanApiKeyAtom, transactionHashAtom } from "../../atoms/api";
+import {
+  etherscanApiKeyAtom,
+  transactionBytecodeAtom,
+  transactionHashAtom,
+} from "../../atoms/api";
 import { useDebouncedEtherscanValidation } from "../../hooks/useEtherscanApi";
+import { useDebouncedTxHashValidation } from "../../hooks/useTransaction";
+import { fetchTransactionBytecode } from "../../utils/parseTransaction";
 
 const TransactionInputModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
   const apiKey = useAtomValue(etherscanApiKeyAtom);
-  const setTransaction = useSetAtom(transactionHashAtom);
-
+  const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
+  const setTransactionBytecode = useSetAtom(transactionBytecodeAtom);
   // API 키 입력 핸들러
   const handleTransactionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setTransaction(value);
+    setTransactionHash(value);
   };
 
-  const { isValid } = useDebouncedEtherscanValidation(apiKey);
+  const { isValid: isValidApiKey } = useDebouncedEtherscanValidation(apiKey);
+  const { isValid: isValidTxHash } =
+    useDebouncedTxHashValidation(transactionHash);
+
+  const onClose = () => {
+    setActiveModal("none");
+  };
+
+  const inputClose = async () => {
+    if (!isActive) return;
+    onClose();
+    const { bytecode, from, to } =
+      await fetchTransactionBytecode(transactionHash);
+    setTransactionBytecode({ bytecode, from, to });
+  };
 
   const isOpen = useMemo(
     () => activeModal === "transaction-input",
     [activeModal]
   );
 
-  const onClose = () => {
-    setActiveModal("none");
-  };
-
   const isActive = useMemo(() => {
-    return false;
-  }, []);
+    return isValidApiKey && isValidTxHash;
+  }, [isValidApiKey, isValidTxHash]);
 
   const errorMessage = useMemo(() => {
-    if (!isValid) return "Invalid API key. Update in settings.";
-    // if (errorMessage) return errorMessage;
+    if (!isValidApiKey) return "Invalid API key. Update in settings.";
+    if (!isValidTxHash && transactionHash.length > 0)
+      return "Invalid transaction ID. Please verify.";
     return null;
-  }, [isValid]);
+  }, [isValidApiKey, isValidTxHash]);
+
+  useEffect(() => {
+    fetchTransactionBytecode(transactionHash);
+  }, [transactionHash]);
 
   if (!isOpen) return null;
 
@@ -56,6 +77,8 @@ const TransactionInputModal: React.FC = () => {
         <div className="absolute top-[82px] left-[280px]">
           <img
             src={isActive ? InputButtonActiveImage : InputButtonInactiveImage}
+            className={`${isActive ? "cursor-pointer" : ""}`}
+            onClick={inputClose}
           />
         </div>
         <input

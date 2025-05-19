@@ -1,7 +1,7 @@
 // 비동기 함수로 Etherscan API 키 검증
-export const validateEtherscanApiKey = async (
+export async function validateEtherscanApiKey(
   apiKey: string
-): Promise<boolean> => {
+): Promise<boolean> {
   // API 키가 비어있거나 형식이 맞지 않으면 즉시 실패 처리
   if (!apiKey || apiKey.trim().length < 30) {
     return false;
@@ -42,4 +42,4 @@ export const validateEtherscanApiKey = async (
     console.error("Error validating Etherscan API key:", error);
     return false;
   }
-};
+}

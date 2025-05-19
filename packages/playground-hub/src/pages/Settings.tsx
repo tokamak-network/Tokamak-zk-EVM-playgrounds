@@ -34,7 +34,6 @@ export default function Settings() {
   }, [isKeyValid]);
 
   const handleSave = () => {
-    console.log("go");
     if (isActive) {
       return window.electron.closeSettingsWindow();
     }
