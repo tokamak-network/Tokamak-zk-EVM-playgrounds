@@ -9,14 +9,19 @@ export const useSynthesizer = () => {
 
   const parseTONTransfer = useCallback(
     async (containerId: string) => {
-      const result = await executeCommand(containerId, [
-        "bash",
-        "-c",
-        `cd /app/frontend/synthesizer/examples/erc20 && 
-      tsx ton-transfer.ts ${transactionBytecode.bytecode} ${transactionBytecode.from}`,
-      ]);
-      console.log("result", result);
-      return result;
+      try {
+        const result = await executeCommand(containerId, [
+          "bash",
+          "-c",
+          `cd /app/frontend/synthesizer/examples/erc20 && 
+        tsx ton-transfer.ts ${transactionBytecode.bytecode} ${transactionBytecode.from}`,
+        ]);
+        console.log("result", result);
+        return result;
+      } catch (error) {
+        console.error("도커 명령 실행 실패:", error);
+        return null;
+      }
     },
     [transactionBytecode]
   );
