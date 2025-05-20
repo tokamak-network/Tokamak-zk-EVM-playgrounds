@@ -19,6 +19,7 @@ interface PipelineSectionProps {
   segments: PipelineSegment[]; // 파이프라인 세그먼트 배열
   isActive: boolean; // 섹션 활성화 여부 (트리거)
   onComplete?: () => void; // 모든 세그먼트가 채워졌을 때 호출되는 콜백
+  onStart?: () => void; // 추가
   baseDelay?: number; // 섹션 시작 기본 지연 시간 (ms)
 }
 
@@ -27,6 +28,7 @@ export default function PipelineSection({
   segments,
   isActive,
   onComplete,
+  onStart,
   baseDelay = 0,
 }: PipelineSectionProps) {
   // 각 세그먼트의 활성화 상태 추적
@@ -56,6 +58,8 @@ export default function PipelineSection({
   useEffect(() => {
     if (isActive) {
       // console.log(`Section ${id} activated with baseDelay: ${baseDelay}ms`);
+
+      if (onStart) onStart(); // 섹션 시작 시 콜백 호출
 
       // 이전 타임아웃 정리
       clearAllTimeouts();
