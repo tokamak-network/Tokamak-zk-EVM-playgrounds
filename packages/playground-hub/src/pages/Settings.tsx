@@ -19,7 +19,7 @@ export default function Settings() {
   const [etherscanApiKey, setEtherscanApiKey] = useAtom(etherscanApiKeyAtom);
 
   // 다크모드에 따라 배경색 클래스 적용
-  const bgColor = isDarkMode ? "black" : "white";
+  const bgColor = isDarkMode ? "#282828" : "#F6F6F6";
 
   const { isValid } = useDebouncedEtherscanValidation(etherscanApiKey);
 
@@ -46,7 +46,7 @@ export default function Settings() {
       className={`w-full h-full flex flex-col items-center justify-center py-[24px] `}
       style={{
         backgroundColor: bgColor,
-        color: isDarkMode ? "#282828" : "#282828",
+        color: isDarkMode ? "#282828" : "#111111",
         boxShadow:
           "0px 0px 20px 0px rgba(0, 0, 0, 0.15), 0px 25px 30px 0px rgba(0, 0, 0, 0.35)",
       }}
@@ -56,7 +56,7 @@ export default function Settings() {
           <h3
             style={{
               fontSize: "14px",
-              color: "#ffffff",
+              color: isDarkMode ? "#ffffff" : "#111111",
             }}
           >
             Enter your API key to authenticate and continue.
@@ -66,6 +66,14 @@ export default function Settings() {
           className={`w-full max-w-[390px] h-[40px] ${
             showWarning ? "mb-[10px]" : "mb-[24px]"
           } focus:outline-none focus:ring-0 focus:border-none text-[16px] px-[12px]`}
+          style={{
+            borderTop: isDarkMode ? "1px solid #1B1B1B" : "1px solid #5F5F5F",
+            borderLeft: isDarkMode ? "1px solid #1B1B1B" : "1px solid #5F5F5F",
+            borderRight: isDarkMode ? "1px solid #535353" : "1px solid #DFDFDF",
+            borderBottom: isDarkMode
+              ? "1px solid #535353"
+              : "1px solid #DFDFDF",
+          }}
           value={etherscanApiKey}
           type="text"
           placeholder="API key"

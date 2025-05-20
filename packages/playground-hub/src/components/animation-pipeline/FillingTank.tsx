@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import tankTrue from "../../assets/images/tank-true.png";
 import tankFalse from "../../assets/images/tank-false.png";
+import usePlaygroundStage from "../../hooks/usePlaygroundStage";
 
 interface FillingTankProps {
   animationDuration?: number; // ms
@@ -10,7 +11,7 @@ interface FillingTankProps {
 }
 
 export default function FillingTank({
-  animationDuration = 2000,
+  animationDuration = 1000,
   autoFill = true,
   onFillComplete,
   delay = 0,
@@ -21,9 +22,12 @@ export default function FillingTank({
   const startTimeRef = useRef<number | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const { isReadyForResult: active } = usePlaygroundStage();
+  // const active = true;
   // 애니메이션
   useEffect(() => {
-    if (autoFill && imgLoaded) {
+    // active가 true이고 autoFill이 true이며 이미지가 로드되었을 때만 애니메이션 실행
+    if (active && autoFill && imgLoaded) {
       delayTimeoutRef.current = setTimeout(() => {
         const animate = (timestamp: number) => {
           if (startTimeRef.current === null) {
@@ -50,7 +54,17 @@ export default function FillingTank({
         startTimeRef.current = null;
       };
     }
-  }, [autoFill, animationDuration, delay, onFillComplete, imgLoaded]);
+  }, [active, autoFill, animationDuration, delay, onFillComplete, imgLoaded]);
+
+  // active가 false로 변경될 때 애니메이션 리셋
+  useEffect(() => {
+    if (!active) {
+      setCurrentFill(0);
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      if (delayTimeoutRef.current) clearTimeout(delayTimeoutRef.current);
+      startTimeRef.current = null;
+    }
+  }, [active]);
 
   // clip-path 값 계산
   const clipValue = `inset(${100 - currentFill}% 0% 0% 0%)`;
@@ -61,7 +75,7 @@ export default function FillingTank({
       style={{ background: "transparent" }}
     >
       <img
-        src={tankFalse}
+        src={tankTrue}
         alt="tank-filled"
         className="w-full h-full object-contain"
         style={{
