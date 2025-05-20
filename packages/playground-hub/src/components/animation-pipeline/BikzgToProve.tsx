@@ -1,25 +1,26 @@
+import { PipelineAnimationProps } from "../../types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
 
 // 파이프라인 섹션 정의
-const SETUP_TO_VERIFY_SECTION = {
-  id: "setup-to-verify",
+const BIKZG_TO_PROVE_SECTION = {
+  id: "bikzg-to-prove",
   segments: [
     {
       id: "segment1",
-      startX: 163,
-      startY: 390,
-      endX: 163,
-      endY: 600,
+      startX: 820,
+      startY: 417,
+      endX: 820,
+      endY: 550,
       direction: "vertical" as const,
       animationDuration: 1000,
       delay: -200,
     },
     {
       id: "segment2",
-      startX: 160,
-      startY: 600,
-      endX: 340,
-      endY: 600,
+      startX: 820,
+      startY: 523,
+      endX: 645,
+      endY: 523,
       direction: "horizontal" as const,
       animationDuration: 1000,
       delay: -200,
@@ -27,17 +28,11 @@ const SETUP_TO_VERIFY_SECTION = {
   ],
 };
 
-interface TransactionToSynthesizerProps {
-  isActive?: boolean; // 외부에서 전달되는 활성화 트리거
-  onComplete?: () => void; // 애니메이션 완료 콜백
-  onStart?: () => void; // 애니메이션 시작 콜백
-}
-
-export default function SetupToVerify({
+export default function BikzgToProve({
   isActive = false,
   onComplete,
   onStart,
-}: TransactionToSynthesizerProps) {
+}: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
     if (onComplete) {
@@ -49,8 +44,8 @@ export default function SetupToVerify({
     <div className="absolute w-full h-full bottom-[5px]">
       {/* 파이프라인 섹션 */}
       <PipelineSection
-        id={SETUP_TO_VERIFY_SECTION.id}
-        segments={SETUP_TO_VERIFY_SECTION.segments}
+        id={BIKZG_TO_PROVE_SECTION.id}
+        segments={BIKZG_TO_PROVE_SECTION.segments}
         isActive={isActive}
         onComplete={handleSectionComplete}
         baseDelay={0}

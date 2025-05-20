@@ -153,11 +153,13 @@ const TRANSACTION_TO_SYNTHESIZER_SECTION = {
 interface TransactionToSynthesizerProps {
   isActive?: boolean; // 외부에서 전달되는 활성화 트리거
   onComplete?: () => void; // 애니메이션 완료 콜백
+  onStart?: () => void; // 애니메이션 시작 콜백
 }
 
 export default function TransactionToSynthesizer({
   isActive = false,
   onComplete,
+  onStart,
 }: TransactionToSynthesizerProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
@@ -176,6 +178,7 @@ export default function TransactionToSynthesizer({
         isActive={isActive}
         onComplete={handleSectionComplete}
         baseDelay={0}
+        onStart={onStart}
       />
     </div>
   );

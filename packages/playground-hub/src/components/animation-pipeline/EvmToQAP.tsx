@@ -89,11 +89,13 @@ const EVM_TO_QAP_SECTION = {
 interface EvmToQAPProps {
   isActive?: boolean; // 외부에서 전달되는 활성화 트리거
   onComplete?: () => void; // 애니메이션 완료 콜백
+  onStart?: () => void; // 추가
 }
 
 export default function EvmToQAP({
   isActive = false,
   onComplete,
+  onStart,
 }: EvmToQAPProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
@@ -112,6 +114,7 @@ export default function EvmToQAP({
         isActive={isActive}
         onComplete={handleSectionComplete}
         baseDelay={0}
+        onStart={onStart}
       />
 
       {/* {EVM_TO_QAP_SECTION.segments.map((segment, index) => (
