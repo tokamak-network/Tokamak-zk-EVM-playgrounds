@@ -73,16 +73,8 @@ export default function PipelineBG() {
         />
       )} */}
 
-      <CloudWithRain
-        position="top-[113px] left-[105px]"
-        cloudType="blue"
-        showRain={true}
-      />
-      <CloudWithRain
-        position="top-[113px] right-[155px]"
-        cloudType="skyblue"
-        showRain={true}
-      />
+      <CloudWithRain position="top-[113px] left-[105px]" cloudType="blue" />
+      <CloudWithRain position="top-[113px] right-[155px]" cloudType="skyblue" />
 
       <PeipelineHandles />
       <Bubbles />

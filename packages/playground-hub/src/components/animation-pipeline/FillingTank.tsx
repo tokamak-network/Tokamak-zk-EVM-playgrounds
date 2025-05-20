@@ -23,7 +23,6 @@ export default function FillingTank({
   const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isReadyForResult: active } = usePlaygroundStage();
-  // const active = true;
   // 애니메이션
   useEffect(() => {
     // active가 true이고 autoFill이 true이며 이미지가 로드되었을 때만 애니메이션 실행
