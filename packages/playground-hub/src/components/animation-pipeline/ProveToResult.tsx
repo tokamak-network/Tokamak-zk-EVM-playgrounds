@@ -39,7 +39,7 @@ const PROVE_TO_RESULT_SECTION = {
       id: "segment4",
       startX: 710,
       startY: 650,
-      endX: 800,
+      endX: 778,
       endY: 650,
       direction: "horizontal" as const,
       animationDuration: 1000,
