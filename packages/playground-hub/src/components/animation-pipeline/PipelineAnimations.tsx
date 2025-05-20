@@ -22,12 +22,6 @@ export default function PipelineAnimations() {
     setActiveSection(sectionId);
   };
 
-  // 섹션 완료 핸들러
-  const handleEvmToQAPComplete = () => {
-    console.log("EVM to QAP section completed");
-    // 다음 섹션 활성화 또는 다른 작업 수행
-  };
-
   const handleOnStart = ({
     section,
     value,
@@ -43,72 +37,96 @@ export default function PipelineAnimations() {
       {/* EVM to QAP 파이프라인 */}
       <EvmToQAP
         isActive={activeSection === "evm-to-qap"}
-        onComplete={handleEvmToQAPComplete}
-        onStart={() => {
+        onComplete={() => {
           handleOnStart({
             section: "evmSpec",
             value: true,
           });
+        }}
+        onStart={() => {
           activateSection("evm-to-qap");
         }}
       />
       <QAPToSetup
         isActive={activeSection === "qap-to-setup-synthesizer"}
-        onComplete={handleEvmToQAPComplete}
-        onStart={() => {
+        onComplete={() => {
           handleOnStart({
             section: "qap",
             value: true,
           });
+        }}
+        onStart={() => {
           activateSection("qap-to-setup-synthesizer");
         }}
       />
       <TransactionToSynthesizer
         isActive={activeSection === "transaction-to-synthesizer"}
-        onComplete={handleEvmToQAPComplete}
-        onStart={() => {
+        onComplete={() => {
           handleOnStart({
             section: "transactionHash",
             value: true,
           });
+        }}
+        onStart={() => {
           activateSection("transaction-to-synthesizer");
         }}
       />
       <SynthesizerToVerifyBikzg
         isActive={activeSection === "synthesizer-to-verify-bikzg"}
-        onComplete={handleEvmToQAPComplete}
-        onStart={() => {
+        onComplete={() => {
           handleOnStart({
             section: "synthesizer",
             value: true,
           });
+        }}
+        onStart={() => {
           activateSection("synthesizer-to-verify-bikzg");
         }}
       />
       <SetupToVerify
         isActive={activeSection === "setup-to-verify"}
-        onComplete={handleEvmToQAPComplete}
+        onComplete={() => {
+          handleOnStart({
+            section: "setup",
+            value: true,
+          });
+        }}
         onStart={() => {
           activateSection("setup-to-verify");
         }}
       />
       <VerifyToProve
         isActive={activeSection === "verify-to-prove"}
-        onComplete={handleEvmToQAPComplete}
+        onComplete={() => {
+          handleOnStart({
+            section: "verify",
+            value: true,
+          });
+        }}
         onStart={() => {
           activateSection("verify-to-prove");
         }}
       />
       <BikzgToProve
         isActive={activeSection === "bikzg-to-prove"}
-        onComplete={handleEvmToQAPComplete}
+        onComplete={() => {
+          handleOnStart({
+            section: "bikzg",
+            value: true,
+          });
+        }}
         onStart={() => {
           activateSection("bikzg-to-prove");
         }}
       />
       <ProveToResult
         isActive={activeSection === "prove-to-result"}
-        onComplete={handleEvmToQAPComplete}
+        onComplete={() => {
+          handleOnStart({
+            section: "prove",
+            value: true,
+          });
+        }}
         onStart={() => {
           activateSection("prove-to-result");
         }}

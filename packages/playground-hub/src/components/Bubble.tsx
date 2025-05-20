@@ -12,6 +12,7 @@ import bubbleSetupInactive from "../assets/images/bubbles/bubble-setup-inactive.
 import bubbleSynthesizerInactive from "../assets/images/bubbles/bubble-synthesizer-inactive.png";
 import bubbleVerifyInactive from "../assets/images/bubbles/bubble-verify-inactive.png";
 import bubbleProveInactive from "../assets/images/bubbles/bubble-prove-inactive.png";
+import usePlaygroundStage from "../hooks/usePlaygroundStage";
 interface BubbleProps {
   type:
     | "bikzg"
@@ -48,6 +49,7 @@ export function Bubble({ type, className, isActive }: BubbleProps) {
 }
 
 export default function Bubbles() {
+  const { playgroundStage } = usePlaygroundStage();
   return (
     <div className="w-full h-full absolute">
       <Bubble
@@ -63,32 +65,32 @@ export default function Bubbles() {
       <Bubble
         type="compiler"
         className="absolute top-[340px] left-[85px]"
-        isActive={false}
+        isActive={playgroundStage.evmSpec}
       />
       <Bubble
         type="synthesizer"
         className="absolute top-[480px] left-[497px]"
-        isActive={false}
+        isActive={playgroundStage.qap && playgroundStage.transactionHash}
       />
       <Bubble
         type="verify"
         className="absolute top-[720px] left-[410px]"
-        isActive={false}
+        isActive={playgroundStage.setup && playgroundStage.synthesizer}
       />
       <Bubble
         type="prove"
         className="absolute top-[640px] left-[710px]"
-        isActive={false}
+        isActive={playgroundStage.verify && playgroundStage.bikzg}
       />
       <Bubble
         type="setup"
         className="absolute top-[520px] left-[233px]"
-        isActive={false}
+        isActive={playgroundStage.qap}
       />
       <Bubble
         type="bikzg"
         className="absolute top-[533px] left-[890px]"
-        isActive={false}
+        isActive={playgroundStage.synthesizer}
       />
     </div>
   );
