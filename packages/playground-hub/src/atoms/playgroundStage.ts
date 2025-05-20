@@ -1,5 +1,26 @@
 import { atom } from "jotai";
 
+//If the stage is started, the value is true.
+export type PlaygroundStartStage = {
+  evmSpec: boolean;
+  transactionHash: boolean;
+  qap: boolean;
+  setup: boolean;
+  synthesizer: boolean;
+  verify: boolean;
+  prove: boolean;
+};
+
+export const playgroundStartStageAtom = atom<PlaygroundStartStage>({
+  evmSpec: false,
+  transactionHash: false,
+  qap: false,
+  setup: false,
+  synthesizer: false,
+  verify: false,
+  prove: false,
+});
+
 //If the stage is completed, the value is true.
 export type PlaygroundStage = {
   evmSpec: boolean;

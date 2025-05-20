@@ -4,21 +4,20 @@ import cloudBlue from "../assets/images/cloud-blue.svg";
 import blueRain from "../assets/images/rain-blue.svg";
 import skyblueRain from "../assets/images/rain-skyblue.svg";
 import "../style.css";
-import { useAtom, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { activeSectionAtom } from "../atoms/pipelineAnimation";
 import { activeModalAtom } from "../atoms/modals";
+import { usePlaygroundStartStage } from "../hooks/usePlaygroundStage";
 
 interface CloudWithRainProps {
   position: string;
   cloudType?: "blue" | "skyblue";
-  showRain?: boolean;
   rainOffset?: string;
 }
 
 export default function CloudWithRain({
   position,
   cloudType = "skyblue",
-  showRain = true,
   rainOffset = "top-[35px] ml-[10px]",
 }: CloudWithRainProps) {
   const isEVMSpec = cloudType === "blue";
@@ -27,6 +26,11 @@ export default function CloudWithRain({
 
   const setActiveSection = useSetAtom(activeSectionAtom);
   const setActiveModal = useSetAtom(activeModalAtom);
+
+  const { playgroundStartStage } = usePlaygroundStartStage();
+  const showRain = isEVMSpec
+    ? playgroundStartStage.evmSpec
+    : playgroundStartStage.transactionHash;
 
   // SVG 내부의 빗방울들에 개별 애니메이션 적용
   useEffect(() => {
@@ -37,7 +41,7 @@ export default function CloudWithRain({
         const raindrops = svgDoc.querySelectorAll(".raindrop");
 
         // 각 빗방울에 랜덤한 애니메이션 속성 적용
-        raindrops.forEach((drop, index) => {
+        raindrops.forEach((drop) => {
           // 랜덤한 지연 시간 (0~1초)
           const delay = Math.random() * 1;
           // 랜덤한 지속 시간 (1.5~3초)

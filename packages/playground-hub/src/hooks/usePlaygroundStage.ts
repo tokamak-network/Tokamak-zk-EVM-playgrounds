@@ -1,5 +1,10 @@
 import { useAtom } from "jotai";
-import { PlaygroundStage, playgroundStageAtom } from "../atoms/playgroundStage";
+import {
+  PlaygroundStage,
+  playgroundStageAtom,
+  PlaygroundStartStage,
+  playgroundStartStageAtom,
+} from "../atoms/playgroundStage";
 import { useMemo } from "react";
 
 export default function usePlaygroundStage() {
@@ -23,4 +28,16 @@ export default function usePlaygroundStage() {
   }, [playgroundStage]);
 
   return { playgroundStage, setStage, isReadyForResult };
+}
+
+export function usePlaygroundStartStage() {
+  const [playgroundStartStage, setPlaygroundStartStage] = useAtom(
+    playgroundStartStageAtom
+  );
+
+  const setStartStage = (stage: keyof PlaygroundStartStage, value: boolean) => {
+    setPlaygroundStartStage({ ...playgroundStartStage, [stage]: value });
+  };
+
+  return { playgroundStartStage, setStartStage };
 }

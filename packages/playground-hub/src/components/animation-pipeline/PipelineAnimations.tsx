@@ -4,7 +4,9 @@ import { useAtom } from "jotai";
 import { Section, activeSectionAtom } from "../../atoms/pipelineAnimation";
 import QAPToSetup from "./QAPToSetup";
 import TransactionToSynthesizer from "./TransactionToSynthesizer";
-import usePlaygroundStage from "../../hooks/usePlaygroundStage";
+import usePlaygroundStage, {
+  usePlaygroundStartStage,
+} from "../../hooks/usePlaygroundStage";
 import { PlaygroundStage } from "../../atoms/playgroundStage";
 import SynthesizerToVerifyBikzg from "./SynthesizerToVerifyBikzg";
 import SetupToVerify from "./SetupToVerify";
@@ -17,6 +19,7 @@ export default function PipelineAnimations() {
   // 각 섹션의 활성화 상태 관리
   const [activeSection, setActiveSection] = useAtom(activeSectionAtom);
   const { setStage } = usePlaygroundStage();
+  const { setStartStage } = usePlaygroundStartStage();
   // 섹션 활성화 핸들러
   const activateSection = (sectionId: Section) => {
     setActiveSection(sectionId);
@@ -44,6 +47,7 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
+          setStartStage("evmSpec", true);
           activateSection("evm-to-qap");
         }}
       />
@@ -68,6 +72,7 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
+          setStartStage("transactionHash", true);
           activateSection("transaction-to-synthesizer");
         }}
       />

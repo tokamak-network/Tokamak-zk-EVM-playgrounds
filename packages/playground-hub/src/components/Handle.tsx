@@ -1,7 +1,7 @@
 import { useState } from "react";
 import handle from "../assets/images/handle.svg";
 import handleGreen from "../assets/images/handle-green.svg";
-import handlePink from "../assets/images/handle-pink.svg";
+import handlePink from "../assets/images/handle-pink.png";
 
 export default function Handle(props: {
   type: "orange" | "green" | "pink";

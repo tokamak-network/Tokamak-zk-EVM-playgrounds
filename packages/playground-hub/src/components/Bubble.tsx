@@ -12,7 +12,12 @@ import bubbleSetupInactive from "../assets/images/bubbles/bubble-setup-inactive.
 import bubbleSynthesizerInactive from "../assets/images/bubbles/bubble-synthesizer-inactive.png";
 import bubbleVerifyInactive from "../assets/images/bubbles/bubble-verify-inactive.png";
 import bubbleProveInactive from "../assets/images/bubbles/bubble-prove-inactive.png";
-import usePlaygroundStage from "../hooks/usePlaygroundStage";
+import usePlaygroundStage, {
+  usePlaygroundStartStage,
+} from "../hooks/usePlaygroundStage";
+import bubbleEvmInactive from "../assets/images/bubbles/bubble-evm-inactive.png";
+import bubbleTransactionInactive from "../assets/images/bubbles/bubble-transaction-inactive.png";
+
 interface BubbleProps {
   type:
     | "bikzg"
@@ -31,10 +36,10 @@ export function Bubble({ type, className, isActive }: BubbleProps) {
   const bubbleImage = {
     bikzg: isActive ? bubbleBikzg : bubbleBikzgInactive,
     compiler: isActive ? bubbleCompiler : bubbleQapInactive,
-    evm: bubbleEvm,
+    evm: isActive ? bubbleEvm : bubbleEvmInactive,
     prove: isActive ? bubbleProve : bubbleProveInactive,
     synthesizer: isActive ? bubbleSynthesizer : bubbleSynthesizerInactive,
-    transaction: bubbleTransaction,
+    transaction: isActive ? bubbleTransaction : bubbleTransactionInactive,
     verify: isActive ? bubbleVerify : bubbleVerifyInactive,
     setup: isActive ? bubbleSetup : bubbleSetupInactive,
   }[type];
@@ -50,17 +55,18 @@ export function Bubble({ type, className, isActive }: BubbleProps) {
 
 export default function Bubbles() {
   const { playgroundStage } = usePlaygroundStage();
+  const { playgroundStartStage } = usePlaygroundStartStage();
   return (
     <div className="w-full h-full absolute">
       <Bubble
         type="evm"
         className="absolute top-[60px] left-[140px]"
-        isActive={true}
+        isActive={playgroundStartStage.evmSpec}
       />
       <Bubble
         type="transaction"
         className="absolute top-[60px] left-[855px]"
-        isActive={true}
+        isActive={playgroundStartStage.transactionHash}
       />
       <Bubble
         type="compiler"
