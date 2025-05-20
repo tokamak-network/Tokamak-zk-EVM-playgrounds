@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import tankFilled from "../../assets/images/tank-filled.png";
+import tankTrue from "../../assets/images/tank-true.png";
+import tankFalse from "../../assets/images/tank-false.png";
 
 interface FillingTankProps {
   animationDuration?: number; // ms
@@ -60,7 +61,7 @@ export default function FillingTank({
       style={{ background: "transparent" }}
     >
       <img
-        src={tankFilled}
+        src={tankFalse}
         alt="tank-filled"
         className="w-full h-full object-contain"
         style={{

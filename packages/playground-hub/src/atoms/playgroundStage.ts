@@ -1,5 +1,6 @@
 import { atom } from "jotai";
 
+//If the stage is completed, the value is true.
 export type PlaygroundStage = {
   evmSpec: boolean;
   transactionHash: boolean;
