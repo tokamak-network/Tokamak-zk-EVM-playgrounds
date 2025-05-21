@@ -12,7 +12,8 @@ import bubbleSetupInactive from "../assets/images/bubbles/bubble-setup-inactive.
 import bubbleSynthesizerInactive from "../assets/images/bubbles/bubble-synthesizer-inactive.png";
 import bubbleVerifyInactive from "../assets/images/bubbles/bubble-verify-inactive.png";
 import bubbleProveInactive from "../assets/images/bubbles/bubble-prove-inactive.png";
-import usePlaygroundStage, {
+import {
+  usePlaygroundStage,
   usePlaygroundStartStage,
 } from "../hooks/usePlaygroundStage";
 import bubbleEvmInactive from "../assets/images/bubbles/bubble-evm-inactive.png";

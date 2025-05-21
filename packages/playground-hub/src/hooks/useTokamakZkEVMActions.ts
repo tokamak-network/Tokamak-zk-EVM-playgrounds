@@ -7,6 +7,7 @@ import {
   provingIsDoneAtom,
   provingResultAtom,
 } from "../atoms/pipelineAnimation";
+import { usePipelineAnimation } from "./usePipelineAnimation";
 
 export function useTokamakZkEVMActions() {
   const { runContainer, currentDockerContainer } = useDocker();
@@ -14,6 +15,7 @@ export function useTokamakZkEVMActions() {
   const { prove } = useProve();
   const [provingIsDone, setProvingIsDone] = useAtom(provingIsDoneAtom);
   const [provingResult, setProvingResult] = useAtom(provingResultAtom);
+  const { setPendingAnimation } = usePipelineAnimation();
 
   //blue cloud action
   const setupEvmSpec = useCallback(() => {
@@ -28,8 +30,13 @@ export function useTokamakZkEVMActions() {
 
   const proveTransaction = useCallback(async () => {
     if (currentDockerContainer?.id) {
+      setTimeout(() => {
+        setPendingAnimation(true);
+      }, 1000);
       const result = await prove(currentDockerContainer?.id);
       console.log("result", result);
+
+      setPendingAnimation(false);
 
       // result가 여러 줄의 문자열이라면, 마지막 줄을 추출
       const lines = result.trim().split("\n");

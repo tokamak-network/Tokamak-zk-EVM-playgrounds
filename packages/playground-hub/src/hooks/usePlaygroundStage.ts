@@ -7,7 +7,7 @@ import {
 } from "../atoms/playgroundStage";
 import { useMemo } from "react";
 
-export default function usePlaygroundStage() {
+export function usePlaygroundStage() {
   const [playgroundStage, setPlaygroundStage] = useAtom(playgroundStageAtom);
 
   const setStage = (stage: keyof PlaygroundStage, value: boolean) => {
