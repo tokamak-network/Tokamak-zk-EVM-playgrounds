@@ -10,6 +10,7 @@ export const useSynthesizer = () => {
   const parseTONTransfer = useCallback(
     async (containerId: string) => {
       try {
+        console.log("parseTONTransfer ->", { transactionBytecode });
         const result = await executeCommand(containerId, [
           "bash",
           "-c",

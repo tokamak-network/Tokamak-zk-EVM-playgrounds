@@ -1,16 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-
-export interface DockerImage {
-  name: string;
-  size: string;
-}
-
-export interface DockerContainer {
-  id: string;
-  name: string;
-  status: string;
-}
-
+import {
+  DockerImage,
+  DockerContainer,
+  currentDockerContainerAtom,
+} from "../atoms/docker";
+import { useAtom } from "jotai";
 // Extend Window interface
 declare global {
   interface Window {
@@ -35,8 +29,10 @@ export const useDocker = () => {
   const [containers, setContainers] = useState<DockerContainer[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentDockerContainer, setCurrentDockerContainer] = useAtom(
+    currentDockerContainerAtom
+  );
 
-  // Load image list
   const loadImages = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -62,7 +58,6 @@ export const useDocker = () => {
     setError(null);
     try {
       const dockerContainers = await window.docker.getContainers();
-      console.log("dockerContainers", dockerContainers);
       setContainers(dockerContainers);
       return dockerContainers;
     } catch (err) {
@@ -95,7 +90,12 @@ export const useDocker = () => {
       setError(null);
       try {
         const container = await window.docker.runContainer(imageName, options);
-        await loadContainers(); // Refresh container list
+        console.log("container", container);
+
+        if (container) {
+          console.log("container", container);
+          setCurrentDockerContainer(container);
+        }
         return container;
       } catch (err) {
         const errorMessage =
@@ -107,7 +107,7 @@ export const useDocker = () => {
         setLoading(false);
       }
     },
-    [loadContainers]
+    [loadContainers, setCurrentDockerContainer]
   );
 
   // Stop container
@@ -172,6 +172,7 @@ export const useDocker = () => {
     containers,
     loading,
     error,
+    currentDockerContainer,
 
     // Actions
     loadImages,

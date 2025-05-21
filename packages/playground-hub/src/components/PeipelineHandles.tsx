@@ -1,8 +1,9 @@
 import Handle from "./Handle";
 import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
+import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 export default function PeipelineHandles() {
   const { setActiveSection } = usePipelineAnimation();
-
+  const { runSynthesizer, proveTransaction } = useTokamakZkEVMActions();
   return (
     <div className="w-full h-full absolute">
       <Handle
@@ -15,7 +16,10 @@ export default function PeipelineHandles() {
       <Handle
         type="orange"
         className="top-[535px] left-[482px]"
-        onClick={() => setActiveSection("synthesizer-to-verify-bikzg")}
+        onClick={() => {
+          runSynthesizer();
+          setActiveSection("synthesizer-to-verify-bikzg");
+        }}
       />
       <Handle
         type="green"
@@ -35,8 +39,8 @@ export default function PeipelineHandles() {
         type="green"
         className="top-[695px] left-[695px]"
         onClick={() => {
+          proveTransaction();
           setActiveSection("prove-to-result");
-          // parseTONTransfer("e61933487ab0");
         }}
       />
       <Handle

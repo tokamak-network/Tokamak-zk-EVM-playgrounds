@@ -74,9 +74,9 @@ export default function PipelineSection({
 
       // 첫 번째 세그먼트 즉시 활성화 (baseDelay 후)
       const firstTimeout = setTimeout(() => {
-        console.log(
-          `Activating first segment ${firstSegment.id} after ${baseDelay}ms`
-        );
+        // console.log(
+        //   `Activating first segment ${firstSegment.id} after ${baseDelay}ms`
+        // );
         setActiveSegments((prev) => ({
           ...prev,
           [firstSegment.id]: true,

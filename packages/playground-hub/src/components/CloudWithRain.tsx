@@ -8,6 +8,7 @@ import { useSetAtom } from "jotai";
 import { activeSectionAtom } from "../atoms/pipelineAnimation";
 import { activeModalAtom } from "../atoms/modals";
 import { usePlaygroundStartStage } from "../hooks/usePlaygroundStage";
+import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 
 interface CloudWithRainProps {
   position: string;
@@ -26,6 +27,8 @@ export default function CloudWithRain({
 
   const setActiveSection = useSetAtom(activeSectionAtom);
   const setActiveModal = useSetAtom(activeModalAtom);
+
+  const { setupEvmSpec } = useTokamakZkEVMActions();
 
   const { playgroundStartStage } = usePlaygroundStartStage();
   const showRain = isEVMSpec
@@ -68,6 +71,7 @@ export default function CloudWithRain({
         className="max-w-full max-h-full object-contain z-[100] cursor-pointer"
         onClick={() => {
           if (isEVMSpec) {
+            setupEvmSpec();
             return setActiveSection("evm-to-qap");
           }
           // setActiveSection("transaction-to-synthesizer");
