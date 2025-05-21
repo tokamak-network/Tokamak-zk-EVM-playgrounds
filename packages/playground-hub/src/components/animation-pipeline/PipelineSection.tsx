@@ -21,6 +21,7 @@ interface PipelineSectionProps {
   onComplete?: () => void; // 모든 세그먼트가 채워졌을 때 호출되는 콜백
   onStart?: () => void; // 추가
   baseDelay?: number; // 섹션 시작 기본 지연 시간 (ms)
+  isPaused?: boolean; // 섹션 일시정지 여부
 }
 
 export default function PipelineSection({
@@ -30,6 +31,7 @@ export default function PipelineSection({
   onComplete,
   onStart,
   baseDelay = 0,
+  isPaused = false,
 }: PipelineSectionProps) {
   // 각 세그먼트의 활성화 상태 추적
   const [activeSegments, setActiveSegments] = useState<Record<string, boolean>>(
@@ -151,6 +153,7 @@ export default function PipelineSection({
           delay={0} // 지연은 이 컴포넌트에서 직접 관리
           onFillComplete={() => handleSegmentComplete(segment.id)}
           fillHeight={segment.fillHeight}
+          isPaused={isPaused}
         />
       ))}
     </>

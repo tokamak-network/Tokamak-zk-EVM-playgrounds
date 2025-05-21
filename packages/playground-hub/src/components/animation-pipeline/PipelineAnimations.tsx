@@ -14,6 +14,7 @@ import VerifyToProve from "./VerifyToProve";
 import BikzgToProve from "./BikzgToProve";
 import ProveToResult from "./ProveToResult";
 import FillingTank from "./FillingTank";
+import { useEffect, useState } from "react";
 
 export default function PipelineAnimations() {
   // 각 섹션의 활성화 상태 관리

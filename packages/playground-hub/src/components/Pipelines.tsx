@@ -15,6 +15,7 @@ interface PipelinesProps {
   delay?: number; // 애니메이션 시작 지연 시간 (ms)
   persistent?: boolean; // 채워진 상태 유지 여부 (true: 유지, false: 다음 컴포넌트 실행 시 초기화)
   fillHeight?: number; // 채우기 높이
+  isPaused?: boolean; // 추가: 일시정지 플래그
 }
 
 // 전역 상태로 채워진 파이프라인 ID 관리
@@ -34,6 +35,7 @@ export default function Pipelines({
   delay = 0,
   persistent = true,
   fillHeight = 18,
+  isPaused = false,
 }: PipelinesProps) {
   const [currentFill, setCurrentFill] = useState(
     filledPipelines.has(id) ? 100 : fillPercentage
@@ -43,6 +45,7 @@ export default function Pipelines({
   const startTimeRef = useRef<number | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isAnimatingRef = useRef<boolean>(false);
+  const pausedRef = useRef(isPaused);
 
   // 컴포넌트 마운트 시 이미 채워진 상태인지 확인
   useEffect(() => {
@@ -59,6 +62,9 @@ export default function Pipelines({
         isAnimatingRef.current = true;
 
         const animate = (timestamp: number) => {
+          if (pausedRef.current) {
+            return;
+          }
           if (startTimeRef.current === null) {
             startTimeRef.current = timestamp;
           }
@@ -112,7 +118,15 @@ export default function Pipelines({
     persistent,
     delay,
     onFillComplete,
+    pausedRef,
   ]);
+
+  useEffect(() => {
+    pausedRef.current = isPaused;
+    if (!isPaused && isAnimatingRef.current) {
+      animationRef.current = requestAnimationFrame(animate);
+    }
+  }, [isPaused]);
 
   // 이징 함수 (부드러운 애니메이션을 위한 함수)
   const easeInOutCubic = (t: number): number => {
