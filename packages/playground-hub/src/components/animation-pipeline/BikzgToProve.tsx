@@ -13,7 +13,6 @@ const BIKZG_TO_PROVE_SECTION = {
       endY: 550,
       direction: "vertical" as const,
       animationDuration: 1000,
-      delay: -200,
     },
     {
       id: "segment2",
@@ -23,7 +22,7 @@ const BIKZG_TO_PROVE_SECTION = {
       endY: 523,
       direction: "horizontal" as const,
       animationDuration: 1000,
-      delay: -200,
+      delay: -550,
     },
   ],
 };

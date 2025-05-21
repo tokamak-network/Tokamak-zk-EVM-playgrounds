@@ -12,8 +12,7 @@ const SYNTHESIZER_TO_VERIFY_BIKZG_SECTION = {
       endX: 425,
       endY: 455,
       direction: "vertical" as const,
-      animationDuration: 1800,
-      delay: -1000,
+      animationDuration: 1000,
     },
     //To bikzg
     {
@@ -23,8 +22,8 @@ const SYNTHESIZER_TO_VERIFY_BIKZG_SECTION = {
       endX: 810,
       endY: 417,
       direction: "horizontal" as const,
-      animationDuration: 1800,
-      delay: -1000,
+      animationDuration: 2500,
+      delay: -750,
     },
     //to verify
     {
@@ -34,8 +33,8 @@ const SYNTHESIZER_TO_VERIFY_BIKZG_SECTION = {
       endX: 225,
       endY: 450,
       direction: "horizontal" as const,
-      animationDuration: 1800,
-      delay: -1000,
+      animationDuration: 1000,
+      delay: -2000,
     },
     {
       id: "segment4",
@@ -44,8 +43,8 @@ const SYNTHESIZER_TO_VERIFY_BIKZG_SECTION = {
       endX: 248,
       endY: 510,
       direction: "vertical" as const,
-      animationDuration: 1800,
-      delay: -1000,
+      animationDuration: 1000,
+      delay: -500,
     },
     {
       id: "segment5",
@@ -55,7 +54,7 @@ const SYNTHESIZER_TO_VERIFY_BIKZG_SECTION = {
       endY: 517,
       direction: "horizontal" as const,
       animationDuration: 1800,
-      delay: -1000,
+      delay: -600,
     },
     {
       id: "segment6",
@@ -65,7 +64,7 @@ const SYNTHESIZER_TO_VERIFY_BIKZG_SECTION = {
       endY: 590,
       direction: "vertical" as const,
       animationDuration: 1800,
-      delay: -1000,
+      delay: -800,
     },
   ],
 };

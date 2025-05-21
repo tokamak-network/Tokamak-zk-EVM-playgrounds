@@ -13,7 +13,6 @@ const VERIFY_TO_PROVE_SECTION = {
       endY: 600,
       direction: "horizontal" as const,
       animationDuration: 1000,
-      delay: -200,
     },
     {
       id: "segment2",
@@ -23,7 +22,7 @@ const VERIFY_TO_PROVE_SECTION = {
       endY: 680,
       direction: "vertical" as const,
       animationDuration: 1000,
-      delay: -200,
+      delay: -600,
     },
     {
       id: "segment3",
@@ -33,7 +32,7 @@ const VERIFY_TO_PROVE_SECTION = {
       endY: 662,
       direction: "horizontal" as const,
       animationDuration: 1000,
-      delay: -200,
+      delay: -600,
     },
     {
       id: "segment4",
@@ -43,7 +42,7 @@ const VERIFY_TO_PROVE_SECTION = {
       endY: 500,
       direction: "vertical" as const,
       animationDuration: 1000,
-      delay: -200,
+      delay: -500,
     },
     {
       id: "segment5",
@@ -53,7 +52,7 @@ const VERIFY_TO_PROVE_SECTION = {
       endY: 525,
       direction: "horizontal" as const,
       animationDuration: 1000,
-      delay: -200,
+      delay: -500,
     },
   ],
 };
