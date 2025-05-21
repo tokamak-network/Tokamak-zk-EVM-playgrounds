@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import tankTrue from "../../assets/images/tank-true.png";
 import tankFalse from "../../assets/images/tank-false.png";
 import { useAtomValue } from "jotai";
 import { provingResultAtom } from "../../atoms/pipelineAnimation";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
+import { usePlaygroundStage } from "../../hooks/usePlaygroundStage";
 interface FillingTankProps {
   animationDuration?: number; // ms
   autoFill?: boolean;
@@ -23,7 +24,13 @@ export default function FillingTank({
   const startTimeRef = useRef<number | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { provingIsDone: active } = useTokamakZkEVMActions();
+  const { provingIsDone } = useTokamakZkEVMActions();
+  const { isReadyForResult } = usePlaygroundStage();
+
+  const active = useMemo(() => {
+    return provingIsDone && isReadyForResult;
+  }, [provingIsDone, isReadyForResult]);
+
   // 애니메이션
   useEffect(() => {
     // active가 true이고 autoFill이 true이며 이미지가 로드되었을 때만 애니메이션 실행

@@ -133,6 +133,34 @@ export default function Pipelines({
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   };
 
+  // animate 함수는 useEffect 바깥에 선언!
+  const animate = (timestamp: number) => {
+    if (pausedRef.current) {
+      return;
+    }
+    if (startTimeRef.current === null) {
+      startTimeRef.current = timestamp;
+    }
+
+    const elapsed = timestamp - startTimeRef.current;
+    const progress = Math.min(elapsed / animationDuration, 1);
+
+    const easedProgress = easeInOutCubic(progress);
+    setCurrentFill(easedProgress * 100);
+
+    if (progress < 1) {
+      animationRef.current = requestAnimationFrame(animate);
+    } else {
+      isAnimatingRef.current = false;
+      if (persistent) {
+        filledPipelines.add(id);
+      }
+      if (onFillComplete) {
+        onFillComplete();
+      }
+    }
+  };
+
   // 이미지가 로드된 후 클립 패스 적용
   useEffect(() => {
     const updateClipPath = () => {
@@ -143,7 +171,7 @@ export default function Pipelines({
           // 수평 방향 채우기 (왼쪽에서 오른쪽 또는 오른쪽에서 왼쪽)
           const width = Math.abs(endX - startX);
           const fillWidth = width * (currentFill / 100);
-          const height = "25px";
+          // const height = "25px";
 
           if (endX > startX) {
             // 왼쪽에서 오른쪽으로

@@ -1,6 +1,6 @@
 import { PipelineAnimationProps } from "../../types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
-
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 // 파이프라인 섹션 정의
 const TRANSACTION_TO_SYNTHESIZER_SECTION = {
   id: "transaction-to-synthesizer",
@@ -169,7 +169,7 @@ export default function TransactionToSynthesizer({
   isActive = false,
   onComplete,
   onStart,
-  isPaused = false,
+  // isPaused = false,
 }: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
@@ -178,6 +178,7 @@ export default function TransactionToSynthesizer({
       onComplete();
     }
   };
+  const { pendingAnimation } = usePipelineAnimation();
 
   return (
     <div className="absolute w-full h-full bottom-[5px]">
@@ -189,7 +190,7 @@ export default function TransactionToSynthesizer({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
-        isPaused={isPaused}
+        isPaused={pendingAnimation}
       />
     </div>
   );
