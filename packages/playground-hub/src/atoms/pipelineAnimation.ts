@@ -12,3 +12,6 @@ export type Section =
   | "prove-to-result";
 
 export const activeSectionAtom = atom<Section>("none");
+
+export const provingIsDoneAtom = atom<boolean>(false);
+export const provingResultAtom = atom<boolean>(false);
