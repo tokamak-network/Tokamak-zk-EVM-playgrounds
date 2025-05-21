@@ -18,12 +18,13 @@ const SYNTHESIZER_TO_VERIFY_BIKZG_SECTION = {
     {
       id: "segment2",
       startX: 425,
-      startY: 417,
+      startY: 412,
       endX: 810,
-      endY: 417,
+      endY: 412,
       direction: "horizontal" as const,
       animationDuration: 2500,
       delay: -750,
+      fillHeight: 70,
     },
     //to verify
     {
