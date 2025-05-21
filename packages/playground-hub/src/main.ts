@@ -8,7 +8,6 @@ import {
 } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
-import Store from "electron-store";
 import {
   getDockerImages,
   runDockerContainer,
@@ -16,16 +15,6 @@ import {
   stopDockerContainer,
   executeCommandInContainer,
 } from "./api/docker-service";
-
-// 설정을 위한 인터페이스
-interface AppSettings {
-  backendPath?: string;
-  qapCompilerPath?: string;
-  synthesizerPath?: string;
-}
-
-// 설정 저장소 초기화
-const store = new Store<AppSettings>();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -68,16 +57,16 @@ function createMenu(): void {
           {
             label: app.name,
             submenu: [
-              { role: "about" },
-              { type: "separator" },
-              { role: "services" },
-              { type: "separator" },
-              { role: "hide" },
-              { role: "hideOthers" },
-              { role: "unhide" },
-              { type: "separator" },
-              { role: "quit" },
-            ],
+              { role: "about" as const },
+              { type: "separator" as const },
+              { role: "services" as const },
+              { type: "separator" as const },
+              { role: "hide" as const },
+              { role: "hideOthers" as const },
+              { role: "unhide" as const },
+              { type: "separator" as const },
+              { role: "quit" as const },
+            ] as MenuItemConstructorOptions[],
           },
         ]
       : []),
@@ -211,7 +200,7 @@ function setupIpcHandlers() {
     }
   );
 
-  ipcMain.handle("close-settings-window", (event) => {
+  ipcMain.on("close-settings-window", (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) win.close();
   });
