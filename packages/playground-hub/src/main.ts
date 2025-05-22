@@ -222,7 +222,8 @@ function setupIpcHandlers() {
         .finally(() => {
           isShowingDialog = false;
         });
-    } else if (!status.isRunning && !isShowingDialog) {
+    }
+    if (!status.isRunning && !isShowingDialog) {
       isShowingDialog = true;
       const checkDockerRunning = async () => {
         const currentStatus = await checkDockerStatus();
