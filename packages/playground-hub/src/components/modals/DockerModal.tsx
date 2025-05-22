@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { activeModalAtom } from "../../atoms/modals";
-import TransactionInputModalImage from "../../assets/modals/transaction-input-modal.svg";
-import InputButtonInactiveImage from "../../assets/modals/input-button-inactive.svg";
-import InputButtonActiveImage from "../../assets/modals/input-button-active.svg";
-import WarningIconImage from "../../assets/modals/warning-icon.svg";
+import TransactionInputModalImage from "../../assets/modals/docker/docker-modal.png";
+import DownloadButtonImage from "../../assets/modals/docker/download-button.png";
 import {
   etherscanApiKeyAtom,
   transactionBytecodeAtom,
@@ -15,7 +13,7 @@ import { useDebouncedTxHashValidation } from "../../hooks/useTransaction";
 import { fetchTransactionBytecode } from "../../utils/parseTransaction";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 
-const TransactionInputModal: React.FC = () => {
+const DockerModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
   const apiKey = useAtomValue(etherscanApiKeyAtom);
   const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
@@ -35,24 +33,7 @@ const TransactionInputModal: React.FC = () => {
     setActiveModal("none");
   };
 
-  const inputClose = async () => {
-    if (!isActive) return;
-    onClose();
-    try {
-      const { bytecode, from, to } =
-        await fetchTransactionBytecode(transactionHash);
-      setTransactionBytecode({ bytecode, from, to });
-      setActiveSection("transaction-to-synthesizer");
-    } catch (error) {
-      console.error("Transaction input modal input close error:", error);
-      setActiveSection("none");
-    }
-  };
-
-  const isOpen = useMemo(
-    () => activeModal === "transaction-input",
-    [activeModal]
-  );
+  const isOpen = useMemo(() => activeModal === "docker-select", [activeModal]);
 
   const isActive = useMemo(() => {
     return isValidApiKey && isValidTxHash;
@@ -69,11 +50,11 @@ const TransactionInputModal: React.FC = () => {
     fetchTransactionBytecode(transactionHash);
   }, [transactionHash]);
 
-  if (!isOpen) return null;
+  //   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
-      <div className="relative">
+    <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center ">
+      <div className="relative w-[400px] h-[46px]">
         <div
           className="absolute w-[18px] h-[18px] top-[20px] left-[372px] cursor-pointer"
           onClick={onClose}
@@ -82,28 +63,25 @@ const TransactionInputModal: React.FC = () => {
           src={TransactionInputModalImage}
           alt={"transaction-input-modal"}
         ></img>
-        <div className="absolute top-[82px] left-[280px]">
-          <img
-            src={isActive ? InputButtonActiveImage : InputButtonInactiveImage}
-            className={`${isActive ? "cursor-pointer" : ""}`}
-            onClick={inputClose}
-          />
+        <div
+          className="absolute top-[99px] left-[88px] w-[200px] h-[21px] text-[16px] font-[600]"
+          style={{
+            background: "white",
+          }}
+        >
+          <span>TOKAMAK-ZK-EVM</span>
         </div>
-        <input
-          className="absolute w-[238px] h-[40px] left-[30px] top-[82px] bg-transparent border-none outline-none px-[9px]"
-          onChange={handleTransactionChange}
-        ></input>
-        {errorMessage && (
-          <div className="absolute top-[126px] left-[30px] flex items-center">
-            <img src={WarningIconImage} />
-            <span className="text-[#DD140E] text-[14px] ml-[6px] pb-[2px]">
-              {errorMessage}
-            </span>
-          </div>
-        )}
+        <div
+          className="absolute top-[94px] left-[358px] flex justify-center items-center h-[30px]"
+          style={{
+            background: "white",
+          }}
+        >
+          <img className="cursor-pointer" src={DownloadButtonImage}></img>
+        </div>
       </div>
     </div>
   );
 };
 
-export default TransactionInputModal;
+export default DockerModal;
