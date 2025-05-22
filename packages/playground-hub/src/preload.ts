@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld("docker", {
     ipcRenderer.invoke("stop-docker-container", containerId),
   executeCommand: (containerId: string, command: string[]) =>
     ipcRenderer.invoke("execute-command-in-container", containerId, command),
+  checkDockerStatus: () => ipcRenderer.invoke("check-docker-status"),
 });
 
 //Settings

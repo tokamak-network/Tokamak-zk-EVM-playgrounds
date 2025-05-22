@@ -12,6 +12,32 @@ export interface DockerContainer {
   status: string;
 }
 
+// Docker 상태 체크 함수
+export async function checkDockerStatus(): Promise<{
+  isInstalled: boolean;
+  isRunning: boolean;
+}> {
+  return new Promise<{ isInstalled: boolean; isRunning: boolean }>(
+    (resolve) => {
+      // Docker 설치 여부 체크
+      exec("docker --version", (error) => {
+        if (error) {
+          resolve({ isInstalled: false, isRunning: false });
+          return;
+        }
+
+        // Docker 실행 여부 체크
+        exec("docker info", (error) => {
+          resolve({
+            isInstalled: true,
+            isRunning: !error,
+          });
+        });
+      });
+    }
+  );
+}
+
 // Docker 이미지 목록 가져오기
 export async function getDockerImages(): Promise<DockerImage[]> {
   return new Promise((resolve, reject) => {
