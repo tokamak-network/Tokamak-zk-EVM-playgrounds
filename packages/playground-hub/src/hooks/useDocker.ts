@@ -20,6 +20,10 @@ declare global {
         containerId: string,
         command: string[]
       ) => Promise<string>;
+      checkDockerStatus: () => Promise<{
+        isInstalled: boolean;
+        isRunning: boolean;
+      }>;
     };
   }
 }
@@ -32,13 +36,45 @@ export const useDocker = () => {
   const [currentDockerContainer, setCurrentDockerContainer] = useAtom(
     currentDockerContainerAtom
   );
+  const [dockerStatus, setDockerStatus] = useState<{
+    isInstalled: boolean;
+    isRunning: boolean;
+  }>({ isInstalled: false, isRunning: false });
+
+  // Docker 상태 체크
+  const verifyDockerStatus = useCallback(async () => {
+    try {
+      const status = await window.docker.checkDockerStatus();
+      setDockerStatus(status);
+      return status;
+    } catch (err) {
+      console.error("Failed to check Docker status:", err);
+      return { isInstalled: false, isRunning: false };
+    }
+  }, []);
+
+  // 초기 로딩 시 Docker 상태 체크
+  useEffect(() => {
+    const checkInterval = setInterval(async () => {
+      await verifyDockerStatus();
+    }, 3000); // 3초마다 체크
+
+    return () => clearInterval(checkInterval);
+  }, []);
+
+  // Docker 관련 작업 전 상태 체크
+  const ensureDockerReady = useCallback(async () => {
+    const status = await verifyDockerStatus();
+    if (!status.isInstalled || !status.isRunning) {
+      throw new Error("Docker is not ready");
+    }
+  }, [verifyDockerStatus]);
 
   const loadImages = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const dockerImages = await window.docker.getImages();
-      console.log("dockerImages", dockerImages);
       setImages(dockerImages);
       return dockerImages;
     } catch (err) {
@@ -74,6 +110,7 @@ export const useDocker = () => {
   // Run container
   const runContainer = useCallback(
     async (imageName: string) => {
+      await ensureDockerReady();
       if (!imageName) {
         const errorMessage = "Image name is required";
         setError(errorMessage);
@@ -90,10 +127,9 @@ export const useDocker = () => {
       setError(null);
       try {
         const container = await window.docker.runContainer(imageName, options);
-        console.log("container", container);
 
         if (container) {
-          console.log("container", container);
+          console.log("currentDockerContainer", container);
           setCurrentDockerContainer(container);
         }
         return container;

@@ -1,5 +1,7 @@
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import { PipelineAnimationProps } from "../../types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
+import { useEffect } from "react";
 
 // 파이프라인 섹션 정의
 const EVM_TO_QAP_SECTION = {
@@ -99,6 +101,16 @@ export default function EvmToQAP({
       onComplete();
     }
   };
+  const { pendingAnimation, setPendingAnimation } = usePipelineAnimation();
+
+  useEffect(() => {
+    setTimeout(() => {
+      setPendingAnimation(true);
+    }, 3000);
+    setTimeout(() => {
+      setPendingAnimation(false);
+    }, 5000);
+  }, []);
 
   return (
     <div className="absolute w-full h-full bottom-[5px]">
@@ -110,6 +122,7 @@ export default function EvmToQAP({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        isPaused={pendingAnimation}
       />
 
       {/* {EVM_TO_QAP_SECTION.segments.map((segment, index) => (

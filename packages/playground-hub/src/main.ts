@@ -14,6 +14,7 @@ import {
   getDockerContainers,
   stopDockerContainer,
   executeCommandInContainer,
+  checkDockerStatus,
 } from "./api/docker-service";
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -199,6 +200,61 @@ function setupIpcHandlers() {
       return await executeCommandInContainer(containerId, command);
     }
   );
+
+  let isShowingDialog = false; // 전역 플래그 추가
+
+  ipcMain.handle("check-docker-status", async () => {
+    const status = await checkDockerStatus();
+
+    if (!status.isInstalled && !isShowingDialog) {
+      isShowingDialog = true;
+      dialog
+        .showMessageBox({
+          type: "warning",
+          title: "Docker Not Installed",
+          message: "Docker is not installed on your system.",
+          detail: "Please install Docker Desktop to use this application.",
+          buttons: ["OK"],
+          noLink: true,
+          defaultId: 0,
+          cancelId: 0,
+        })
+        .finally(() => {
+          isShowingDialog = false;
+        });
+    } else if (!status.isRunning && !isShowingDialog) {
+      isShowingDialog = true;
+      const checkDockerRunning = async () => {
+        const currentStatus = await checkDockerStatus();
+        if (!currentStatus.isRunning) {
+          dialog
+            .showMessageBox({
+              type: "warning",
+              title: "Docker Not Running",
+              message: "Docker is not running.",
+              detail: "Please start Docker Desktop to use this application.",
+              buttons: ["OK"],
+              noLink: true,
+              defaultId: 0,
+              cancelId: 0,
+            })
+            .then(() => {
+              if (!currentStatus.isRunning) {
+                checkDockerRunning();
+              } else {
+                isShowingDialog = false;
+              }
+            });
+        } else {
+          isShowingDialog = false;
+        }
+      };
+
+      checkDockerRunning();
+    }
+
+    return status;
+  });
 
   ipcMain.on("close-settings-window", (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
