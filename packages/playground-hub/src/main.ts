@@ -5,8 +5,11 @@ import {
   ipcMain,
   Menu,
   MenuItemConstructorOptions,
+  session,
 } from "electron";
 import path from "node:path";
+import fs from "node:fs";
+import { exec } from "node:child_process";
 import started from "electron-squirrel-startup";
 import {
   getDockerImages,
@@ -261,6 +264,153 @@ function setupIpcHandlers() {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) win.close();
   });
+
+  // --- 파일 다운로드 및 Docker 이미지 로드 핸들러 시작 ---
+  ipcMain.handle(
+    "download-and-load-docker-image",
+    async (event, args: { url: string; filename?: string }) => {
+      const { url, filename } = args;
+      const webContents = event.sender; // 진행률 및 상태 업데이트를 보낼 렌더러
+
+      // 1. Docker 실행 상태 확인 (선택 사항이지만 권장)
+      const dockerStatus = await checkDockerStatus();
+      if (!dockerStatus.isInstalled || !dockerStatus.isRunning) {
+        webContents.send("docker-load-status", {
+          stage: "failed",
+          message:
+            "Docker is not installed or not running. Please check Docker Desktop.",
+          error: "Docker not ready",
+        });
+        // checkDockerStatus 함수 내부에서 이미 dialog를 띄우므로, 여기서는 메시지만 전송
+        return {
+          success: false,
+          error: "Docker is not installed or not running.",
+        };
+      }
+
+      // 2. 사용자에게 저장 위치 물어보기 (또는 기본 경로 사용)
+      const defaultSavePath = path.join(
+        app.getPath("downloads"),
+        filename || "downloaded-image.tar"
+      );
+      const dialogResult = await dialog.showSaveDialog({
+        title: "Save Docker Image TAR",
+        defaultPath: defaultSavePath,
+        filters: [{ name: "TAR Archives", extensions: ["tar"] }],
+      });
+
+      if (dialogResult.canceled || !dialogResult.filePath) {
+        webContents.send("docker-load-status", {
+          stage: "failed",
+          message: "Download canceled by user.",
+        });
+        return { success: false, error: "Download canceled by user." };
+      }
+      const filePath = dialogResult.filePath;
+
+      // 3. Electron의 session.downloadURL을 사용하여 파일 다운로드
+      try {
+        webContents.send("docker-load-status", {
+          stage: "downloading",
+          message: "Starting download...",
+        });
+        await new Promise<void>((resolve, reject) => {
+          // 이전 'will-download' 리스너가 있다면 제거 (중복 방지)
+          session.defaultSession.removeAllListeners("will-download");
+
+          session.defaultSession.once("will-download", (_e, item) => {
+            item.setSavePath(filePath);
+
+            item.on("updated", (_evt, state) => {
+              if (state === "progressing") {
+                if (item.getReceivedBytes() && item.getTotalBytes()) {
+                  const progressData = {
+                    percentage: Math.round(
+                      (item.getReceivedBytes() / item.getTotalBytes()) * 100
+                    ),
+                    downloadedSize: item.getReceivedBytes(),
+                    totalSize: item.getTotalBytes(),
+                  };
+                  webContents.send("download-progress", progressData);
+                }
+              }
+            });
+
+            item.on("done", (_evt, state) => {
+              if (state === "completed") {
+                webContents.send("download-progress", {
+                  // 최종 진행률
+                  percentage: 100,
+                  downloadedSize: item.getTotalBytes(),
+                  totalSize: item.getTotalBytes(),
+                });
+                resolve();
+              } else {
+                reject(new Error(`Download failed: ${state}`));
+              }
+            });
+          });
+          session.defaultSession.downloadURL(url);
+        });
+
+        // 4. 다운로드 완료 후 Docker 이미지 로드
+        webContents.send("docker-load-status", {
+          stage: "loading",
+          message: "Download complete. Loading into Docker...",
+        });
+
+        return new Promise((resolveCmd, rejectCmd) => {
+          const command = `docker load -i "${filePath}"`;
+          exec(command, (error, stdout, stderr) => {
+            // 선택 사항: 로드 성공/실패 후 tar 파일 삭제
+            fs.unlink(filePath, (unlinkErr) => {
+              if (unlinkErr)
+                console.error(
+                  `Failed to delete tar file: ${filePath}`,
+                  unlinkErr
+                );
+            });
+
+            if (error) {
+              const errorMessage = `Docker load failed: ${error.message} (stderr: ${stderr || "N/A"})`;
+              webContents.send("docker-load-status", {
+                stage: "failed",
+                message: errorMessage,
+                error: error.message,
+              });
+              rejectCmd({ success: false, error: errorMessage });
+              return;
+            }
+            // stderr에 내용이 있지만, 그것이 실제 에러가 아닌 경고나 정보일 수 있음.
+            // stdout에 유의미한 성공 메시지가 있다면 성공으로 간주.
+            const successMessage =
+              stdout || "Docker image loaded successfully.";
+            if (stderr && !stdout.includes(stderr.trim().split("\n")[0])) {
+              // stderr가 있고, stdout에 포함된 내용이 아니라면 경고로 로깅
+              console.warn(`Docker load stderr (may be warnings): ${stderr}`);
+            }
+            webContents.send("docker-load-status", {
+              stage: "completed",
+              message: successMessage,
+            });
+            resolveCmd({ success: true, message: successMessage });
+          });
+        });
+      } catch (err) {
+        // 다운로드 중 발생한 에러
+        webContents.send("docker-load-status", {
+          stage: "failed",
+          message: err.message || "An unknown error occurred during download.",
+          error: err.message,
+        });
+        return {
+          success: false,
+          error: err.message || "An unknown error occurred.",
+        };
+      }
+    }
+  );
+  // --- 파일 다운로드 및 Docker 이미지 로드 핸들러 끝 ---
 }
 
 app.whenReady().then(() => {
