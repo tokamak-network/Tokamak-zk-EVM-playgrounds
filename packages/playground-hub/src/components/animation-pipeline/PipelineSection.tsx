@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import Pipelines from "../Pipelines";
+import { usePipelineAnimation } from "src/hooks/usePipelineAnimation";
 
 // 파이프라인 세그먼트 정의
 interface PipelineSegment {
@@ -22,6 +23,7 @@ interface PipelineSectionProps {
   onStart?: () => void; // 추가
   baseDelay?: number; // 섹션 시작 기본 지연 시간 (ms)
   isPaused?: boolean; // 섹션 일시정지 여부
+  resetAnimation?: boolean; // Add resetAnimation prop
 }
 
 export default function PipelineSection({
@@ -39,6 +41,7 @@ export default function PipelineSection({
   );
   const completedSegmentsRef = useRef<Set<string>>(new Set());
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  const { resetAnimation } = usePipelineAnimation();
 
   // 모든 타임아웃 정리 함수
   const clearAllTimeouts = () => {
@@ -56,8 +59,16 @@ export default function PipelineSection({
     }
   };
 
-  // isActive 변경 시 애니메이션 시작/중지
+  // isActive 또는 resetAnimation 변경 시 애니메이션 시작/중지/초기화
   useEffect(() => {
+    if (resetAnimation) {
+      clearAllTimeouts();
+      setActiveSegments({});
+      completedSegmentsRef.current.clear();
+      // Optionally, if you need to signal that reset is done, you could call a prop like onResetComplete here
+      return; // Exit early if reset is active
+    }
+
     if (isActive) {
       // console.log(`Section ${id} activated with baseDelay: ${baseDelay}ms`);
 
@@ -134,7 +145,7 @@ export default function PipelineSection({
     return () => {
       clearAllTimeouts();
     };
-  }, [isActive, segments, baseDelay]);
+  }, [isActive, segments, baseDelay, onStart, resetAnimation]);
 
   return (
     <>
@@ -154,6 +165,7 @@ export default function PipelineSection({
           onFillComplete={() => handleSegmentComplete(segment.id)}
           fillHeight={segment.fillHeight}
           isPaused={isPaused}
+          resetAnimation={resetAnimation}
         />
       ))}
     </>

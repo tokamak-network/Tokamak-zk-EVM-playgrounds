@@ -49,6 +49,7 @@ export default function BikzgToProve({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        resetAnimation={resetAnimation}
       />
     </div>
   );

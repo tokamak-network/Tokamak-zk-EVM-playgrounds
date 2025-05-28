@@ -1,14 +1,11 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import cloudSkyblue from "../assets/images/cloud-skyblue.svg";
 import cloudBlue from "../assets/images/cloud-blue.svg";
 import blueRain from "../assets/images/rain-blue.svg";
 import skyblueRain from "../assets/images/rain-skyblue.svg";
 import "../style.css";
-import { useSetAtom } from "jotai";
-import { activeSectionAtom } from "../atoms/pipelineAnimation";
-import { usePlaygroundStartStage } from "../hooks/usePlaygroundStage";
 import { useModals } from "../hooks/useModals";
-import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
+import { usePlaygroundStartStage } from "../hooks/usePlaygroundStage";
 
 interface CloudWithRainProps {
   position: string;
@@ -25,7 +22,6 @@ export default function CloudWithRain({
   const cloudImage = isEVMSpec ? cloudBlue : cloudSkyblue;
   const rainRef = useRef<HTMLDivElement>(null);
 
-  const { setActiveSection } = usePipelineAnimation();
   const { openModal } = useModals();
 
   const { playgroundStartStage } = usePlaygroundStartStage();

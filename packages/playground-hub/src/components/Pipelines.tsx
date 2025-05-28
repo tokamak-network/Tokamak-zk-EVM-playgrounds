@@ -16,6 +16,7 @@ interface PipelinesProps {
   persistent?: boolean; // 채워진 상태 유지 여부 (true: 유지, false: 다음 컴포넌트 실행 시 초기화)
   fillHeight?: number; // 채우기 높이
   isPaused?: boolean; // 추가: 일시정지 플래그
+  resetAnimation?: boolean; // Add resetAnimation prop
 }
 
 // 전역 상태로 채워진 파이프라인 ID 관리
@@ -36,9 +37,10 @@ export default function Pipelines({
   persistent = true,
   fillHeight = 18,
   isPaused = false,
+  resetAnimation = false,
 }: PipelinesProps) {
   const [currentFill, setCurrentFill] = useState(
-    filledPipelines.has(id) ? 100 : fillPercentage
+    resetAnimation ? 0 : filledPipelines.has(id) ? 100 : fillPercentage
   );
   const filledImgRef = useRef<HTMLImageElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -47,15 +49,49 @@ export default function Pipelines({
   const isAnimatingRef = useRef<boolean>(false);
   const pausedRef = useRef(isPaused);
 
-  // 컴포넌트 마운트 시 이미 채워진 상태인지 확인
+  // 컴포넌트 마운트 시 이미 채워진 상태인지 확인 (및 리셋 로직 통합)
   useEffect(() => {
-    if (filledPipelines.has(id)) {
+    if (resetAnimation) {
+      setCurrentFill(0);
+      filledPipelines.delete(id);
+      // Ensure animation refs are cleaned up
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+      if (delayTimeoutRef.current) {
+        clearTimeout(delayTimeoutRef.current);
+        delayTimeoutRef.current = null;
+      }
+      startTimeRef.current = null;
+      isAnimatingRef.current = false;
+    } else if (filledPipelines.has(id)) {
       setCurrentFill(100);
+    } else {
+      setCurrentFill(fillPercentage); // Initialize with fillPercentage if not filled and not resetting
     }
-  }, [id]);
+  }, [id, resetAnimation, fillPercentage]); // Added resetAnimation and fillPercentage
 
-  // 자동 채우기 애니메이션
+  // 자동 채우기 애니메이션 및 리셋 로직
   useEffect(() => {
+    if (resetAnimation) {
+      // State is already reset by the previous useEffect, ensure no new animation starts
+      // Cancel any lingering animation or delay timeouts
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = null;
+      }
+      if (delayTimeoutRef.current) {
+        clearTimeout(delayTimeoutRef.current);
+        delayTimeoutRef.current = null;
+      }
+      isAnimatingRef.current = false;
+      startTimeRef.current = null;
+      filledPipelines.delete(id); // Ensure it's deleted
+      setCurrentFill(0); // Ensure fill is 0
+      return; // Exit early
+    }
+
     if (autoFill && !filledPipelines.has(id)) {
       // 지연 시간 후 애니메이션 시작
       delayTimeoutRef.current = setTimeout(() => {
@@ -119,14 +155,19 @@ export default function Pipelines({
     delay,
     onFillComplete,
     pausedRef,
+    resetAnimation,
   ]);
 
   useEffect(() => {
     pausedRef.current = isPaused;
+    if (resetAnimation) {
+      // If reset is active, don't try to resume animation
+      return;
+    }
     if (!isPaused && isAnimatingRef.current) {
       animationRef.current = requestAnimationFrame(animate);
     }
-  }, [isPaused]);
+  }, [isPaused, resetAnimation]); // Add resetAnimation
 
   // 이징 함수 (부드러운 애니메이션을 위한 함수)
   const easeInOutCubic = (t: number): number => {
@@ -135,7 +176,8 @@ export default function Pipelines({
 
   // animate 함수는 useEffect 바깥에 선언!
   const animate = (timestamp: number) => {
-    if (pausedRef.current) {
+    if (resetAnimation || pausedRef.current) {
+      // Check resetAnimation here too
       return;
     }
     if (startTimeRef.current === null) {

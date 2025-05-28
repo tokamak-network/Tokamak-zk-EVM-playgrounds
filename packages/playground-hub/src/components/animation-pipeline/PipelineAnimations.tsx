@@ -1,7 +1,5 @@
 import EvmToQAP from "./EvmToQAP";
 import pipeline from "../../assets/images/pipe.png";
-import { useAtom } from "jotai";
-import { Section, activeSectionAtom } from "../../atoms/pipelineAnimation";
 import QAPToSetup from "./QAPToSetup";
 import TransactionToSynthesizer from "./TransactionToSynthesizer";
 import {
@@ -15,16 +13,12 @@ import VerifyToProve from "./VerifyToProve";
 import BikzgToProve from "./BikzgToProve";
 import ProveToResult from "./ProveToResult";
 import FillingTank from "./FillingTank";
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 
 export default function PipelineAnimations() {
-  // 각 섹션의 활성화 상태 관리
-  const [activeSection, setActiveSection] = useAtom(activeSectionAtom);
   const { setStage } = usePlaygroundStage();
   const { setStartStage } = usePlaygroundStartStage();
-  // 섹션 활성화 핸들러
-  const activateSection = (sectionId: Section) => {
-    setActiveSection(sectionId);
-  };
+  const { activeSection, updateActiveSection } = usePipelineAnimation();
 
   const handleOnStart = ({
     section,
@@ -49,7 +43,7 @@ export default function PipelineAnimations() {
         }}
         onStart={() => {
           setStartStage("evmSpec", true);
-          activateSection("evm-to-qap");
+          updateActiveSection("evm-to-qap");
         }}
       />
       <QAPToSetup
@@ -61,7 +55,7 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          activateSection("qap-to-setup-synthesizer");
+          updateActiveSection("qap-to-setup-synthesizer");
         }}
       />
       <TransactionToSynthesizer
@@ -74,7 +68,7 @@ export default function PipelineAnimations() {
         }}
         onStart={() => {
           setStartStage("transactionHash", true);
-          activateSection("transaction-to-synthesizer");
+          updateActiveSection("transaction-to-synthesizer");
         }}
       />
       <SynthesizerToVerifyBikzg
@@ -86,7 +80,7 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          activateSection("synthesizer-to-verify-bikzg");
+          updateActiveSection("synthesizer-to-verify-bikzg");
         }}
       />
       <SetupToVerify
@@ -98,7 +92,7 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          activateSection("setup-to-verify");
+          updateActiveSection("setup-to-verify");
         }}
       />
       <VerifyToProve
@@ -110,7 +104,7 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          activateSection("verify-to-prove");
+          updateActiveSection("verify-to-prove");
         }}
       />
       <BikzgToProve
@@ -122,7 +116,7 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          activateSection("bikzg-to-prove");
+          updateActiveSection("bikzg-to-prove");
         }}
       />
       <ProveToResult
@@ -134,7 +128,7 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          activateSection("prove-to-result");
+          updateActiveSection("prove-to-result");
         }}
       />
       <FillingTank />
