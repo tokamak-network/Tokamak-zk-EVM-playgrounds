@@ -1,44 +1,37 @@
-import React, { useEffect, useMemo } from "react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { activeModalAtom } from "../../atoms/modals";
+import React, { useMemo } from "react";
 import TransactionInputModalImage from "../../assets/modals/docker/docker-modal.png";
 import DownloadButtonImage from "../../assets/modals/docker/download-button.png";
 import PauseIconImage from "../../assets/modals/docker/pause.svg";
-import {
-  etherscanApiKeyAtom,
-  transactionBytecodeAtom,
-  transactionHashAtom,
-} from "../../atoms/api";
-import { useDebouncedEtherscanValidation } from "../../hooks/useEtherscanApi";
-import { useDebouncedTxHashValidation } from "../../hooks/useTransaction";
-import { fetchTransactionBytecode } from "../../utils/parseTransaction";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import useElectronFileDownloader from "../../hooks/useFileDownload";
+import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
+import { useModals } from "../../hooks/useModals";
 
 const DockerModal: React.FC = () => {
-  const [activeModal, setActiveModal] = useAtom(activeModalAtom);
-  const apiKey = useAtomValue(etherscanApiKeyAtom);
-  const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
-  const setTransactionBytecode = useSetAtom(transactionBytecodeAtom);
-  const { setActiveSection } = usePipelineAnimation();
   const {
     startDownloadAndLoad,
     downloadProgress,
     loadStatus,
     isProcessing: isDownloading,
   } = useElectronFileDownloader();
-  // API 키 입력 핸들러
-  const handleTransactionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setTransactionHash(value);
+
+  const { setupEvmSpec } = useTokamakZkEVMActions();
+  const { setActiveSection } = usePipelineAnimation();
+  const { activeModal, closeModal } = useModals();
+
+  const startProcess = () => {
+    try {
+      setupEvmSpec();
+      setActiveSection("evm-to-qap");
+    } catch (error) {
+      console.error(error);
+      // setActiveSection("none");
+    } finally {
+      closeModal();
+    }
   };
 
-  const { isValid: isValidApiKey } = useDebouncedEtherscanValidation(apiKey);
-  const { isValid: isValidTxHash } =
-    useDebouncedTxHashValidation(transactionHash);
-
-  const handleStartProcess = () => {
-    console.log("go");
+  const handleStartDownloadAndLoad = () => {
     const fileUrl =
       "https://pub-0701c5cdd79d4abda56fd836761eab4c.r2.dev/tokamak-zk-evm-docker-image/tokamak-zk-evm-demo.tar"; // 실제 R2 파일 URL
     const desiredFilename = "tokamak-zk-evm-demo-image.tar";
@@ -46,35 +39,16 @@ const DockerModal: React.FC = () => {
     startDownloadAndLoad(fileUrl, desiredFilename);
   };
 
-  const onClose = () => {
-    setActiveModal("none");
-  };
-
   const isOpen = useMemo(() => activeModal === "docker-select", [activeModal]);
 
-  const isActive = useMemo(() => {
-    return isValidApiKey && isValidTxHash;
-  }, [isValidApiKey, isValidTxHash]);
-
-  const errorMessage = useMemo(() => {
-    if (!isValidApiKey) return "Invalid API key. Update in settings.";
-    if (!isValidTxHash && transactionHash.length > 0)
-      return "Invalid transaction ID. Please verify.";
-    return null;
-  }, [isValidApiKey, isValidTxHash]);
-
-  useEffect(() => {
-    fetchTransactionBytecode(transactionHash);
-  }, [transactionHash]);
-
-  //   if (!isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center ">
       <div className="relative w-[400px] h-[46px]">
         <div
           className="absolute w-[18px] h-[18px] top-[20px] left-[372px] cursor-pointer"
-          onClick={onClose}
+          onClick={closeModal}
         ></div>
         <img
           src={TransactionInputModalImage}
@@ -89,11 +63,13 @@ const DockerModal: React.FC = () => {
           }}
         >
           <div className="w-full h-[24px] flex  items-center justify-between">
-            <span>TOKAMAK-ZK-EVM</span>
+            <span className="cursor-pointer" onClick={startProcess}>
+              TOKAMAK-ZK-EVM
+            </span>
             <img
               className="cursor-pointer"
               src={isDownloading ? PauseIconImage : DownloadButtonImage}
-              onClick={handleStartProcess}
+              onClick={handleStartDownloadAndLoad}
             ></img>
           </div>
           {isDownloading && (
