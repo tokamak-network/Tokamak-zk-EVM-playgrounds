@@ -54,7 +54,7 @@ export default function PipelineBG() {
       <img
         src={tank}
         alt="tank"
-        className="absolute max-w-full max-h-full object-contain bottom-[10px] right-[25px]"
+        className="absolute max-w-full max-h-full object-contain bottom-[10px] right-[25px] z-[-1]"
       />
 
       {/* 디버깅용 표시 - 개발 중에만 사용 */}
@@ -73,16 +73,8 @@ export default function PipelineBG() {
         />
       )} */}
 
-      <CloudWithRain
-        position="top-[113px] left-[105px]"
-        cloudType="blue"
-        showRain={true}
-      />
-      <CloudWithRain
-        position="top-[113px] right-[155px]"
-        cloudType="skyblue"
-        showRain={true}
-      />
+      <CloudWithRain position="top-[113px] left-[105px]" cloudType="blue" />
+      <CloudWithRain position="top-[113px] right-[155px]" cloudType="skyblue" />
 
       <PeipelineHandles />
       <Bubbles />

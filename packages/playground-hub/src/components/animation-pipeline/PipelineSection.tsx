@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import Pipelines from "../Pipelines";
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 
 // 파이프라인 세그먼트 정의
 interface PipelineSegment {
@@ -19,7 +20,10 @@ interface PipelineSectionProps {
   segments: PipelineSegment[]; // 파이프라인 세그먼트 배열
   isActive: boolean; // 섹션 활성화 여부 (트리거)
   onComplete?: () => void; // 모든 세그먼트가 채워졌을 때 호출되는 콜백
+  onStart?: () => void; // 추가
   baseDelay?: number; // 섹션 시작 기본 지연 시간 (ms)
+  isPaused?: boolean; // 섹션 일시정지 여부
+  resetAnimation?: boolean; // Add resetAnimation prop
 }
 
 export default function PipelineSection({
@@ -27,7 +31,9 @@ export default function PipelineSection({
   segments,
   isActive,
   onComplete,
+  onStart,
   baseDelay = 0,
+  isPaused = false,
 }: PipelineSectionProps) {
   // 각 세그먼트의 활성화 상태 추적
   const [activeSegments, setActiveSegments] = useState<Record<string, boolean>>(
@@ -35,6 +41,7 @@ export default function PipelineSection({
   );
   const completedSegmentsRef = useRef<Set<string>>(new Set());
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  const { resetAnimation } = usePipelineAnimation();
 
   // 모든 타임아웃 정리 함수
   const clearAllTimeouts = () => {
@@ -52,10 +59,20 @@ export default function PipelineSection({
     }
   };
 
-  // isActive 변경 시 애니메이션 시작/중지
+  // isActive 또는 resetAnimation 변경 시 애니메이션 시작/중지/초기화
   useEffect(() => {
+    if (resetAnimation) {
+      clearAllTimeouts();
+      setActiveSegments({});
+      completedSegmentsRef.current.clear();
+      // Optionally, if you need to signal that reset is done, you could call a prop like onResetComplete here
+      return; // Exit early if reset is active
+    }
+
     if (isActive) {
-      console.log(`Section ${id} activated with baseDelay: ${baseDelay}ms`);
+      // console.log(`Section ${id} activated with baseDelay: ${baseDelay}ms`);
+
+      if (onStart) onStart(); // 섹션 시작 시 콜백 호출
 
       // 이전 타임아웃 정리
       clearAllTimeouts();
@@ -70,9 +87,9 @@ export default function PipelineSection({
 
       // 첫 번째 세그먼트 즉시 활성화 (baseDelay 후)
       const firstTimeout = setTimeout(() => {
-        console.log(
-          `Activating first segment ${firstSegment.id} after ${baseDelay}ms`
-        );
+        // console.log(
+        //   `Activating first segment ${firstSegment.id} after ${baseDelay}ms`
+        // );
         setActiveSegments((prev) => ({
           ...prev,
           [firstSegment.id]: true,
@@ -99,18 +116,18 @@ export default function PipelineSection({
         const currentStartTime = prevStartTime + prevDuration + currentDelay;
         segmentStartTimes[currentSegment.id] = currentStartTime;
 
-        console.log(
-          `Scheduling segment ${currentSegment.id} to start at ${currentStartTime}ms`
-        );
-        console.log(
-          `  (prev start: ${prevStartTime}, prev duration: ${prevDuration}, delay: ${currentDelay})`
-        );
+        // console.log(
+        //   `Scheduling segment ${currentSegment.id} to start at ${currentStartTime}ms`
+        // );
+        // console.log(
+        //   `  (prev start: ${prevStartTime}, prev duration: ${prevDuration}, delay: ${currentDelay})`
+        // );
 
         // 현재 세그먼트 활성화 타임아웃 설정
         const timeout = setTimeout(() => {
-          console.log(
-            `Activating segment ${currentSegment.id} after ${currentStartTime}ms`
-          );
+          // console.log(
+          //   `Activating segment ${currentSegment.id} after ${currentStartTime}ms`
+          // );
           setActiveSegments((prev) => ({
             ...prev,
             [currentSegment.id]: true,
@@ -128,7 +145,7 @@ export default function PipelineSection({
     return () => {
       clearAllTimeouts();
     };
-  }, [isActive, segments, baseDelay]);
+  }, [isActive, segments, baseDelay, resetAnimation]);
 
   return (
     <>
@@ -147,6 +164,8 @@ export default function PipelineSection({
           delay={0} // 지연은 이 컴포넌트에서 직접 관리
           onFillComplete={() => handleSegmentComplete(segment.id)}
           fillHeight={segment.fillHeight}
+          isPaused={isPaused}
+          resetAnimation={resetAnimation}
         />
       ))}
     </>
