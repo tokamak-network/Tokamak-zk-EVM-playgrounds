@@ -6,9 +6,9 @@ import skyblueRain from "../assets/images/rain-skyblue.svg";
 import "../style.css";
 import { useSetAtom } from "jotai";
 import { activeSectionAtom } from "../atoms/pipelineAnimation";
-import { activeModalAtom } from "../atoms/modals";
 import { usePlaygroundStartStage } from "../hooks/usePlaygroundStage";
-import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
+import { useModals } from "../hooks/useModals";
+import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
 
 interface CloudWithRainProps {
   position: string;
@@ -25,10 +25,8 @@ export default function CloudWithRain({
   const cloudImage = isEVMSpec ? cloudBlue : cloudSkyblue;
   const rainRef = useRef<HTMLDivElement>(null);
 
-  const setActiveSection = useSetAtom(activeSectionAtom);
-  const setActiveModal = useSetAtom(activeModalAtom);
-
-  const { setupEvmSpec } = useTokamakZkEVMActions();
+  const { setActiveSection } = usePipelineAnimation();
+  const { openModal } = useModals();
 
   const { playgroundStartStage } = usePlaygroundStartStage();
   const showRain = isEVMSpec
@@ -71,11 +69,9 @@ export default function CloudWithRain({
         className="max-w-full max-h-full object-contain z-[100] cursor-pointer"
         onClick={() => {
           if (isEVMSpec) {
-            setupEvmSpec();
-            return setActiveSection("evm-to-qap");
+            return openModal("docker-select");
           }
-          // setActiveSection("transaction-to-synthesizer");
-          return setActiveModal("transaction-input");
+          return openModal("transaction-input");
         }}
       />
       {showRain && (
