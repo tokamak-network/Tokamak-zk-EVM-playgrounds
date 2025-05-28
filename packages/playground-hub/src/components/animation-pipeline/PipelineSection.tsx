@@ -145,7 +145,7 @@ export default function PipelineSection({
     return () => {
       clearAllTimeouts();
     };
-  }, [isActive, segments, baseDelay, onStart, resetAnimation]);
+  }, [isActive, segments, baseDelay, resetAnimation]);
 
   return (
     <>

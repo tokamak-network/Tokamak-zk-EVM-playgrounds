@@ -21,7 +21,10 @@ const DockerModal: React.FC = () => {
   const { updateActiveSection } = usePipelineAnimation();
   const { activeModal, closeModal } = useModals();
   const { dockerStatus } = useDocker();
-  console.log(dockerStatus);
+
+  const isDockerImageDownloaded = useMemo(() => {
+    return dockerStatus.imageExists;
+  }, [dockerStatus]);
 
   const startProcess = () => {
     try {
@@ -72,7 +75,13 @@ const DockerModal: React.FC = () => {
             </span>
             <img
               className="cursor-pointer"
-              src={isDownloading ? PauseIconImage : DownloadButtonImage}
+              src={
+                isDockerImageDownloaded
+                  ? DownloadedImage
+                  : isDownloading
+                    ? PauseIconImage
+                    : DownloadButtonImage
+              }
               onClick={handleStartDownloadAndLoad}
             ></img>
           </div>
@@ -99,7 +108,6 @@ const DockerModal: React.FC = () => {
             background: "white",
           }}
         ></div>
-        <div>gogo</div>
       </div>
     </div>
   );

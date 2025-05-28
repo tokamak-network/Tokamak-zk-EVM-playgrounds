@@ -55,26 +55,23 @@ export const useDocker = () => {
   });
 
   // Docker 상태 체크 (now accepts imageNameToCheck)
-  const verifyDockerStatus = useCallback(
-    async (imageNameToCheck?: string) => {
-      try {
-        const status = await window.docker.checkDockerStatus(imageNameToCheck);
-        setDockerStatus(status);
-        return status;
-      } catch (err) {
-        console.error("Failed to check Docker status:", err);
-        const errorStatus = {
-          isInstalled: dockerStatus.isInstalled,
-          isRunning: false,
-          imageExists: false,
-          isContainerFromImageRunning: false,
-        };
-        setDockerStatus(errorStatus);
-        return errorStatus;
-      }
-    },
-    [dockerStatus.isInstalled]
-  );
+  const verifyDockerStatus = useCallback(async (imageNameToCheck?: string) => {
+    try {
+      const status = await window.docker.checkDockerStatus(imageNameToCheck);
+      setDockerStatus(status);
+      return status;
+    } catch (err) {
+      console.error("Failed to check Docker status:", err);
+      const errorStatus = {
+        isInstalled: dockerStatus.isInstalled,
+        isRunning: false,
+        imageExists: false,
+        isContainerFromImageRunning: false,
+      };
+      setDockerStatus(errorStatus);
+      return errorStatus;
+    }
+  }, []);
 
   // 초기 로딩 시 Docker 상태 체크 및 3초마다 반복 체크
   useEffect(() => {
