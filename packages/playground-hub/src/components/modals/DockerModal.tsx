@@ -40,8 +40,8 @@ const DockerModal: React.FC = () => {
 
   const handleStartDownloadAndLoad = () => {
     const fileUrl =
-      "https://pub-0701c5cdd79d4abda56fd836761eab4c.r2.dev/tokamak-zk-evm-docker-image/tokamak-zk-evm-demo.tar"; // 실제 R2 파일 URL
-    const desiredFilename = "tokamak-zk-evm-demo-image.tar";
+      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm-tontransfer.tar"; // 실제 R2 파일 URL
+    const desiredFilename = "tokamak-zk-evm-tontransfer.tar";
 
     startDownloadAndLoad(fileUrl, desiredFilename);
   };
