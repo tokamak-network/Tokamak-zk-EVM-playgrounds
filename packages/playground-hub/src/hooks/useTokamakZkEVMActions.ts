@@ -1,27 +1,30 @@
 import { useCallback } from "react";
 import { useDocker } from "./useDocker";
 import { useSynthesizer } from "./useSynthesizer";
-import { useProve } from "./useBackend";
-import { useAtom } from "jotai";
-import {
-  provingIsDoneAtom,
-  provingResultAtom,
-} from "../atoms/pipelineAnimation";
+import { useBackendCommand } from "./useBackend";
 import { usePipelineAnimation } from "./usePipelineAnimation";
 import { useModals } from "./useModals";
+import {
+  provingResultAtom,
+  provingIsDoneAtom,
+} from "../atoms/pipelineAnimation";
+import { useAtom } from "jotai";
 
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
   RunSynthesizer = "RUN_SYNTHESIZER",
   ProveTransaction = "PROVE_TRANSACTION",
+  SetupTrustedSetup = "SETUP_TRUSTED_SETUP",
+  PreProcess = "PRE_PROCESS",
+  Verify = "VERIFY",
 }
 
 export function useTokamakZkEVMActions() {
-  const { runContainer, currentDockerContainer } = useDocker();
-  const { parseTONTransfer } = useSynthesizer();
-  const { prove } = useProve();
   const [provingIsDone, setProvingIsDone] = useAtom(provingIsDoneAtom);
   const [provingResult, setProvingResult] = useAtom(provingResultAtom);
+  const { runContainer, currentDockerContainer } = useDocker();
+  const { parseTONTransfer } = useSynthesizer();
+  const { setup, preProcess, prove, verify } = useBackendCommand();
   const { setPendingAnimation } = usePipelineAnimation();
   const { openModal } = useModals();
   const { updateActiveSection, resetAnimationHandler } = usePipelineAnimation();
@@ -31,35 +34,53 @@ export function useTokamakZkEVMActions() {
       try {
         switch (actionType) {
           case TokamakActionType.SetupEvmSpec:
-            return await runContainer("tokamak-zk-evm-demo");
+            return await runContainer("tokamak-zk-evm-tontransfer");
 
           case TokamakActionType.RunSynthesizer:
             console.log("currentDockerContainer", currentDockerContainer);
             if (currentDockerContainer?.ID) {
-              console.log("go");
               return await parseTONTransfer(currentDockerContainer.ID);
             }
             return Promise.resolve(undefined);
 
+          case TokamakActionType.SetupTrustedSetup:
+            if (currentDockerContainer?.ID) {
+              return await setup(currentDockerContainer.ID);
+            }
+            return Promise.resolve(undefined);
+
+          case TokamakActionType.PreProcess:
+            if (currentDockerContainer?.ID) {
+              return await preProcess(currentDockerContainer.ID);
+            }
+            return Promise.resolve(undefined);
+
           case TokamakActionType.ProveTransaction:
+            if (currentDockerContainer?.ID) {
+              return await prove(currentDockerContainer.ID);
+            }
+            return Promise.resolve(undefined);
+
+          case TokamakActionType.Verify:
             if (currentDockerContainer?.ID) {
               setTimeout(() => {
                 setPendingAnimation(true);
               }, 1000);
 
               try {
-                const result = await prove(currentDockerContainer.ID);
+                const result = await verify(currentDockerContainer.ID);
 
                 const lines = result.trim().split("\n");
                 const lastLine = lines[lines.length - 1].trim();
 
-                if (lastLine.startsWith("Verification:")) {
+                if (lastLine.startsWith("Verification result:")) {
                   setProvingIsDone(true);
                   const provingResultValue = lastLine.split(":")[1].trim();
-                  setProvingResult(provingResultValue === "true");
+                  const isTrue = provingResultValue === "true, true";
+                  setProvingResult(isTrue);
                   return {
-                    success: true,
-                    verificationResult: provingResultValue === "true",
+                    success: isTrue,
+                    verificationResult: isTrue,
                     rawResult: result,
                   };
                 } else {
@@ -82,12 +103,8 @@ export function useTokamakZkEVMActions() {
               } finally {
                 setPendingAnimation(false);
               }
-            } else {
-              return Promise.resolve({
-                success: false,
-                error: "No current Docker container ID found",
-              });
             }
+            return Promise.resolve(undefined);
 
           default:
             console.warn(
@@ -126,15 +143,30 @@ export function useTokamakZkEVMActions() {
     return executeTokamakAction(TokamakActionType.RunSynthesizer);
   }, [executeTokamakAction]);
 
-  const proveTransaction = useCallback(async () => {
+  const runProve = useCallback(async () => {
     return executeTokamakAction(TokamakActionType.ProveTransaction);
+  }, [executeTokamakAction]);
+
+  const runSetupTrustedSetup = useCallback(async () => {
+    return executeTokamakAction(TokamakActionType.SetupTrustedSetup);
+  }, [executeTokamakAction]);
+
+  const runPreProcess = useCallback(async () => {
+    return executeTokamakAction(TokamakActionType.PreProcess);
+  }, [executeTokamakAction]);
+
+  const runVerify = useCallback(async () => {
+    return executeTokamakAction(TokamakActionType.Verify);
   }, [executeTokamakAction]);
 
   return {
     executeTokamakAction,
     setupEvmSpec,
     runSynthesizer,
-    proveTransaction,
+    runProve,
+    runSetupTrustedSetup,
+    runPreProcess,
+    runVerify,
     provingIsDone,
     provingResult,
   };

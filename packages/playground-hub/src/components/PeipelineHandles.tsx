@@ -3,7 +3,13 @@ import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
 import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 export default function PeipelineHandles() {
   const { updateActiveSection } = usePipelineAnimation();
-  const { runSynthesizer, proveTransaction } = useTokamakZkEVMActions();
+  const {
+    runSynthesizer,
+    runProve,
+    runSetupTrustedSetup,
+    runPreProcess,
+    runVerify,
+  } = useTokamakZkEVMActions();
 
   return (
     <div className="w-full h-full absolute">
@@ -33,6 +39,7 @@ export default function PeipelineHandles() {
         type="green"
         className="top-[775px] left-[395px]"
         onClick={() => {
+          runProve();
           updateActiveSection("verify-to-prove");
         }}
       />
@@ -40,7 +47,7 @@ export default function PeipelineHandles() {
         type="green"
         className="top-[695px] left-[695px]"
         onClick={() => {
-          proveTransaction();
+          runVerify();
           updateActiveSection("prove-to-result");
         }}
       />
@@ -48,6 +55,7 @@ export default function PeipelineHandles() {
         type="pink"
         className="top-[588px] left-[875px]"
         onClick={() => {
+          runPreProcess();
           updateActiveSection("bikzg-to-prove");
         }}
       />
