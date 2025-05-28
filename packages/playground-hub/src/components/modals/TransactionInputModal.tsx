@@ -20,7 +20,7 @@ const TransactionInputModal: React.FC = () => {
   const apiKey = useAtomValue(etherscanApiKeyAtom);
   const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
   const setTransactionBytecode = useSetAtom(transactionBytecodeAtom);
-  const { setActiveSection } = usePipelineAnimation();
+  const { updateActiveSection } = usePipelineAnimation();
   // API 키 입력 핸들러
   const handleTransactionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -42,10 +42,10 @@ const TransactionInputModal: React.FC = () => {
       const { bytecode, from, to } =
         await fetchTransactionBytecode(transactionHash);
       setTransactionBytecode({ bytecode, from, to });
-      setActiveSection("transaction-to-synthesizer");
+      updateActiveSection("transaction-to-synthesizer");
     } catch (error) {
       console.error("Transaction input modal input close error:", error);
-      setActiveSection("none");
+      updateActiveSection("none");
     }
   };
 

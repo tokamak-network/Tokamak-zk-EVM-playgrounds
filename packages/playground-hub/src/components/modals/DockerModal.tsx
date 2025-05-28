@@ -16,13 +16,13 @@ const DockerModal: React.FC = () => {
   } = useElectronFileDownloader();
 
   const { setupEvmSpec } = useTokamakZkEVMActions();
-  const { setActiveSection } = usePipelineAnimation();
+  const { updateActiveSection } = usePipelineAnimation();
   const { activeModal, closeModal } = useModals();
 
   const startProcess = () => {
     try {
       setupEvmSpec();
-      setActiveSection("evm-to-qap");
+      updateActiveSection("evm-to-qap");
     } catch (error) {
       console.error(error);
       // setActiveSection("none");
