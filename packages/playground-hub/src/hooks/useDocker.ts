@@ -3,8 +3,9 @@ import {
   DockerImage,
   DockerContainer,
   currentDockerContainerAtom,
+  selectedDockerImageAtom,
 } from "../atoms/docker";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 
 // Define the expected shape of the status from window.docker.checkDockerStatus
 // This should match DockerStatusResult from your docker-service.ts
@@ -39,7 +40,9 @@ declare global {
 
 // Add an optional parameter to the hook for the polling image name
 export const useDocker = () => {
-  const imageNameForPolling = "tokamak-zk-evm-demo";
+  // const selectedDockerImage = useAtomValue(selectedDockerImageAtom);
+  const selectedDockerImage = "tokamak-zk-evm-tontransfer";
+  const imageNameForPolling = selectedDockerImage ?? null;
   const [images, setImages] = useState<DockerImage[]>([]);
   const [containers, setContainers] = useState<DockerContainer[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -204,7 +207,7 @@ export const useDocker = () => {
         await loadContainers();
         if (
           currentDockerContainer &&
-          currentDockerContainer.id === containerId
+          currentDockerContainer.ID === containerId
         ) {
           setCurrentDockerContainer(null);
         }
@@ -229,6 +232,7 @@ export const useDocker = () => {
       setError(null);
       try {
         const output = await window.docker.executeCommand(containerId, command);
+
         return output;
       } catch (err) {
         const errorMessage =

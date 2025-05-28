@@ -11,6 +11,7 @@ export const useSynthesizer = () => {
     async (containerId: string) => {
       try {
         console.log("parseTONTransfer ->", { transactionBytecode });
+
         const result = await executeCommand(containerId, [
           "bash",
           "-c",

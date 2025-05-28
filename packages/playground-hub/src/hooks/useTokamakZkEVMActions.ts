@@ -34,19 +34,21 @@ export function useTokamakZkEVMActions() {
             return await runContainer("tokamak-zk-evm-demo");
 
           case TokamakActionType.RunSynthesizer:
-            if (currentDockerContainer?.id) {
-              return await parseTONTransfer(currentDockerContainer.id);
+            console.log("currentDockerContainer", currentDockerContainer);
+            if (currentDockerContainer?.ID) {
+              console.log("go");
+              return await parseTONTransfer(currentDockerContainer.ID);
             }
             return Promise.resolve(undefined);
 
           case TokamakActionType.ProveTransaction:
-            if (currentDockerContainer?.id) {
+            if (currentDockerContainer?.ID) {
               setTimeout(() => {
                 setPendingAnimation(true);
               }, 1000);
 
               try {
-                const result = await prove(currentDockerContainer.id);
+                const result = await prove(currentDockerContainer.ID);
 
                 const lines = result.trim().split("\n");
                 const lastLine = lines[lines.length - 1].trim();

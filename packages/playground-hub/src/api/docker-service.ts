@@ -1,5 +1,5 @@
 // src/docker-service.ts
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
@@ -276,22 +276,32 @@ export async function stopDockerContainer(
   }
 }
 
-// Docker 컨테이너 내에서 명령어 실행 (Original)
+// Docker 컨테이너 내에서 명령어 실행
 export async function executeCommandInContainer(
   containerId: string,
   command: string[]
 ): Promise<string> {
-  // Using execAsync for consistency, though spawn is better for streaming IO / interactivity
-  const commandStr = ["exec", containerId, ...command].join(" ");
-  try {
-    const { stdout } = await execAsync(`docker ${commandStr}`);
-    return stdout;
-  } catch (error) {
-    console.error(
-      `Command "${command.join(" ")}" in container ${containerId} failed: ${error.stderr || error.message}`
-    );
-    throw new Error(
-      `Command failed with exit code ${error.code}: ${error.stderr || error.message}`
-    );
-  }
+  return new Promise((resolve, reject) => {
+    const args = ["exec", containerId, ...command];
+
+    const process = spawn("docker", args);
+    let stdout = "";
+    let stderr = "";
+
+    process.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+
+    process.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    process.on("close", (code) => {
+      if (code === 0) {
+        resolve(stdout);
+      } else {
+        reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
+      }
+    });
+  });
 }
