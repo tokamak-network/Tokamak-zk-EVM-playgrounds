@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+  }
+}
+
+@keyframes rainDrop {
+  0% {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+}
+
+.raindrop {
+  animation: rainDrop 1s infinite; /* 1초 동안 애니메이션 반복 */
+  animation-fill-mode: forwards; /* 애니메이션이 끝난 후 상태 유지 */
+}
+
+@keyframes rainDrop2 {
+  0% {
+    transform: translateY(-200px);
+  }
+  100% {
+    transform: translateY(-100px);
+  }
+}
+
+@keyframes rainDrop3 {
+  0% {
+    transform: translateY(-350px);
+  }
+  100% {
+    transform: translateY(-250px);
+  }
+}

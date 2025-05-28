@@ -48,3 +48,7 @@ dist/
 # Typescript
 *.tsbuildinfo
 next-env.d.ts 
+
+# Cursor
+.cursor
+.cursorrules
