@@ -40,7 +40,6 @@ export async function checkDockerStatus(
 
   try {
     const { stdout: dockerPath } = await execAsync("which docker");
-    console.log("Docker path:", dockerPath);
     await execAsync("docker info");
     isInstalled = true;
     isDaemonRunning = true;

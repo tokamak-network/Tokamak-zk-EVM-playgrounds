@@ -283,7 +283,7 @@ function setupIpcHandlers() {
     }
   );
 
-  ipcMain.on("close-settings-window", (event) => {
+  ipcMain.handle("close-settings-window", (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) win.close();
   });
