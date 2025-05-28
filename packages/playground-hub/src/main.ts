@@ -162,7 +162,25 @@ function openSettingsWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", createWindow);
+app.on("ready", async () => {
+  const result = await dialog.showMessageBox({
+    type: "question",
+    buttons: ["Allow", "Deny"],
+    title: "Permission Request",
+    message: "This application needs access to Docker. Do you allow it?",
+  });
+
+  if (result.response === 0) {
+    // 사용자가 허용한 경우
+    console.log("Permission granted.");
+    createWindow();
+  } else {
+    // 사용자가 거부한 경우
+    console.log("Permission denied.");
+    // 필요한 경우 앱 종료 또는 기능 비활성화
+    app.quit();
+  }
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -422,6 +440,7 @@ app.whenReady().then(() => {
     }
   }
   setupIpcHandlers();
+  process.env.PATH = `/usr/local/bin:${process.env.PATH}`;
 });
 
 app.on("activate", () => {
