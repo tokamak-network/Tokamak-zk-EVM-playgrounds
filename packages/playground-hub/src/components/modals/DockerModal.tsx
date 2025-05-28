@@ -2,10 +2,12 @@ import React, { useMemo } from "react";
 import TransactionInputModalImage from "../../assets/modals/docker/docker-modal.png";
 import DownloadButtonImage from "../../assets/modals/docker/download-button.png";
 import PauseIconImage from "../../assets/modals/docker/pause.svg";
+import DownloadedImage from "../../assets/modals/docker/circle-arrow-down.svg";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import useElectronFileDownloader from "../../hooks/useFileDownload";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
 import { useModals } from "../../hooks/useModals";
+import { useDocker } from "../../hooks/useDocker";
 
 const DockerModal: React.FC = () => {
   const {
@@ -18,6 +20,8 @@ const DockerModal: React.FC = () => {
   const { setupEvmSpec } = useTokamakZkEVMActions();
   const { updateActiveSection } = usePipelineAnimation();
   const { activeModal, closeModal } = useModals();
+  const { dockerStatus } = useDocker();
+  console.log(dockerStatus);
 
   const startProcess = () => {
     try {

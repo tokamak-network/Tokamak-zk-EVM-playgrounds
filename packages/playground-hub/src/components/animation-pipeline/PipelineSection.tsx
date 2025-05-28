@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import Pipelines from "../Pipelines";
-import { usePipelineAnimation } from "src/hooks/usePipelineAnimation";
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 
 // 파이프라인 세그먼트 정의
 interface PipelineSegment {
