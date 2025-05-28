@@ -1,7 +1,7 @@
-import PipelinePixelAnimation from "./PipelinePixelAnimation";
-import PipelineFlickerEffect from "./PipelinePixelAnimation";
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
+import { PipelineAnimationProps } from "../../types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
-import PixelFlow from "./PixelFlow";
+import { useEffect } from "react";
 
 // 파이프라인 섹션 정의
 const EVM_TO_QAP_SECTION = {
@@ -89,15 +89,11 @@ const EVM_TO_QAP_SECTION = {
   ],
 };
 
-interface EvmToQAPProps {
-  isActive?: boolean; // 외부에서 전달되는 활성화 트리거
-  onComplete?: () => void; // 애니메이션 완료 콜백
-}
-
 export default function EvmToQAP({
   isActive = false,
   onComplete,
-}: EvmToQAPProps) {
+  onStart,
+}: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
     console.log("EVM to QAP animation completed");
@@ -105,6 +101,16 @@ export default function EvmToQAP({
       onComplete();
     }
   };
+  const { pendingAnimation, setPendingAnimation } = usePipelineAnimation();
+
+  useEffect(() => {
+    setTimeout(() => {
+      setPendingAnimation(true);
+    }, 3000);
+    setTimeout(() => {
+      setPendingAnimation(false);
+    }, 5000);
+  }, []);
 
   return (
     <div className="absolute w-full h-full bottom-[5px]">
@@ -115,9 +121,11 @@ export default function EvmToQAP({
         isActive={isActive}
         onComplete={handleSectionComplete}
         baseDelay={0}
+        onStart={onStart}
+        isPaused={pendingAnimation}
       />
 
-      {EVM_TO_QAP_SECTION.segments.map((segment, index) => (
+      {/* {EVM_TO_QAP_SECTION.segments.map((segment, index) => (
         <PipelinePixelAnimation
           key={`pixel-${segment.id}`}
           startX={segment.startX}
@@ -139,7 +147,7 @@ export default function EvmToQAP({
             "#365969",
           ]}
         />
-      ))}
+      ))} */}
     </div>
   );
 }

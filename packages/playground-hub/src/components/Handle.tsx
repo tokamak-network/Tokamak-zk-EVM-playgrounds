@@ -1,7 +1,7 @@
 import { useState } from "react";
-import handle from "../assets/images/handle.svg";
-import handleGreen from "../assets/images/handle-green.svg";
-import handlePink from "../assets/images/handle-pink.svg";
+import handleOrange from "../assets/images/handles/handle-orange.png";
+import handleGreen from "../assets/images/handles/handle-green.png";
+import handlePink from "../assets/images/handles/handle-pink.png";
 
 export default function Handle(props: {
   type: "orange" | "green" | "pink";
@@ -10,7 +10,11 @@ export default function Handle(props: {
 }) {
   const { type, className, onClick } = props;
   const handleImage =
-    type === "orange" ? handle : type === "green" ? handleGreen : handlePink;
+    type === "orange"
+      ? handleOrange
+      : type === "green"
+        ? handleGreen
+        : handlePink;
 
   const [rotation, setRotation] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);

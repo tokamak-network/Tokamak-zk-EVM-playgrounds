@@ -1,26 +1,64 @@
-import { activeSectionAtom } from "../atoms/pipelineAnimation";
 import Handle from "./Handle";
-import { useAtom } from "jotai";
-
+import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
+import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 export default function PeipelineHandles() {
-  const [, setActiveSection] = useAtom(activeSectionAtom);
+  const { updateActiveSection } = usePipelineAnimation();
+  const {
+    runSynthesizer,
+    runProve,
+    runSetupTrustedSetup,
+    runPreProcess,
+    runVerify,
+  } = useTokamakZkEVMActions();
 
   return (
     <div className="w-full h-full absolute">
       <Handle
         type="orange"
         className="top-[395px] left-[70px]"
-        onClick={() => setActiveSection("qap-to-setup-synthesizer")}
+        onClick={() => {
+          updateActiveSection("qap-to-setup-synthesizer");
+        }}
       />
       <Handle
         type="orange"
         className="top-[535px] left-[482px]"
-        onClick={() => setActiveSection("qap-to-setup-synthesizer")}
+        onClick={() => {
+          runSynthesizer();
+          updateActiveSection("synthesizer-to-verify-bikzg");
+        }}
       />
-      <Handle type="green" className="top-[575px] left-[216px]" />
-      <Handle type="green" className="top-[775px] left-[395px]" />
-      <Handle type="green" className="top-[695px] left-[695px]" />
-      <Handle type="pink" className="top-[588px] left-[875px]" />
+      <Handle
+        type="green"
+        className="top-[575px] left-[216px]"
+        onClick={() => {
+          updateActiveSection("setup-to-verify");
+        }}
+      />
+      <Handle
+        type="green"
+        className="top-[775px] left-[395px]"
+        onClick={() => {
+          runProve();
+          updateActiveSection("verify-to-prove");
+        }}
+      />
+      <Handle
+        type="green"
+        className="top-[695px] left-[695px]"
+        onClick={() => {
+          runVerify();
+          updateActiveSection("prove-to-result");
+        }}
+      />
+      <Handle
+        type="pink"
+        className="top-[588px] left-[875px]"
+        onClick={() => {
+          runPreProcess();
+          updateActiveSection("bikzg-to-prove");
+        }}
+      />
     </div>
   );
 }
