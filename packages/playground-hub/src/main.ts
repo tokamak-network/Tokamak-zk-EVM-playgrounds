@@ -32,6 +32,7 @@ const createWindow = () => {
     height: 900,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
+      // devTools: false,
     },
   });
   // and load the index.html of the app.
@@ -162,7 +163,25 @@ function openSettingsWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", createWindow);
+app.on("ready", async () => {
+  const result = await dialog.showMessageBox({
+    type: "question",
+    buttons: ["Allow", "Deny"],
+    title: "Permission Request",
+    message: "This application needs access to Docker. Do you allow it?",
+  });
+
+  if (result.response === 0) {
+    // 사용자가 허용한 경우
+    console.log("Permission granted.");
+    createWindow();
+  } else {
+    // 사용자가 거부한 경우
+    console.log("Permission denied.");
+    // 필요한 경우 앱 종료 또는 기능 비활성화
+    app.quit();
+  }
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -265,7 +284,7 @@ function setupIpcHandlers() {
     }
   );
 
-  ipcMain.on("close-settings-window", (event) => {
+  ipcMain.handle("close-settings-window", (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) win.close();
   });
@@ -422,6 +441,7 @@ app.whenReady().then(() => {
     }
   }
   setupIpcHandlers();
+  process.env.PATH = `/usr/local/bin:${process.env.PATH}`;
 });
 
 app.on("activate", () => {
@@ -429,5 +449,64 @@ app.on("activate", () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
+  }
+});
+
+let isQuitting = false; // 애플리케이션 종료 진행 중 플래그
+
+app.on("before-quit", async (event) => {
+  if (isQuitting) {
+    console.log(
+      "[WARN] 'before-quit' 이벤트가 이미 처리 중이거나 완료되었습니다. 중복 호출을 무시합니다."
+    );
+    return; // 이미 종료 프로세스가 진행 중이면 아무것도 하지 않음
+  }
+  isQuitting = true; // 종료 프로세스 시작 플래그 설정
+  console.log(
+    "[INFO] 'before-quit' 이벤트 발생. 애플리케이션 종료를 준비합니다."
+  );
+  event.preventDefault(); // 애플리케이션이 즉시 종료되는 것을 방지
+
+  try {
+    const containers = await getDockerContainers();
+    console.log("[INFO] 현재 실행 중인 Docker 컨테이너 목록:", containers);
+
+    if (containers && containers.length > 0) {
+      const stopPromises = containers.map((container) => {
+        console.log(`[INFO] Docker 컨테이너 중지 시도: ${container.ID}`);
+        return stopDockerContainer(container.ID)
+          .then(() =>
+            console.log(`[SUCCESS] Docker 컨테이너 중지 완료: ${container.ID}`)
+          )
+          .catch((err) =>
+            console.error(
+              `[ERROR] Docker 컨테이너 ${container.ID} 중지 중 오류:`,
+              err
+            )
+          );
+      });
+
+      await Promise.all(stopPromises);
+      console.log(
+        "[INFO] 모든 확인된 Docker 컨테이너의 중지 작업이 완료되었습니다."
+      );
+    } else {
+      console.log("[INFO] 중지할 실행 중인 Docker 컨테이너가 없습니다.");
+    }
+  } catch (error) {
+    console.error("[ERROR] Docker 컨테이너 중지 과정 중 예외 발생:", error);
+  } finally {
+    console.log(
+      "[INFO] 모든 정리 작업 완료. 모든 창을 닫고 애플리케이션 실제 종료를 시도합니다."
+    );
+    BrowserWindow.getAllWindows().forEach((window) => {
+      console.log(`[INFO] 창 강제 닫기 시도: ID ${window.id}`);
+      window.destroy(); // 창을 강제로 닫음
+    });
+
+    // isQuitting 플래그가 true인 상태에서 app.quit()가 호출되어야 합니다.
+    // 이 시점에서 추가적인 before-quit 이벤트가 발생해도 isQuitting 체크로 인해 무시됩니다.
+    console.log("[INFO] app.quit() 호출 직전 (isQuitting: true).");
+    app.quit();
   }
 });

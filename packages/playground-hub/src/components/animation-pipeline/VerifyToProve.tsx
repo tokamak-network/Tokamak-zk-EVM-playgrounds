@@ -61,6 +61,7 @@ export default function VerifyToProve({
   isActive = false,
   onComplete,
   onStart,
+  resetAnimation,
 }: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
@@ -79,6 +80,7 @@ export default function VerifyToProve({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        resetAnimation={resetAnimation}
       />
     </div>
   );

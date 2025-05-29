@@ -31,6 +31,7 @@ export default function BikzgToProve({
   isActive = false,
   onComplete,
   onStart,
+  resetAnimation,
 }: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
@@ -49,6 +50,7 @@ export default function BikzgToProve({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        resetAnimation={resetAnimation}
       />
     </div>
   );
