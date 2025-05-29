@@ -39,6 +39,7 @@ export async function checkDockerStatus(
   let isContainerFromImageRunning = false;
 
   try {
+    const { stdout: dockerPath } = await execAsync("which docker");
     await execAsync("docker info");
     isInstalled = true;
     isDaemonRunning = true;
@@ -140,13 +141,13 @@ export async function checkDockerStatus(
               return true;
 
             // If targetImageDetails were found by ID, repo/tag might not be set from imageNameToCheck directly
-            if (
-              img.Repository === targetImageDetails.Repository &&
-              img.Tag === targetImageDetails.Tag
-            ) {
-              // Check against actual repo/tag of found image
-              if (containerImageName === img.Repository) return true; // e.g. image is ubuntu:latest, container shows 'ubuntu'
-            }
+            // if (
+            //   img.Repository === targetImageDetails.Repository &&
+            //   img.Tag === targetImageDetails.Tag
+            // ) {
+            //   // Check against actual repo/tag of found image
+            //   if (containerImageName === img.Repository) return true; // e.g. image is ubuntu:latest, container shows 'ubuntu'
+            // }
             return false;
           });
         }

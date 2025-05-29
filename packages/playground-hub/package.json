@@ -18,7 +18,9 @@
   "build": {
     "appId": "tokamak-zk-evm-playground-hub",
     "mac": {
-      "icon": "src/assets/icons/app-icon.icns"
+      "icon": "src/assets/icons/app-icon.icns",
+      "entitlements": "src/entitlements.plist",
+      "entitlementsInherit": "src/entitlements.plist"
     },
     "win": {
       "icon": "src/assets/icons/app-icon.png"

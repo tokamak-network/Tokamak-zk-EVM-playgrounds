@@ -7,7 +7,7 @@ import Handle from "./Handle";
 import Bubbles from "./Bubble";
 import "../styles/pipelineAnimation.css";
 import PixelatedPipeline from "./PixelatedPipeline";
-import PixelFlow from "./temp/PixelFlow";
+import PixelFlow from "./animation-pipeline/PixelFlow";
 import Pipelines from "./Pipelines";
 import PipelineAnimations from "./animation-pipeline/PipelineAnimations";
 import PeipelineHandles from "./PeipelineHandles";
