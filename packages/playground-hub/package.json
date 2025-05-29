@@ -1,6 +1,6 @@
 {
-  "name": "playground-hub",
-  "productName": "playground-hub",
+  "name": "tokamak-zk-evm-playground-hub",
+  "productName": "tokamak-zk-evm-playground-hub",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
