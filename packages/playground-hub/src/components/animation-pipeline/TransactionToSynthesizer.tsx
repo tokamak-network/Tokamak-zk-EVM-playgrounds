@@ -169,7 +169,7 @@ export default function TransactionToSynthesizer({
   isActive = false,
   onComplete,
   onStart,
-  // isPaused = false,
+  resetAnimation,
 }: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
@@ -191,6 +191,7 @@ export default function TransactionToSynthesizer({
         baseDelay={0}
         onStart={onStart}
         isPaused={pendingAnimation}
+        resetAnimation={resetAnimation}
       />
     </div>
   );

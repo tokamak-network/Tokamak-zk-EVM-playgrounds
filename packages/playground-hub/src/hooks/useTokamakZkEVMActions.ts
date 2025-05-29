@@ -9,6 +9,7 @@ import {
   provingIsDoneAtom,
 } from "../atoms/pipelineAnimation";
 import { useAtom } from "jotai";
+import { usePlaygroundStartStage } from "./usePlaygroundStage";
 
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
@@ -27,7 +28,26 @@ export function useTokamakZkEVMActions() {
   const { setup, preProcess, prove, verify } = useBackendCommand();
   const { setPendingAnimation } = usePipelineAnimation();
   const { openModal } = useModals();
-  const { updateActiveSection, resetAnimationHandler } = usePipelineAnimation();
+  const { updateActiveSection, resetAllAnimationHandler } =
+    usePipelineAnimation();
+  const { resetAllStartStage } = usePlaygroundStartStage();
+
+  const initializeWhenCatchError = useCallback(() => {
+    setPendingAnimation(true);
+    updateActiveSection("none");
+    resetAllAnimationHandler();
+    setProvingIsDone(false);
+    setProvingResult(false);
+    openModal("error");
+    resetAllStartStage();
+  }, [
+    setPendingAnimation,
+    updateActiveSection,
+    resetAllAnimationHandler,
+    setProvingIsDone,
+    setProvingResult,
+    resetAllStartStage,
+  ]);
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
@@ -113,10 +133,7 @@ export function useTokamakZkEVMActions() {
             return Promise.resolve(undefined);
         }
       } catch (error) {
-        setPendingAnimation(true);
-        updateActiveSection("none");
-        resetAnimationHandler();
-        openModal("error");
+        initializeWhenCatchError();
         console.error(error);
         return Promise.resolve({
           success: false,
@@ -130,8 +147,7 @@ export function useTokamakZkEVMActions() {
       parseTONTransfer,
       prove,
       setPendingAnimation,
-      setProvingIsDone,
-      setProvingResult,
+      initializeWhenCatchError,
     ]
   );
 

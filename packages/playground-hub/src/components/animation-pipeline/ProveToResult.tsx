@@ -53,6 +53,7 @@ export default function ProveToResult({
   isActive = false,
   onComplete,
   onStart,
+  resetAnimation,
 }: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
@@ -73,6 +74,7 @@ export default function ProveToResult({
         baseDelay={0}
         onStart={onStart}
         isPaused={pendingAnimation}
+        resetAnimation={resetAnimation}
       />
     </div>
   );

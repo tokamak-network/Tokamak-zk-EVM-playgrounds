@@ -39,5 +39,32 @@ export function usePlaygroundStartStage() {
     setPlaygroundStartStage({ ...playgroundStartStage, [stage]: value });
   };
 
-  return { playgroundStartStage, setStartStage };
+  const resetStartStageWithNewTransaction = () => {
+    setPlaygroundStartStage({
+      ...playgroundStartStage,
+      transactionHash: false,
+      synthesizer: false,
+      prove: false,
+      verify: false,
+    });
+  };
+
+  const resetAllStartStage = () => {
+    setPlaygroundStartStage({
+      evmSpec: false,
+      transactionHash: false,
+      qap: false,
+      setup: false,
+      synthesizer: false,
+      prove: false,
+      verify: false,
+    });
+  };
+
+  return {
+    playgroundStartStage,
+    setStartStage,
+    resetStartStageWithNewTransaction,
+    resetAllStartStage,
+  };
 }

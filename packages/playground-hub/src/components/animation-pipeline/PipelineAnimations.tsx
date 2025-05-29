@@ -29,6 +29,7 @@ export default function PipelineAnimations() {
   }) => {
     setStage(section, value);
   };
+  const { resetAnimation } = usePipelineAnimation();
 
   return (
     <div className="relative w-full h-full top-[54px] left-[84px] animation-part">
@@ -70,6 +71,7 @@ export default function PipelineAnimations() {
           setStartStage("transactionHash", true);
           updateActiveSection("transaction-to-synthesizer");
         }}
+        resetAnimation={resetAnimation}
       />
       <SynthesizerToVerifyBikzg
         isActive={activeSection === "synthesizer-to-verify-bikzg"}
@@ -82,6 +84,7 @@ export default function PipelineAnimations() {
         onStart={() => {
           updateActiveSection("synthesizer-to-verify-bikzg");
         }}
+        resetAnimation={resetAnimation}
       />
       <SetupToVerify
         isActive={activeSection === "setup-to-verify"}
@@ -94,6 +97,7 @@ export default function PipelineAnimations() {
         onStart={() => {
           updateActiveSection("setup-to-verify");
         }}
+        resetAnimation={resetAnimation}
       />
       <VerifyToProve
         isActive={activeSection === "verify-to-prove"}
@@ -106,6 +110,7 @@ export default function PipelineAnimations() {
         onStart={() => {
           updateActiveSection("verify-to-prove");
         }}
+        resetAnimation={resetAnimation}
       />
       <BikzgToProve
         isActive={activeSection === "bikzg-to-prove"}
@@ -118,6 +123,7 @@ export default function PipelineAnimations() {
         onStart={() => {
           updateActiveSection("bikzg-to-prove");
         }}
+        resetAnimation={resetAnimation}
       />
       <ProveToResult
         isActive={activeSection === "prove-to-result"}
@@ -130,6 +136,7 @@ export default function PipelineAnimations() {
         onStart={() => {
           updateActiveSection("prove-to-result");
         }}
+        resetAnimation={resetAnimation}
       />
       <FillingTank />
       {/* 기본 파이프라인 이미지 (배경) */}

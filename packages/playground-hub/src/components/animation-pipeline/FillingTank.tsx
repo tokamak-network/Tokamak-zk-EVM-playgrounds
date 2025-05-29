@@ -26,7 +26,6 @@ export default function FillingTank({
 
   const { provingIsDone } = useTokamakZkEVMActions();
   const { isReadyForResult } = usePlaygroundStage();
-
   const active = useMemo(() => {
     return provingIsDone && isReadyForResult;
   }, [provingIsDone, isReadyForResult]);
