@@ -37,7 +37,9 @@
       - 컴퓨터 화면 오른쪽 아래 작업 표시줄(Windows)이나 화면 독 메뉴(Mac)에 **고래 모양 아이콘**🐳이 나타나는지 확인해주세요.
         ![Docker 설치 성공 - MacOS](./assets/images/4-1.png)
       - 고래 아이콘을 클릭했을 때 "Docker Desktop is running" (또는 초록색으로 "Running" 표시) 메시지가 보이거나 도커 프로그램 창이 열린다면 성공적으로 실행된 것입니다!
+
         ![Docker 실행 성공 - MacOS](./assets/images/4-2.png)
+
         ![Docker 실행 성공 - MacOS](./assets/images/4-3.png)
 
         - 만약 실행되지 않거나 오류 메시지가 보인다면, 컴퓨터를 다시 한번 재부팅하고 Docker Desktop을 실행해보세요.
@@ -46,8 +48,8 @@
 
 - **다운로드:**
   - [최신 버전 다운로드](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/releases/tag/0.0.1-alpha)
-  - 다운로드 파일은 보통 압축 파일(`.tar.gz`) 형태일 것입니다.
-  - **Mac 사용자 (Apple Silicon):** arm-64 버전을 다운로드하세요. (예: `playground-hub-macOS-arm64-v0.0.1-portable`)
+  - 다운로드 파일은 압축 파일(`.zip`) 형태입니다.
+  - **Mac 사용자 (Apple Silicon):** arm-64 버전을 다운로드하세요. (예: `playground-hub-macOS-arm64-v0.0.1-portable.zip`)
   - **Windows 사용자:** Windows 버전을 다운로드하세요.
 - **압축 해제:**
   - 다운로드한 압축 파일을 사용하기 편한 폴더에 풀어주세요. (예: Windows에서는 마우스 오른쪽 클릭 후 "압축 풀기...", Mac에서는 더블 클릭)
@@ -68,30 +70,59 @@
 
 ## 5. 프로그램 사용 방법 (간단 소개) 📖
 
-- (Tokamak-zk-evm-playground가 실행된 후 보이는 첫 화면이나 가장 기본적인 기능에 대해 1~2 문장으로 설명해주세요. 사용자가 처음 무엇을 시도해볼 수 있을지 안내합니다.)
-- **예시:**
-  - "프로그램이 실행되면 OOO 화면이 나타납니다. 여기서 '새 프로젝트 만들기' 버튼을 클릭하여 시작할 수 있습니다."
-  - "왼쪽 메뉴에서 '회로 컴파일'을 선택하고 예제 파일을 불러와 테스트해보세요."
-- (더 자세한 사용법이나 각 기능에 대한 설명은 프로그램 내 도움말 메뉴나 별도의 사용자 매뉴얼 링크를 통해 안내할 수 있습니다.)
-  - **예시:** `[자세한 사용법 보기](여기에-매뉴얼-링크)`
+1. 프로그램이 정상적으로 실행되었다면 다음과 같은 화면이 보일 것입니다.
+   ![프로그램 실행 초기 화면](./assets/images/5-1.png)
+2. 왼쪽 상단의 **EVM Spec.** 말머리 아래에 위치한 구름을 클릭하면 아래와 같은 모달 화면이 나타납니다.  
+   ![프로그램 실행 초기 화면](./assets/images/5-2.png)
+3. 이 모달에서는 현재 Tokamak-zk-EVM-playground가 지원하고 있는 여러 스펙의 Tokamak-zk-EVM 중 하나를 선택할 수 있게 합니다. 타이틀 오른쪽에 위치하고 있는 다운로드 버튼을 클릭하면 해당하는 스펙의 Tokamak-zk-EVM 도커 이미지의 다운로드를 시작합니다.
+   ![프로그램 실행 초기 화면](./assets/images/5-3.png)
+4. 다운로드가 완료되면 다운로드 버튼 아이콘이 체크 아이콘으로 바뀌며 해당 스펙의 Tokamak-zk-EVM 이미지 사용 준비가 완료되었음을 나타냅니다. 이 상태에서 Tokamak-zk-EVM 텍스트를 클릭하게 되면 다음 단계로 진행이 됩니다.  
+   ![프로그램 실행 초기 화면](./assets/images/5-4.png)
+5. 클릭 이후 모달이 자동으로 닫히며 구름에서 시작된 파이프라인을 채우는 애니메이션이 다음 단계를 향하기 시작합니다. 해당 애니메이션은 다음 스텝에 해당하는 핸들 부분에 도착하면 종료가 되며, 비활성화돼있던 **frontend/qap-compiler** 말머리 컬러가 활성화되며 해당 스텝이 실행 준비가 됐음을 나타냅니다.
+   ![프로그램 실행 초기 화면](./assets/images/5-5.png)
+6. 같은 흐름으로 EVM Transaction을 세팅해보도록 하겠습니다. EVM Spec과 마찬가지로 **Ethereum transaction** 말머리 아래에 위치한 구름을 클릭하면 다음과 같은 모달이 나타납니다. 해당 모달의 입력 영역에는 앞 서 선택한 EVM Spec이 지원하는 성격의 이더리움 트랜잭션 해쉬값을 넣어주어야 합니다.(본 설명은 선택한 Tokamak-zk-EVM이 TON 토큰의 Transfer 함수만 지원한다는 것을 가정하고 설명하겠습니다.)
+   ![프로그램 실행 초기 화면](./assets/images/5-6.png)
+7. 이더스캔에서 토카막 네트워크 토큰의 트랜잭션을 보여주는 [페이지](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5)로 접속을 합니다.
+   ![프로그램 실행 초기 화면](./assets/images/5-7.png)
+8. Method 영역을 통해 각 트랜잭션이 어떤 기능을 수행하기 위해 실행되었는지 확인할 수 있습니다. 이를 통해 **Transfer** 에 해당하는 트랜잭션들을 분류할 수 있습니다.
+   ![프로그램 실행 초기 화면](./assets/images/5-8.png)
+9. Tokamak-zk-EVM을 통해 확인하고 싶은 트랜잭션을 발견하면 Transaction Hash 오른쪽에 위치한 복사 버튼을 통해 해당 트랜잭션의 해쉬 값을 복사합니다.
+   ![프로그램 실행 초기 화면](./assets/images/5-9.png)
+10. 복사한 해쉬 값을 모달의 입력 영역에 붙여넣기하고 해당 트랜잭션 해쉬가 현재 Tokamak-zk-EVM으로 증명할 수 있는 트랜잭션이면 다음과 같이 Input 버튼이 활성화가 됩니다.
+    ![프로그램 실행 초기 화면](./assets/images/5-10.png)
+    10-1. 혹시 복사한 해쉬값이 올바르지 않으면 다음과 같은 에러가 나타나며 Input 버튼이 활성화되지 않습니다. 기타 다른 문제들의 경우에도 버튼이 활성화되지않으며 각 문제에 해당하는 메세지가 동일한 영역에 노출되게 됩니다.  
+    ![프로그램 실행 초기 화면](./assets/images/5-11.png)
+11. Input 버튼이 활성화된 상태에서 버튼을 클릭하면 모달이 닫히며 이전과 같은 형태의 애니메이션이 시작됩니다. fontend/synthesizer의 경우, 방금 작동시킨 이더리움 트랜잭션과 frontend/qap-compiler의 작동이 모두 필요하기에 비활성화된 모습을 볼 수 있습니다. frontend/synthesizer를 작동시키기 위해 먼저 활성화가 되어있는 frontend/qap-compiler의 핸들 부분을 클릭해 실행하도록 하겠습니다.
+    ![프로그램 실행 초기 화면](./assets/images/5-12.png)
+12. frontend/qap-compiler의 실행이 완료되면 **frontend/synthesizer**와 **backend/setup**이 모두 활성화된 것을 보실 수 있습니다. 활성화된 핸들들은 어떤 것을 먼저 실행해도 무방합니다. 이 문서에는 frontend/synthesizer를 먼저 실행해보도록 하겠습니다.
+    ![프로그램 실행 초기 화면](./assets/images/5-13.png)
+13. frontend/synthesizer의 실행이 끝나면 **libs/internal/bikzg**가 활성화 됐음을 볼 수 있습니다. 해당 부분의 실행에 앞 서 backend/setup 쪽을 먼저 진행하도록 하겠습니다. 다시 한 번 말하지만 활성화된 핸들은 순서와 무관하게 실행할 수 있으므로 libs/internal/bikzg를 먼저 실행해보고 싶다면 실행해도 무방합니다.
+    ![프로그램 실행 초기 화면](./assets/images/5-14.png)
+14. backend/setup이 완료되면 **backend/prove**가 활성화됩니다. 실제로 이 setup에 해당하는 프로세스는 상당한 시간이 소요되나, 앞에서 다운로드 받은 도커 이미지를 통해 해당 셋업이 모두 이루어져 있는 상태입니다. 그렇기에 플레이그라운드 내에서는 시간이 거의 소요되지 않으며 빠르게 실행이 완료되는 모습을 확인하실 수 있습니다.
+    ![프로그램 실행 초기 화면](./assets/images/5-15.png)
+15. backend/setup이 완료되면 최종 액션인 Verify 실행을 위한 두 가지 패키지 모두 실행 준비 되었음을 확인할 수 있습니다. 먼저 libs/internal/bikzg를 실행합니다.
+    ![프로그램 실행 초기 화면](./assets/images/5-16.png)
+16. 이어서 backend/prove를 실행하면 다음과 같이 **backend/verify**가 활성화됩니다. prove를 작동시키면 앞에서 저희가 선택한 이더리움의 트랜잭션이 Tokamak-zk-EVM을 통해 어떻게 분석이 되는지 최종 결과를 확인할 수 있습니다.
+    ![프로그램 실행 초기 화면](./assets/images/5-17.png)
+17. backend/prove의 작동이 끝나면 이전에 생성한 증거와 이를 검증한 결과에 따라 물탱크가 변하게 됩니다. 앞에서 증거를 올바로 생성했고 검증이 제대로 이루어지면 True를 의미하는 **1**이라는 숫자와 함께 파란색의 물로 물탱크가 채워집니다. 이는 Tokamak-zk-EVM이 올바로 작동했음을 나타냅니다.
+    ![프로그램 실행 초기 화면](./assets/images/5-18.png)
+    17-1. 혹시나 올바르게 작동하지 않았거나 문제가 생겼을 경우 False를 의미하는 0과 함께 하얀색으로 탱크가 채워질 것입니다. 해당하는 경우에는 Tokamak-zk-EVM에 문제가 있을 수 있으므로, 아래 6번 섹션을 활용해 제보를 부탁드립니다!
 
 ## 6. 문제가 생겼나요? (간단한 문제 해결) 🤔
 
 - **"도커가 실행되고 있지 않아요." 라는 메시지가 떠요 / 프로그램이 도커를 찾지 못해요.**
+
   - 가장 먼저 Docker Desktop이 정말 실행 중인지 확인해주세요 (고래 아이콘🐳!).
   - Docker Desktop을 완전히 종료했다가 다시 실행해보세요.
   - 컴퓨터를 재부팅한 후 Docker Desktop을 먼저 실행하고, 그다음에 Tokamak-zk-evm-playground를 실행해보세요.
-- **(Tokamak-zk-evm-playground 관련 흔한 오류 1가지와 해결 방법)**
-- **(Tokamak-zk-evm-playground 관련 흔한 오류 2가지와 해결 방법)**
-- **그래도 해결되지 않는다면?**
-  - (문의할 수 있는 GitHub Issues 페이지, 커뮤니티 포럼/디스코드 채널 링크, 이메일 주소 등 도움을 받을 수 있는 창구를 안내해주세요.)
-  - **예시:** `[GitHub Issues에 질문 남기기](여기에-GitHub-Issues-링크)`
 
-## 7. (선택 사항) 프로그램 삭제하기 🗑️
+- **더 많은 도움이 필요하면 [GitHub Issues 페이지](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/issues)에서 이슈를 남기세요:**
+
+## 7. 프로그램 삭제하기 🗑️
 
 - **Tokamak-zk-evm-playground 삭제:**
   - `Tokamak-zk-evm-playground` 프로그램을 종료합니다.
-  - 프로그램이 설치된 (또는 압축을 푼) 폴더 전체를 삭제하면 됩니다. (별도의 제거 프로그램은 필요 없어요!)
+  - 프로그램이 설치된 (또는 압축을 푼) 폴더 전체나 실행 파일만 삭제하면 됩니다. (별도의 제거 프로그램은 필요 없어요!)
 - **도커(Docker) 삭제 (더 이상 Tokamak-zk-evm-playground나 다른 도커 기반 프로그램을 사용하지 않을 경우):**
   - **Windows:** `설정` > `앱` > `설치된 앱` 목록에서 `Docker Desktop`을 찾아 제거합니다.
   - **Mac:** `응용 프로그램` 폴더에서 `Docker.app`을 휴지통으로 드래그합니다.
