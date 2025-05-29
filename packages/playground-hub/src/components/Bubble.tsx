@@ -80,12 +80,12 @@ export default function Bubbles() {
         isActive={playgroundStage.qap && playgroundStage.transactionHash}
       />
       <Bubble
-        type="verify"
+        type="prove"
         className="absolute top-[720px] left-[410px]"
         isActive={playgroundStage.setup && playgroundStage.synthesizer}
       />
       <Bubble
-        type="prove"
+        type="verify"
         className="absolute top-[640px] left-[710px]"
         isActive={playgroundStage.verify && playgroundStage.bikzg}
       />
