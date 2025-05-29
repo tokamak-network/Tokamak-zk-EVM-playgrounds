@@ -20,7 +20,10 @@
     "mac": {
       "icon": "src/assets/icons/app-icon.icns",
       "entitlements": "src/entitlements.plist",
-      "entitlementsInherit": "src/entitlements.plist"
+      "entitlementsInherit": "src/entitlements.plist",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "identity": "project-ooo"
     },
     "win": {
       "icon": "src/assets/icons/app-icon.png"
