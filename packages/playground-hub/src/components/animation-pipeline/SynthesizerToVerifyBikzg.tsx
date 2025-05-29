@@ -70,10 +70,11 @@ const SYNTHESIZER_TO_VERIFY_BIKZG_SECTION = {
   ],
 };
 
-export default function EvmToQAP({
+export default function SynthesizerToVerifyBikzg({
   isActive = false,
   onComplete,
   onStart,
+  resetAnimation,
 }: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
@@ -92,6 +93,7 @@ export default function EvmToQAP({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        resetAnimation={resetAnimation}
       />
     </div>
   );

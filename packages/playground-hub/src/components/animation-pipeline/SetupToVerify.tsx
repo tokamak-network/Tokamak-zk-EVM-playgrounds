@@ -1,3 +1,4 @@
+import { PipelineAnimationProps } from "src/types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
 
 // 파이프라인 섹션 정의
@@ -27,17 +28,12 @@ const SETUP_TO_VERIFY_SECTION = {
   ],
 };
 
-interface TransactionToSynthesizerProps {
-  isActive?: boolean; // 외부에서 전달되는 활성화 트리거
-  onComplete?: () => void; // 애니메이션 완료 콜백
-  onStart?: () => void; // 애니메이션 시작 콜백
-}
-
 export default function SetupToVerify({
   isActive = false,
   onComplete,
   onStart,
-}: TransactionToSynthesizerProps) {
+  resetAnimation,
+}: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
     if (onComplete) {
@@ -55,6 +51,7 @@ export default function SetupToVerify({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        resetAnimation={resetAnimation}
       />
     </div>
   );
