@@ -107,7 +107,7 @@ function createMenu(): void {
       label: "Settings",
       submenu: [
         {
-          label: "Environment Paths",
+          label: "Etherscan API Key",
           click: openSettingsWindow,
         },
         { type: "separator" },
