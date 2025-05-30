@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import TransactionInputModalImage from "../../assets/modals/docker/docker-modal.png";
 import DownloadButtonImage from "../../assets/modals/docker/download-button.png";
-import PauseIconImage from "../../assets/modals/docker/pause.svg";
-import DownloadedImage from "../../assets/modals/docker/circle-arrow-down.svg";
+import PauseIconImage from "../../assets/modals/docker/pause.png";
+import DownloadedImage from "../../assets/modals/docker/run-button.png";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import useElectronFileDownloader from "../../hooks/useFileDownload";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
@@ -38,7 +38,13 @@ const DockerModal: React.FC = () => {
     }
   };
 
-  const handleStartDownloadAndLoad = () => {
+  const onClickStartProcess = () => {
+    if (isDownloading) {
+      return;
+    }
+    if (isDockerImageDownloaded) {
+      return startProcess();
+    }
     const fileUrl =
       "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm-tontransfer.tar"; // 실제 R2 파일 URL
     const desiredFilename = "tokamak-zk-evm-tontransfer.tar";
@@ -58,11 +64,12 @@ const DockerModal: React.FC = () => {
           onClick={closeModal}
         ></div>
         <img
+          className="w-[412px h-[198px]"
           src={TransactionInputModalImage}
           alt={"transaction-input-modal"}
         ></img>
         <div
-          className={`absolute ${isDownloading ? "top-[88px]" : "top-[95px]"} left-[88px] w-[293px] text-[16px] font-[600] flex flex-col items-center justify-between ${
+          className={`absolute ${isDownloading ? "top-[88px]" : "top-[95px]"} left-[90px] w-[292px] text-[16px] font-[600] flex flex-col items-center justify-between ${
             isDownloading ? "row-gap-[7px]" : "row-gap-[0px]"
           }`}
           style={{
@@ -70,11 +77,15 @@ const DockerModal: React.FC = () => {
           }}
         >
           <div className="w-full h-[24px] flex  items-center justify-between">
-            <span className="cursor-pointer" onClick={startProcess}>
-              TOKAMAK-ZK-EVM
-            </span>
+            <span className="cursor-pointer">TOKAMAK-ZK-EVM</span>
             <img
-              className="cursor-pointer"
+              className={`cursor-pointer ${
+                isDockerImageDownloaded
+                  ? "w-[57px] h-[24px]"
+                  : isDownloading
+                    ? "w-[10px] h-[10px]"
+                    : "w-[24px] h-[24px]"
+              }`}
               src={
                 isDockerImageDownloaded
                   ? DownloadedImage
@@ -82,7 +93,7 @@ const DockerModal: React.FC = () => {
                     ? PauseIconImage
                     : DownloadButtonImage
               }
-              onClick={handleStartDownloadAndLoad}
+              onClick={onClickStartProcess}
             ></img>
           </div>
           {isDownloading && (
