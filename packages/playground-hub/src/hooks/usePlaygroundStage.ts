@@ -27,7 +27,19 @@ export function usePlaygroundStage() {
     );
   }, [playgroundStage]);
 
-  return { playgroundStage, setStage, isReadyForResult };
+  const allStagesAreDone = useMemo(() => {
+    return (
+      playgroundStage.evmSpec &&
+      playgroundStage.transactionHash &&
+      playgroundStage.qap &&
+      playgroundStage.setup &&
+      playgroundStage.synthesizer &&
+      playgroundStage.prove &&
+      playgroundStage.verify
+    );
+  }, [playgroundStage]);
+
+  return { playgroundStage, setStage, isReadyForResult, allStagesAreDone };
 }
 
 export function usePlaygroundStartStage() {

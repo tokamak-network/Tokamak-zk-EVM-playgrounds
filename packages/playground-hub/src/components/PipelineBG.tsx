@@ -1,34 +1,26 @@
 import outlinePipeline from "../assets/images/outline-pipe.png";
 import smallPipeline from "../assets/images/small-pipe.png";
-import pipeline from "../assets/images/pipe.png";
 import tank from "../assets/images/tank.png";
 import CloudWithRain from "./CloudWithRain";
-import Handle from "./Handle";
 import Bubbles from "./Bubble";
 import "../styles/pipelineAnimation.css";
-import PixelatedPipeline from "./PixelatedPipeline";
-import PixelFlow from "./animation-pipeline/PixelFlow";
-import Pipelines from "./Pipelines";
 import PipelineAnimations from "./animation-pipeline/PipelineAnimations";
 import PeipelineHandles from "./PeipelineHandles";
+import Spinner from "./animation-pipeline/Spinner";
 
 // 이미지에 맞게 X축 기준 색상 배열 (열별)
-const colors = [
-  "#365969", // 첫번째 열 - 진한 파란색
-  "#159CFC", // 두번째 열 - 진한 회청색
-  "#7AC8FF", // 세번째 열 - 밝은 파란색
-  "#159CFC", // 네번째 열 - 하늘색
-  "#0079D0", // 다섯번째 열 - 밝은 파란색
-  "#365969", // 여섯번째 열 - 진한 파란색
-];
+// const colors = [
+//   "#365969", // 첫번째 열 - 진한 파란색
+//   "#159CFC", // 두번째 열 - 진한 회청색
+//   "#7AC8FF", // 세번째 열 - 밝은 파란색
+//   "#159CFC", // 네번째 열 - 하늘색
+//   "#0079D0", // 다섯번째 열 - 밝은 파란색
+//   "#365969", // 여섯번째 열 - 진한 파란색
+// ];
 
 export default function PipelineBG() {
-  const pipelinePath = [
-    { x: 133, y: 145 }, // 시작점
-  ];
-
   return (
-    <div className="w-[1080px] h-[935px] flex items-center justify-center relative">
+    <div className="w-[1080px] h-[935px] flex items-center justify-center relative overflow-hidden">
       <img
         src={outlinePipeline}
         alt="pipeline-bg"
@@ -56,6 +48,7 @@ export default function PipelineBG() {
         alt="tank"
         className="absolute max-w-full max-h-full object-contain bottom-[10px] right-[25px] z-[-1]"
       />
+      <Spinner />
 
       {/* 디버깅용 표시 - 개발 중에만 사용 */}
       {/* {true && (
@@ -75,7 +68,6 @@ export default function PipelineBG() {
 
       <CloudWithRain position="top-[113px] left-[105px]" cloudType="blue" />
       <CloudWithRain position="top-[113px] right-[155px]" cloudType="skyblue" />
-
       <PeipelineHandles />
       <Bubbles />
     </div>

@@ -3,14 +3,12 @@ import { useDocker } from "./useDocker";
 import { useSynthesizer } from "./useSynthesizer";
 import { useBackendCommand } from "./useBackend";
 import { usePipelineAnimation } from "./usePipelineAnimation";
-import { useModals } from "./useModals";
 import {
   provingResultAtom,
   provingIsDoneAtom,
 } from "../atoms/pipelineAnimation";
 import { useAtom } from "jotai";
-import { usePlaygroundStartStage } from "./usePlaygroundStage";
-
+import { useResetStage } from "./useResetStage";
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
   RunSynthesizer = "RUN_SYNTHESIZER",
@@ -27,27 +25,7 @@ export function useTokamakZkEVMActions() {
   const { parseTONTransfer } = useSynthesizer();
   const { setup, preProcess, prove, verify } = useBackendCommand();
   const { setPendingAnimation } = usePipelineAnimation();
-  const { openModal } = useModals();
-  const { updateActiveSection, resetAllAnimationHandler } =
-    usePipelineAnimation();
-  const { resetAllStartStage } = usePlaygroundStartStage();
-
-  const initializeWhenCatchError = useCallback(() => {
-    setPendingAnimation(true);
-    updateActiveSection("none");
-    resetAllAnimationHandler();
-    setProvingIsDone(false);
-    setProvingResult(false);
-    openModal("error");
-    resetAllStartStage();
-  }, [
-    setPendingAnimation,
-    updateActiveSection,
-    resetAllAnimationHandler,
-    setProvingIsDone,
-    setProvingResult,
-    resetAllStartStage,
-  ]);
+  const { initializeWhenCatchError } = useResetStage();
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {

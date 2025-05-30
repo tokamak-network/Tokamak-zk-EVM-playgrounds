@@ -14,6 +14,8 @@ import { useDebouncedEtherscanValidation } from "../../hooks/useEtherscanApi";
 import { useDebouncedTxHashValidation } from "../../hooks/useTransaction";
 import { fetchTransactionBytecode } from "../../utils/parseTransaction";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
+import { usePlaygroundStage } from "../../hooks/usePlaygroundStage";
+import { useResetStage } from "../../hooks/useResetStage";
 
 const TransactionInputModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
@@ -30,6 +32,8 @@ const TransactionInputModal: React.FC = () => {
   const { isValid: isValidApiKey } = useDebouncedEtherscanValidation(apiKey);
   const { isValid: isValidTxHash } =
     useDebouncedTxHashValidation(transactionHash);
+  const { allStagesAreDone } = usePlaygroundStage();
+  const { initializeWithNewTransaction } = useResetStage();
 
   const onClose = () => {
     setActiveModal("none");
@@ -37,6 +41,7 @@ const TransactionInputModal: React.FC = () => {
 
   const inputClose = async () => {
     if (!isActive) return;
+    if (allStagesAreDone) initializeWithNewTransaction();
     onClose();
     try {
       const { bytecode, from, to } =
