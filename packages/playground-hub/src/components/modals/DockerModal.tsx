@@ -57,7 +57,7 @@ const DockerModal: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center ">
+    <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
       <div className="relative w-[400px] h-[46px]">
         <div
           className="absolute w-[18px] h-[18px] top-[20px] left-[372px] cursor-pointer"

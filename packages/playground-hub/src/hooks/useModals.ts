@@ -1,5 +1,6 @@
 import { useAtom } from "jotai";
 import { activeModalAtom, Modal } from "../atoms/modals";
+import { useMemo } from "react";
 
 export const useModals = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
@@ -12,5 +13,9 @@ export const useModals = () => {
     setActiveModal("none");
   };
 
-  return { activeModal, openModal, closeModal };
+  const anyModalOpen = useMemo(() => {
+    return activeModal !== "none";
+  }, [activeModal]);
+
+  return { activeModal, openModal, closeModal, anyModalOpen };
 };
