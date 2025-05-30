@@ -11,7 +11,7 @@ export default function Spinner() {
   return (
     <div className="absolute overflow-hidden bottom-[4px]">
       <div
-        className={`flex flex-col w-[1073px] h-[6px] ${pendingAnimation ? "animate-spin" : "opacity-0"}`}
+        className={`flex flex-col w-[1073px] h-[6px] ${pendingAnimation ? "animate-spin opacity-100" : "opacity-0"}`}
       >
         {" "}
         {/* Added overflow-hidden */}

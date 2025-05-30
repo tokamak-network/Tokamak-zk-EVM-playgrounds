@@ -423,6 +423,14 @@ function setupIpcHandlers() {
     }
   );
   // --- 파일 다운로드 및 Docker 이미지 로드 핸들러 끝 ---
+
+  ipcMain.on("request-exit-modal", () => {
+    const windows = BrowserWindow.getAllWindows();
+    if (windows.length > 0) {
+      const webContents = windows[0].webContents; // 첫 번째 창의 webContents를 가져옵니다.
+      webContents.send("show-exit-modal"); // 렌더러 프로세스에 메시지 전송
+    }
+  });
 }
 
 app.whenReady().then(() => {
@@ -465,7 +473,10 @@ app.on("before-quit", async (event) => {
   console.log(
     "[INFO] 'before-quit' 이벤트 발생. 애플리케이션 종료를 준비합니다."
   );
+
   event.preventDefault(); // 애플리케이션이 즉시 종료되는 것을 방지
+
+  ipcMain.emit("request-exit-modal");
 
   try {
     const containers = await getDockerContainers();

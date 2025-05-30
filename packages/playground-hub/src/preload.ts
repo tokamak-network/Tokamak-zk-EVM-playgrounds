@@ -86,3 +86,12 @@ contextBridge.exposeInMainWorld("fileDownloaderAPI", {
     };
   },
 });
+
+contextBridge.exposeInMainWorld("electronAPI", {
+  on: (channel: string, func: (...args: any[]) => void) => {
+    ipcRenderer.on(channel, (event, ...args) => func(...args));
+  },
+  removeListener: (channel: string, func: (...args: any[]) => void) => {
+    ipcRenderer.removeListener(channel, func);
+  },
+});

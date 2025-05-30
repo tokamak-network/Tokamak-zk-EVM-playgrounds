@@ -74,11 +74,11 @@ export default function FillingTank({
   const clipValue = `inset(${100 - currentFill}% 0% 0% 0%)`;
   const tankImage = provingResult ? tankTrue : tankFalse;
 
-  if (!active) return null;
+  // if (!active) return null;
 
   return (
     <div
-      className="absolute max-w-full max-h-full object-contain top-[697px] right-[109px] flex items-end justify-end overflow-hidden"
+      className="absolute max-w-full max-h-full object-contain top-[697px] right-[109px] flex items-end justify-end overflow-hidden z-[2]"
       style={{ background: "transparent" }}
     >
       <img
