@@ -7,6 +7,7 @@ import "../styles/pipelineAnimation.css";
 import PipelineAnimations from "./animation-pipeline/PipelineAnimations";
 import PeipelineHandles from "./PeipelineHandles";
 import Spinner from "./animation-pipeline/Spinner";
+import { useModals } from "../hooks/useModals";
 
 // 이미지에 맞게 X축 기준 색상 배열 (열별)
 // const colors = [
@@ -19,8 +20,13 @@ import Spinner from "./animation-pipeline/Spinner";
 // ];
 
 export default function PipelineBG() {
+  const { anyModalOpen } = useModals();
   return (
-    <div className="w-[1080px] h-[935px] flex items-center justify-center relative overflow-hidden">
+    <div
+      className={`w-[1080px] h-[935px] flex items-center justify-center relative overflow-hidden ${
+        anyModalOpen ? "opacity-50" : ""
+      }`}
+    >
       <img
         src={outlinePipeline}
         alt="pipeline-bg"
