@@ -9,6 +9,7 @@ import {
 } from "../atoms/pipelineAnimation";
 import { useAtom } from "jotai";
 import { useResetStage } from "./useResetStage";
+import { usePlaygroundStage } from "./usePlaygroundStage";
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
   RunSynthesizer = "RUN_SYNTHESIZER",
@@ -26,10 +27,12 @@ export function useTokamakZkEVMActions() {
   const { setup, preProcess, prove, verify } = useBackendCommand();
   const { setPendingAnimation } = usePipelineAnimation();
   const { initializeWhenCatchError } = useResetStage();
+  const { setPlaygroundStageInProcess } = usePlaygroundStage();
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
       try {
+        setPlaygroundStageInProcess(true);
         switch (actionType) {
           case TokamakActionType.SetupEvmSpec:
             return await runContainer("tokamak-zk-evm-tontransfer");
@@ -116,6 +119,14 @@ export function useTokamakZkEVMActions() {
         return Promise.resolve({
           success: false,
           error: error.message || "An unknown error occurred",
+        });
+      } finally {
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            console.log("go");
+            setPlaygroundStageInProcess(false);
+            resolve();
+          }, 0);
         });
       }
     },
