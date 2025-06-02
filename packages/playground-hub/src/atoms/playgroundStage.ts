@@ -45,3 +45,5 @@ export const playgroundStageAtom = atom<PlaygroundStage>({
   bikzg: false,
   result: false,
 });
+
+export const playgroundStageInProcessAtom = atom<boolean>(false);

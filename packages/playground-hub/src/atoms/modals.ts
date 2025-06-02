@@ -5,6 +5,7 @@ export type Modal =
   | "transaction-input"
   | "error"
   | "docker-select"
-  | "exit";
+  | "exit"
+  | "loading";
 
 export const activeModalAtom = atom<Modal>("none");

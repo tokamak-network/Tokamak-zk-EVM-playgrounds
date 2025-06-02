@@ -4,11 +4,15 @@ import {
   playgroundStageAtom,
   PlaygroundStartStage,
   playgroundStartStageAtom,
+  playgroundStageInProcessAtom,
 } from "../atoms/playgroundStage";
 import { useMemo } from "react";
 
 export function usePlaygroundStage() {
   const [playgroundStage, setPlaygroundStage] = useAtom(playgroundStageAtom);
+  const [playgroundStageInProcess, setPlaygroundStageInProcess] = useAtom(
+    playgroundStageInProcessAtom
+  );
 
   const setStage = (stage: keyof PlaygroundStage, value: boolean) => {
     setPlaygroundStage({ ...playgroundStage, [stage]: value });
@@ -39,7 +43,14 @@ export function usePlaygroundStage() {
     );
   }, [playgroundStage]);
 
-  return { playgroundStage, setStage, isReadyForResult, allStagesAreDone };
+  return {
+    playgroundStage,
+    setStage,
+    isReadyForResult,
+    allStagesAreDone,
+    playgroundStageInProcess,
+    setPlaygroundStageInProcess,
+  };
 }
 
 export function usePlaygroundStartStage() {
@@ -73,10 +84,23 @@ export function usePlaygroundStartStage() {
     });
   };
 
+  const isNotStarted = useMemo(() => {
+    return (
+      !playgroundStartStage.evmSpec &&
+      !playgroundStartStage.transactionHash &&
+      !playgroundStartStage.qap &&
+      !playgroundStartStage.setup &&
+      !playgroundStartStage.synthesizer &&
+      !playgroundStartStage.prove &&
+      !playgroundStartStage.verify
+    );
+  }, [playgroundStartStage]);
+
   return {
     playgroundStartStage,
     setStartStage,
     resetStartStageWithNewTransaction,
     resetAllStartStage,
+    isNotStarted,
   };
 }
