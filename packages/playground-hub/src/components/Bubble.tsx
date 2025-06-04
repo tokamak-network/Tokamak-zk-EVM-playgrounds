@@ -6,12 +6,14 @@ import bubbleSynthesizer from "../assets/images/bubble-synthesizer.png";
 import bubbleTransaction from "../assets/images/bubble-transaction.png";
 import bubbleVerify from "../assets/images/bubble-verify.png";
 import bubbleSetup from "../assets/images/bubble-setup.png";
-import bubbleBikzgInactive from "../assets/images/bubbles/bubble-bikzg-inactive.png";
-import bubbleQapInactive from "../assets/images/bubbles/bubble-qap-inactive.png";
-import bubbleSetupInactive from "../assets/images/bubbles/bubble-setup-inactive.png";
-import bubbleSynthesizerInactive from "../assets/images/bubbles/bubble-synthesizer-inactive.png";
-import bubbleVerifyInactive from "../assets/images/bubbles/bubble-verify-inactive.png";
-import bubbleProveInactive from "../assets/images/bubbles/bubble-prove-inactive.png";
+
+import bubbleBikzgInactive from "../assets/images/bubbles/bubble-bikzg-inactive.svg";
+import bubbleQapInactive from "../assets/images/bubbles/bubble-qap-inactive.svg";
+import bubbleSetupInactive from "../assets/images/bubbles/bubble-setup-inactive.svg";
+import bubbleSynthesizerInactive from "../assets/images/bubbles/bubble-synthesizer-inactive.svg";
+import bubbleVerifyInactive from "../assets/images/bubbles/bubble-verify-inactive.svg";
+import bubbleProveInactive from "../assets/images/bubbles/bubble-prove-inactive.svg";
+
 import {
   usePlaygroundStage,
   usePlaygroundStartStage,
@@ -57,6 +59,7 @@ export function Bubble({ type, className, isActive }: BubbleProps) {
 export default function Bubbles() {
   const { playgroundStage } = usePlaygroundStage();
   const { playgroundStartStage } = usePlaygroundStartStage();
+
   return (
     <div className="w-full h-full absolute">
       <Bubble

@@ -2,15 +2,18 @@ import { useState } from "react";
 import handleOrange from "../assets/images/handles/handle-orange.png";
 import handleGreen from "../assets/images/handles/handle-green.png";
 import handlePink from "../assets/images/handles/handle-pink.png";
+import handleInactive from "../assets/images/handles/handle-inactive.svg";
 
 export default function Handle(props: {
   type: "orange" | "green" | "pink";
   className?: string;
+  isActive: boolean;
   onClick?: () => void;
 }) {
-  const { type, className, onClick } = props;
-  const handleImage =
-    type === "orange"
+  const { type, className, onClick, isActive } = props;
+  const handleImage = !isActive
+    ? handleInactive
+    : type === "orange"
       ? handleOrange
       : type === "green"
         ? handleGreen
@@ -40,12 +43,12 @@ export default function Handle(props: {
       className={`
         absolute 
         ${className} 
-        cursor-pointer
+        cursor-pointer ${!isActive ? "cursor-not-allowed" : ""}
         transition-transform duration-2000 ease-in-out
-        z-[100]
+        z-[100] 
       `}
       style={{ transform: `rotate(${rotation}deg)` }}
-      onClick={handleClick}
+      onClick={isActive ? handleClick : undefined}
     />
   );
 }

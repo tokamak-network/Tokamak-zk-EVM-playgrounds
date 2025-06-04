@@ -1,6 +1,8 @@
 import Handle from "./Handle";
 import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
 import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
+import { usePlaygroundStartStage } from "../hooks/usePlaygroundStage";
+
 export default function PeipelineHandles() {
   const { updateActiveSection } = usePipelineAnimation();
   const {
@@ -10,6 +12,7 @@ export default function PeipelineHandles() {
     runPreProcess,
     runVerify,
   } = useTokamakZkEVMActions();
+  const { playgroundStartStage } = usePlaygroundStartStage();
 
   return (
     <div className="w-full h-full absolute">
@@ -19,6 +22,7 @@ export default function PeipelineHandles() {
         onClick={() => {
           updateActiveSection("qap-to-setup-synthesizer");
         }}
+        isActive={playgroundStartStage.evmSpec}
       />
       <Handle
         type="orange"
@@ -27,6 +31,7 @@ export default function PeipelineHandles() {
           runSynthesizer();
           updateActiveSection("synthesizer-to-verify-bikzg");
         }}
+        isActive={false}
       />
       <Handle
         type="green"
