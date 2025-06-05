@@ -9,6 +9,7 @@ import ErrorModal from "./components/modals/ErrorModal";
 import Settings from "./pages/Settings";
 import DockerModal from "./components/modals/DockerModal";
 import ExitModal from "./components/modals/ExitModal";
+import LoadingModal from "./components/modals/LoadingModal";
 const MainContent = () => {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center">
@@ -19,6 +20,7 @@ const MainContent = () => {
       <DockerModal />
       <ErrorModal />
       <ExitModal />
+      <LoadingModal />
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import { PipelineAnimationProps } from "../../types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
 
@@ -69,6 +70,7 @@ export default function VerifyToProve({
       onComplete();
     }
   };
+  const { pendingAnimation } = usePipelineAnimation();
 
   return (
     <div className="absolute w-full h-full bottom-[5px]">
@@ -80,6 +82,7 @@ export default function VerifyToProve({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        isPaused={pendingAnimation}
         resetAnimation={resetAnimation}
       />
     </div>
