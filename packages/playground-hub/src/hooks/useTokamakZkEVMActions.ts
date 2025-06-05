@@ -10,6 +10,8 @@ import {
 import { useAtom } from "jotai";
 import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
+import { useModals } from "./useModals";
+
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
   RunSynthesizer = "RUN_SYNTHESIZER",
@@ -28,6 +30,7 @@ export function useTokamakZkEVMActions() {
   const { setPendingAnimation } = usePipelineAnimation();
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
+  const { openModal, closeModal } = useModals();
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
@@ -52,12 +55,20 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.PreProcess:
             if (currentDockerContainer?.ID) {
+              setTimeout(() => {
+                setPendingAnimation(true);
+              }, 500);
+              openModal("loading");
               return await preProcess(currentDockerContainer.ID);
             }
             return Promise.resolve(undefined);
 
           case TokamakActionType.ProveTransaction:
             if (currentDockerContainer?.ID) {
+              setTimeout(() => {
+                setPendingAnimation(true);
+              }, 500);
+              openModal("loading");
               return await prove(currentDockerContainer.ID);
             }
             return Promise.resolve(undefined);
@@ -66,8 +77,7 @@ export function useTokamakZkEVMActions() {
             if (currentDockerContainer?.ID) {
               setTimeout(() => {
                 setPendingAnimation(true);
-              }, 1000);
-
+              }, 1200);
               try {
                 const result = await verify(currentDockerContainer.ID);
 
@@ -125,6 +135,7 @@ export function useTokamakZkEVMActions() {
           setTimeout(() => {
             setPlaygroundStageInProcess(false);
             resolve();
+            closeModal();
           }, 0);
         });
       }
