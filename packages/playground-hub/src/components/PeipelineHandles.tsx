@@ -1,18 +1,20 @@
 import Handle from "./Handle";
 import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
 import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
-import { usePlaygroundStartStage } from "../hooks/usePlaygroundStage";
+import { usePlaygroundStage } from "../hooks/usePlaygroundStage";
 
 export default function PeipelineHandles() {
   const { updateActiveSection } = usePipelineAnimation();
+  const { runSynthesizer, runProve, runPreProcess, runVerify } =
+    useTokamakZkEVMActions();
   const {
-    runSynthesizer,
-    runProve,
-    runSetupTrustedSetup,
-    runPreProcess,
-    runVerify,
-  } = useTokamakZkEVMActions();
-  const { playgroundStartStage } = usePlaygroundStartStage();
+    qapStage,
+    synthesizerStage,
+    setupStage,
+    proveStage,
+    verifyStage,
+    bikzgStage,
+  } = usePlaygroundStage();
 
   return (
     <div className="w-full h-full absolute">
@@ -22,7 +24,7 @@ export default function PeipelineHandles() {
         onClick={() => {
           updateActiveSection("qap-to-setup-synthesizer");
         }}
-        isActive={playgroundStartStage.evmSpec}
+        isActive={qapStage.isReady}
       />
       <Handle
         type="orange"
@@ -31,7 +33,7 @@ export default function PeipelineHandles() {
           runSynthesizer();
           updateActiveSection("synthesizer-to-verify-bikzg");
         }}
-        isActive={false}
+        isActive={synthesizerStage.isReady}
       />
       <Handle
         type="green"
@@ -39,6 +41,7 @@ export default function PeipelineHandles() {
         onClick={() => {
           updateActiveSection("setup-to-verify");
         }}
+        isActive={setupStage.isReady}
       />
       <Handle
         type="green"
@@ -47,6 +50,7 @@ export default function PeipelineHandles() {
           runProve();
           updateActiveSection("verify-to-prove");
         }}
+        isActive={proveStage.isReady}
       />
       <Handle
         type="green"
@@ -55,6 +59,7 @@ export default function PeipelineHandles() {
           runVerify();
           updateActiveSection("prove-to-result");
         }}
+        isActive={verifyStage.isReady}
       />
       <Handle
         type="pink"
@@ -63,6 +68,7 @@ export default function PeipelineHandles() {
           runPreProcess();
           updateActiveSection("bikzg-to-prove");
         }}
+        isActive={bikzgStage.isReady}
       />
     </div>
   );

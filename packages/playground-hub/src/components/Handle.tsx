@@ -43,7 +43,7 @@ export default function Handle(props: {
       className={`
         absolute 
         ${className} 
-        cursor-pointer ${!isActive ? "cursor-not-allowed" : ""}
+         ${!isActive ? "cursor-not-allowed" : "cursor-pointer"}
         transition-transform duration-2000 ease-in-out
         z-[100] 
       `}

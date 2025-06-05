@@ -123,7 +123,6 @@ export function useTokamakZkEVMActions() {
       } finally {
         await new Promise<void>((resolve) => {
           setTimeout(() => {
-            console.log("go");
             setPlaygroundStageInProcess(false);
             resolve();
           }, 0);
