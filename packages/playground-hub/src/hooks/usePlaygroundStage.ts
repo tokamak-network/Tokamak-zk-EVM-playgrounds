@@ -18,6 +18,48 @@ export function usePlaygroundStage() {
     setPlaygroundStage({ ...playgroundStage, [stage]: value });
   };
 
+  const qapStage = useMemo(() => {
+    return {
+      isReady: playgroundStage.evmSpec,
+      isDone: playgroundStage.qap,
+    };
+  }, [playgroundStage]);
+
+  const synthesizerStage = useMemo(() => {
+    return {
+      isReady: playgroundStage.qap && playgroundStage.transactionHash,
+      isDone: playgroundStage.synthesizer,
+    };
+  }, [playgroundStage]);
+
+  const setupStage = useMemo(() => {
+    return {
+      isReady: playgroundStage.qap,
+      isDone: playgroundStage.setup,
+    };
+  }, [playgroundStage]);
+
+  const proveStage = useMemo(() => {
+    return {
+      isReady: playgroundStage.setup && playgroundStage.synthesizer,
+      isDone: playgroundStage.prove,
+    };
+  }, [playgroundStage]);
+
+  const bikzgStage = useMemo(() => {
+    return {
+      isReady: playgroundStage.synthesizer,
+      isDone: playgroundStage.bikzg,
+    };
+  }, [playgroundStage]);
+
+  const verifyStage = useMemo(() => {
+    return {
+      isReady: playgroundStage.prove && playgroundStage.bikzg,
+      isDone: playgroundStage.verify,
+    };
+  }, [playgroundStage]);
+
   const isReadyForResult = useMemo(() => {
     return (
       playgroundStage.evmSpec &&
@@ -50,6 +92,12 @@ export function usePlaygroundStage() {
     allStagesAreDone,
     playgroundStageInProcess,
     setPlaygroundStageInProcess,
+    qapStage,
+    synthesizerStage,
+    setupStage,
+    proveStage,
+    bikzgStage,
+    verifyStage,
   };
 }
 

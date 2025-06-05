@@ -1,3 +1,4 @@
+//done
 import bubbleBikzg from "../assets/images/bubble-bikzg.png";
 import bubbleCompiler from "../assets/images/bubble-compiler.png";
 import bubbleEvm from "../assets/images/bubble-evm.png";
@@ -7,6 +8,7 @@ import bubbleTransaction from "../assets/images/bubble-transaction.png";
 import bubbleVerify from "../assets/images/bubble-verify.png";
 import bubbleSetup from "../assets/images/bubble-setup.png";
 
+//inactive
 import bubbleBikzgInactive from "../assets/images/bubbles/bubble-bikzg-inactive.svg";
 import bubbleQapInactive from "../assets/images/bubbles/bubble-qap-inactive.svg";
 import bubbleSetupInactive from "../assets/images/bubbles/bubble-setup-inactive.svg";
@@ -14,12 +16,20 @@ import bubbleSynthesizerInactive from "../assets/images/bubbles/bubble-synthesiz
 import bubbleVerifyInactive from "../assets/images/bubbles/bubble-verify-inactive.svg";
 import bubbleProveInactive from "../assets/images/bubbles/bubble-prove-inactive.svg";
 
+//active
+import bubbleBikzgActive from "../assets/images/bubbles/bubble-bikzg-active.svg";
+import bubbleQapActive from "../assets/images/bubbles/bubble-qap-active.svg";
+import bubbleSetupActive from "../assets/images/bubbles/bubble-setup-active.svg";
+import bubbleSynthesizerActive from "../assets/images/bubbles/bubble-synthesizer-active.svg";
+import bubbleVerifyActive from "../assets/images/bubbles/bubble-verify-active.svg";
+import bubbleProveActive from "../assets/images/bubbles/bubble-prove-active.svg";
+
 import {
   usePlaygroundStage,
   usePlaygroundStartStage,
 } from "../hooks/usePlaygroundStage";
-import bubbleEvmInactive from "../assets/images/bubbles/bubble-evm-inactive.png";
-import bubbleTransactionInactive from "../assets/images/bubbles/bubble-transaction-inactive.png";
+import bubbleEvmInactive from "../assets/images/bubbles/bubble-evm-inactive.svg";
+import bubbleTransactionInactive from "../assets/images/bubbles/bubble-transaction-inactive.svg";
 
 interface BubbleProps {
   type:
@@ -33,18 +43,43 @@ interface BubbleProps {
     | "setup";
   className?: string;
   isActive: boolean;
+  isDone?: boolean;
 }
 
-export function Bubble({ type, className, isActive }: BubbleProps) {
+export function Bubble({ type, className, isActive, isDone }: BubbleProps) {
   const bubbleImage = {
-    bikzg: isActive ? bubbleBikzg : bubbleBikzgInactive,
-    compiler: isActive ? bubbleCompiler : bubbleQapInactive,
+    bikzg: isDone
+      ? bubbleBikzg
+      : isActive
+        ? bubbleBikzgActive
+        : bubbleBikzgInactive,
+    compiler: isDone
+      ? bubbleCompiler
+      : isActive
+        ? bubbleQapActive
+        : bubbleQapInactive,
     evm: isActive ? bubbleEvm : bubbleEvmInactive,
-    prove: isActive ? bubbleProve : bubbleProveInactive,
-    synthesizer: isActive ? bubbleSynthesizer : bubbleSynthesizerInactive,
+    prove: isDone
+      ? bubbleProve
+      : isActive
+        ? bubbleProveActive
+        : bubbleProveInactive,
+    synthesizer: isDone
+      ? bubbleSynthesizer
+      : isActive
+        ? bubbleSynthesizerActive
+        : bubbleSynthesizerInactive,
+    setup: isDone
+      ? bubbleSetup
+      : isActive
+        ? bubbleSetupActive
+        : bubbleSetupInactive,
     transaction: isActive ? bubbleTransaction : bubbleTransactionInactive,
-    verify: isActive ? bubbleVerify : bubbleVerifyInactive,
-    setup: isActive ? bubbleSetup : bubbleSetupInactive,
+    verify: isDone
+      ? bubbleVerify
+      : isActive
+        ? bubbleVerifyActive
+        : bubbleVerifyInactive,
   }[type];
 
   return (
@@ -57,7 +92,15 @@ export function Bubble({ type, className, isActive }: BubbleProps) {
 }
 
 export default function Bubbles() {
-  const { playgroundStage } = usePlaygroundStage();
+  const {
+    playgroundStage,
+    qapStage,
+    synthesizerStage,
+    setupStage,
+    proveStage,
+    bikzgStage,
+    verifyStage,
+  } = usePlaygroundStage();
   const { playgroundStartStage } = usePlaygroundStartStage();
 
   return (
@@ -69,38 +112,44 @@ export default function Bubbles() {
       />
       <Bubble
         type="transaction"
-        className="absolute top-[60px] left-[855px]"
+        className="absolute top-[55px] left-[835px]"
         isActive={playgroundStartStage.transactionHash}
       />
       <Bubble
         type="compiler"
         className="absolute top-[340px] left-[85px]"
-        isActive={playgroundStage.evmSpec}
+        isActive={qapStage.isReady}
+        isDone={qapStage.isDone}
       />
       <Bubble
         type="synthesizer"
         className="absolute top-[480px] left-[497px]"
-        isActive={playgroundStage.qap && playgroundStage.transactionHash}
+        isActive={synthesizerStage.isReady}
+        isDone={synthesizerStage.isDone}
       />
       <Bubble
         type="prove"
         className="absolute top-[720px] left-[410px]"
-        isActive={playgroundStage.setup && playgroundStage.synthesizer}
+        isActive={proveStage.isReady}
+        isDone={proveStage.isDone}
       />
       <Bubble
         type="verify"
         className="absolute top-[640px] left-[710px]"
-        isActive={playgroundStage.verify && playgroundStage.bikzg}
+        isActive={verifyStage.isReady}
+        isDone={verifyStage.isDone}
       />
       <Bubble
         type="setup"
         className="absolute top-[520px] left-[233px]"
-        isActive={playgroundStage.qap}
+        isActive={setupStage.isReady}
+        isDone={setupStage.isDone}
       />
       <Bubble
         type="bikzg"
         className="absolute top-[533px] left-[890px]"
-        isActive={playgroundStage.synthesizer}
+        isActive={bikzgStage.isReady}
+        isDone={bikzgStage.isDone}
       />
     </div>
   );
