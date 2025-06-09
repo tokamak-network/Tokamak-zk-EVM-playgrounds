@@ -1,5 +1,6 @@
 import EvmToQAP from "./EvmToQAP";
-import pipeline from "../../assets/images/pipe.png";
+import pipeline from "../../assets/images/pipe.svg";
+
 import QAPToSetup from "./QAPToSetup";
 import TransactionToSynthesizer from "./TransactionToSynthesizer";
 import {
@@ -103,7 +104,7 @@ export default function PipelineAnimations() {
         isActive={activeSection === "verify-to-prove"}
         onComplete={() => {
           handleOnStart({
-            section: "verify",
+            section: "prove",
             value: true,
           });
         }}
@@ -129,7 +130,7 @@ export default function PipelineAnimations() {
         isActive={activeSection === "prove-to-result"}
         onComplete={() => {
           handleOnStart({
-            section: "prove",
+            section: "verify",
             value: true,
           });
         }}
@@ -143,7 +144,7 @@ export default function PipelineAnimations() {
       <img
         src={pipeline}
         alt="pipeline-bg"
-        className="absolute max-w-full max-h-full object-contain mt-[150px] z-[-1]"
+        className="absolute max-w-full max-h-full object-contain mt-[150px] left-[-10px] z-[-1]"
       />
     </div>
   );

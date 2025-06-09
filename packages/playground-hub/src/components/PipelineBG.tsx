@@ -1,5 +1,5 @@
-import outlinePipeline from "../assets/images/outline-pipe.png";
-import smallPipeline from "../assets/images/small-pipe.png";
+import outlinePipeline from "../assets/images/outline-pipe.svg";
+import smallPipeline from "../assets/images/small-pipe.svg";
 import tank from "../assets/images/tank.png";
 import CloudWithRain from "./CloudWithRain";
 import Bubbles from "./Bubble";
@@ -30,24 +30,13 @@ export default function PipelineBG() {
       <img
         src={outlinePipeline}
         alt="pipeline-bg"
-        className="absolute max-w-full max-h-full object-contain"
+        className="absolute max-w-full h-[920px] bottom-[0px] object-contain"
       />
       <img
         src={smallPipeline}
         alt="smallPipeline-bg"
-        className="absolute max-w-full max-h-full object-contain mr-[27px]"
+        className="absolute max-w-full max-h-full object-contain top-[573px] mr-[27px] z-[-1]"
       />
-
-      {/* 픽셀 흐름 애니메이션 */}
-      {/* <div className="absolute max-w-full max-h-full mt-[155px] w-full h-full">
-        <PixelFlow pipelinePath={pipelinePath} />
-      </div>
-      <img
-        src={pipeline}
-        alt="smallPipeline-bg"
-        className="absolute max-w-full max-h-full object-contain mt-[155px]"
-      ></img> */}
-
       <PipelineAnimations />
       <img
         src={tank}
@@ -72,8 +61,8 @@ export default function PipelineBG() {
         />
       )} */}
 
-      <CloudWithRain position="top-[113px] left-[105px]" cloudType="blue" />
-      <CloudWithRain position="top-[113px] right-[155px]" cloudType="skyblue" />
+      <CloudWithRain position="top-[113px] left-[180px]" cloudType="blue" />
+      <CloudWithRain position="top-[113px] right-[175px]" cloudType="skyblue" />
       <PeipelineHandles />
       <Bubbles />
     </div>

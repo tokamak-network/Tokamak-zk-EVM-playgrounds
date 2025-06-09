@@ -75,9 +75,6 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.Verify:
             if (currentDockerContainer?.ID) {
-              setTimeout(() => {
-                setPendingAnimation(true);
-              }, 1200);
               try {
                 const result = await verify(currentDockerContainer.ID);
 
