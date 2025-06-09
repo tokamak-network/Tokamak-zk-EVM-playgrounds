@@ -93,7 +93,6 @@ export function Bubble({ type, className, isActive, isDone }: BubbleProps) {
 
 export default function Bubbles() {
   const {
-    playgroundStage,
     qapStage,
     synthesizerStage,
     setupStage,
@@ -107,12 +106,12 @@ export default function Bubbles() {
     <div className="w-full h-full absolute">
       <Bubble
         type="evm"
-        className="absolute top-[60px] left-[140px]"
+        className="absolute top-[60px] left-[208px]"
         isActive={playgroundStartStage.evmSpec}
       />
       <Bubble
         type="transaction"
-        className="absolute top-[55px] left-[835px]"
+        className="absolute top-[55px] left-[830px]"
         isActive={playgroundStartStage.transactionHash}
       />
       <Bubble

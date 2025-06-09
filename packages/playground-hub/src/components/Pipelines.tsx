@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import pipelineFilled from "../assets/images/pipe-filled.png";
+import pipelineFilled from "../assets/images/pipe-filled.svg";
 
 interface PipelinesProps {
   id: string; // 각 파이프라인 컴포넌트의 고유 ID
