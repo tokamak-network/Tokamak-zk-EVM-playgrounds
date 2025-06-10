@@ -20,7 +20,7 @@ export default function PeipelineHandles() {
     <div className="w-full h-full absolute">
       <Handle
         type="orange"
-        className="top-[395px] left-[70px]"
+        className="top-[298px] left-[199px]"
         onClick={() => {
           updateActiveSection("qap-to-setup-synthesizer");
         }}
@@ -28,7 +28,7 @@ export default function PeipelineHandles() {
       />
       <Handle
         type="orange"
-        className="top-[535px] left-[482px]"
+        className="top-[308px] left-[650px]"
         onClick={() => {
           runSynthesizer();
           updateActiveSection("synthesizer-to-verify-bikzg");
@@ -37,7 +37,7 @@ export default function PeipelineHandles() {
       />
       <Handle
         type="green"
-        className="top-[575px] left-[216px]"
+        className="top-[417px] left-[325px]"
         onClick={() => {
           updateActiveSection("setup-to-verify");
         }}
@@ -45,7 +45,7 @@ export default function PeipelineHandles() {
       />
       <Handle
         type="green"
-        className="top-[775px] left-[395px]"
+        className="top-[630px] left-[325px]"
         onClick={() => {
           runProve();
           updateActiveSection("verify-to-prove");
@@ -54,7 +54,7 @@ export default function PeipelineHandles() {
       />
       <Handle
         type="green"
-        className="top-[695px] left-[695px]"
+        className="top-[740px] left-[628px]"
         onClick={() => {
           runVerify();
           updateActiveSection("prove-to-result");
@@ -63,7 +63,7 @@ export default function PeipelineHandles() {
       />
       <Handle
         type="pink"
-        className="top-[588px] left-[875px]"
+        className="top-[503px] left-[780px]"
         onClick={() => {
           runPreProcess();
           updateActiveSection("bikzg-to-prove");

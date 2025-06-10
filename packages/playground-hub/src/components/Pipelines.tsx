@@ -270,12 +270,7 @@ export default function Pipelines({
         ref={filledImgRef}
         src={pipelineFilled}
         alt="pipeline-filled"
-        className="absolute max-w-full max-h-full object-contain mt-[155px]"
-        style={
-          {
-            // transition 속성 제거 - requestAnimationFrame으로 직접 제어
-          }
-        }
+        className="absolute max-w-full max-h-full object-contain mt-[155px] left-[-10px]"
       />
     </div>
   );
