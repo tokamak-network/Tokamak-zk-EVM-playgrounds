@@ -116,37 +116,37 @@ export default function Bubbles() {
       />
       <Bubble
         type="compiler"
-        className="absolute top-[340px] left-[85px]"
+        className="absolute top-[245px] left-[210px]"
         isActive={qapStage.isReady}
         isDone={qapStage.isDone}
       />
       <Bubble
         type="synthesizer"
-        className="absolute top-[480px] left-[497px]"
+        className="absolute top-[255px] left-[661px]"
         isActive={synthesizerStage.isReady}
         isDone={synthesizerStage.isDone}
       />
       <Bubble
         type="prove"
-        className="absolute top-[720px] left-[410px]"
+        className="absolute top-[578px] left-[339px]"
         isActive={proveStage.isReady}
         isDone={proveStage.isDone}
       />
       <Bubble
         type="verify"
-        className="absolute top-[640px] left-[710px]"
+        className="absolute top-[690px] left-[642px]"
         isActive={verifyStage.isReady}
         isDone={verifyStage.isDone}
       />
       <Bubble
         type="setup"
-        className="absolute top-[520px] left-[233px]"
+        className="absolute top-[370px] left-[339px]"
         isActive={setupStage.isReady}
         isDone={setupStage.isDone}
       />
       <Bubble
         type="bikzg"
-        className="absolute top-[533px] left-[890px]"
+        className="absolute top-[452px] left-[795px]"
         isActive={bikzgStage.isReady}
         isDone={bikzgStage.isDone}
       />

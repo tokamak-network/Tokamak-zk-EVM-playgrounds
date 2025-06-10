@@ -62,7 +62,7 @@ export default function PipelineBG() {
       )} */}
 
       <CloudWithRain position="top-[113px] left-[180px]" cloudType="blue" />
-      <CloudWithRain position="top-[113px] right-[175px]" cloudType="skyblue" />
+      <CloudWithRain position="top-[113px] right-[173px]" cloudType="skyblue" />
       <PeipelineHandles />
       <Bubbles />
     </div>
