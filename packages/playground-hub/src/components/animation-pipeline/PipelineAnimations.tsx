@@ -9,10 +9,10 @@ import {
 } from "../../hooks/usePlaygroundStage";
 import { PlaygroundStage } from "../../atoms/playgroundStage";
 import SynthesizerToVerifyBikzg from "./SynthesizerToVerifyBikzg";
-import SetupToVerify from "./SetupToVerify";
-import VerifyToProve from "./VerifyToProve";
+import SetupToProve from "./SetupToProve";
+import ProveToVerify from "./ProveToVerify";
 import BikzgToProve from "./BikzgToProve";
-import ProveToResult from "./ProveToResult";
+import VerifyToResult from "./VerifyToResult";
 import FillingTank from "./FillingTank";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 
@@ -75,7 +75,7 @@ export default function PipelineAnimations() {
         resetAnimation={resetAnimation}
       />
       <SynthesizerToVerifyBikzg
-        isActive={activeSection === "synthesizer-to-verify-bikzg"}
+        isActive={activeSection === "synthesizer-to-prove-bikzg"}
         onComplete={() => {
           handleOnStart({
             section: "synthesizer",
@@ -83,12 +83,12 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          updateActiveSection("synthesizer-to-verify-bikzg");
+          updateActiveSection("synthesizer-to-prove-bikzg");
         }}
         resetAnimation={resetAnimation}
       />
-      <SetupToVerify
-        isActive={activeSection === "setup-to-verify"}
+      <SetupToProve
+        isActive={activeSection === "setup-to-prove"}
         onComplete={() => {
           handleOnStart({
             section: "setup",
@@ -96,12 +96,12 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          updateActiveSection("setup-to-verify");
+          updateActiveSection("setup-to-prove");
         }}
         resetAnimation={resetAnimation}
       />
-      <VerifyToProve
-        isActive={activeSection === "verify-to-prove"}
+      <ProveToVerify
+        isActive={activeSection === "prove-to-verify"}
         onComplete={() => {
           handleOnStart({
             section: "prove",
@@ -109,12 +109,12 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          updateActiveSection("verify-to-prove");
+          updateActiveSection("prove-to-verify");
         }}
         resetAnimation={resetAnimation}
       />
       <BikzgToProve
-        isActive={activeSection === "bikzg-to-prove"}
+        isActive={activeSection === "bikzg-to-verify"}
         onComplete={() => {
           handleOnStart({
             section: "bikzg",
@@ -122,12 +122,12 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          updateActiveSection("bikzg-to-prove");
+          updateActiveSection("bikzg-to-verify");
         }}
         resetAnimation={resetAnimation}
       />
-      <ProveToResult
-        isActive={activeSection === "prove-to-result"}
+      <VerifyToResult
+        isActive={activeSection === "verify-to-result"}
         onComplete={() => {
           handleOnStart({
             section: "verify",
@@ -135,7 +135,7 @@ export default function PipelineAnimations() {
           });
         }}
         onStart={() => {
-          updateActiveSection("prove-to-result");
+          updateActiveSection("verify-to-result");
         }}
         resetAnimation={resetAnimation}
       />

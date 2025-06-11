@@ -2,70 +2,77 @@ import { PipelineAnimationProps } from "../../types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
 
 // 파이프라인 섹션 정의
-const SYNTHESIZER_TO_VERIFY_BIKZG_SECTION = {
-  id: "synthesizer-to-verify-bikzg",
+const SYNTHESIZER_TO_PROVE_BIKZG_SECTION = {
+  id: "synthesizer-to-prove-bikzg",
   segments: [
+    //To bikzg
     {
       id: "segment1",
-      startX: 425,
-      startY: 350,
-      endX: 425,
-      endY: 455,
+      startX: 613,
+      startY: 120,
+      endX: 613,
+      endY: 200,
       direction: "vertical" as const,
       animationDuration: 1000,
     },
-    //To bikzg
     {
       id: "segment2",
-      startX: 425,
-      startY: 412,
-      endX: 810,
-      endY: 412,
+      startX: 610,
+      startY: 210,
+      endX: 750,
+      endY: 210,
       direction: "horizontal" as const,
-      animationDuration: 2500,
-      delay: -750,
-      fillHeight: 70,
+      animationDuration: 1000,
     },
-    //to verify
     {
       id: "segment3",
-      startX: 425,
-      startY: 450,
-      endX: 225,
-      endY: 450,
+      startX: 740,
+      startY: 210,
+      endX: 740,
+      endY: 317,
+      direction: "vertical" as const,
+      animationDuration: 1000,
+    },
+    //to prove
+    {
+      id: "segment4",
+      startX: 613,
+      startY: 130,
+      endX: 515,
+      endY: 130,
       direction: "horizontal" as const,
       animationDuration: 1000,
       delay: -2000,
     },
     {
-      id: "segment4",
-      startX: 248,
-      startY: 450,
-      endX: 248,
-      endY: 510,
+      id: "segment5",
+      startX: 527,
+      startY: 130,
+      endX: 527,
+      endY: 318,
       direction: "vertical" as const,
       animationDuration: 1000,
-      delay: -500,
-    },
-    {
-      id: "segment5",
-      startX: 240,
-      startY: 517,
-      endX: 350,
-      endY: 517,
-      direction: "horizontal" as const,
-      animationDuration: 1800,
-      delay: -600,
+      delay: -2000,
     },
     {
       id: "segment6",
-      startX: 340,
-      startY: 517,
-      endX: 340,
-      endY: 590,
+      startX: 527,
+      startY: 348,
+      endX: 527,
+      endY: 460,
       direction: "vertical" as const,
-      animationDuration: 1800,
-      delay: -800,
+      animationDuration: 1000,
+      delay: -2000,
+    },
+    {
+      id: "segment6",
+      startX: 527,
+      startY: 450,
+      endX: 280,
+      endY: 450,
+      direction: "horizontal" as const,
+      animationDuration: 1000,
+      delay: -2000,
     },
   ],
 };
@@ -87,8 +94,8 @@ export default function SynthesizerToVerifyBikzg({
     <div className="absolute w-full h-full bottom-[5px]">
       {/* 파이프라인 섹션 */}
       <PipelineSection
-        id={SYNTHESIZER_TO_VERIFY_BIKZG_SECTION.id}
-        segments={SYNTHESIZER_TO_VERIFY_BIKZG_SECTION.segments}
+        id={SYNTHESIZER_TO_PROVE_BIKZG_SECTION.id}
+        segments={SYNTHESIZER_TO_PROVE_BIKZG_SECTION.segments}
         isActive={isActive}
         onComplete={handleSectionComplete}
         baseDelay={0}
