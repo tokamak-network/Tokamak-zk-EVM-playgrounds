@@ -14,7 +14,6 @@ const SETUP_TO_VERIFY_SECTION = {
       endY: 440,
       direction: "vertical" as const,
       animationDuration: 1000,
-      delay: -200,
     },
     //to verify
     {
@@ -25,7 +24,7 @@ const SETUP_TO_VERIFY_SECTION = {
       endY: 240,
       direction: "horizontal" as const,
       animationDuration: 1000,
-      delay: -2000,
+      delay: -800,
     },
     {
       id: "segment3",
@@ -45,7 +44,7 @@ const SETUP_TO_VERIFY_SECTION = {
       endY: 580,
       direction: "vertical" as const,
       animationDuration: 500,
-      delay: -200,
+      delay: -500,
     },
     {
       id: "segment5",
@@ -65,7 +64,7 @@ const SETUP_TO_VERIFY_SECTION = {
       endY: 565,
       direction: "horizontal" as const,
       animationDuration: 1000,
-      delay: -200,
+      delay: -400,
     },
     //to preprocess
     {
@@ -76,7 +75,7 @@ const SETUP_TO_VERIFY_SECTION = {
       endY: 240,
       direction: "horizontal" as const,
       animationDuration: 1000,
-      delay: -5000,
+      delay: -4000,
     },
     {
       id: "segment8",
@@ -96,7 +95,7 @@ const SETUP_TO_VERIFY_SECTION = {
       endY: 330,
       direction: "horizontal" as const,
       animationDuration: 1000,
-      delay: -200,
+      delay: -400,
     },
   ],
 };
