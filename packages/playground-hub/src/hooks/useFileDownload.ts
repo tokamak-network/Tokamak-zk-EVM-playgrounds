@@ -15,6 +15,8 @@ declare global {
       onDockerLoadStatus: (
         callback: (statusData: DockerLoadStatusData) => void
       ) => () => void;
+      pauseDownload: () => Promise<void>;
+      resumeDownload: () => Promise<void>;
     };
   }
 }
@@ -45,6 +47,10 @@ interface UseElectronFileDownloaderResult {
   loadStatus: DockerLoadStatusData;
   /** 파일 처리 중인지 여부 (다운로드 또는 로딩) */
   isProcessing: boolean;
+  /** 일시 중지 상태 */
+  pauseDownload: () => Promise<void>;
+  /** 재개 상태 */
+  resumeDownload: () => Promise<void>;
 }
 
 /**
@@ -62,6 +68,7 @@ const useElectronFileDownloader = (): UseElectronFileDownloaderResult => {
     message: "Ready to start.",
   });
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
 
   // useEffect 내에서 IPC 리스너 관리를 위해 ref 사용 (선택적이지만 안정적)
   const onDownloadProgressListenerRef = useRef<
@@ -169,7 +176,36 @@ const useElectronFileDownloader = (): UseElectronFileDownloaderResult => {
     [loadStatus.stage] // loadStatus.stage 변경 시 콜백 재생성 (중복 실행 방지용으로 상태값 확인)
   );
 
-  return { startDownloadAndLoad, downloadProgress, loadStatus, isProcessing };
+  const pauseDownload = useCallback(async () => {
+    if (window.fileDownloaderAPI && isProcessing && !isPaused) {
+      await window.fileDownloaderAPI.pauseDownload();
+      setIsPaused(true);
+      setLoadStatus((prev) => ({
+        ...prev,
+        message: "Download paused.",
+      }));
+    }
+  }, [isProcessing, isPaused]);
+
+  const resumeDownload = useCallback(async () => {
+    if (window.fileDownloaderAPI && isPaused) {
+      await window.fileDownloaderAPI.resumeDownload();
+      setIsPaused(false);
+      setLoadStatus((prev) => ({
+        ...prev,
+        message: "Download resumed.",
+      }));
+    }
+  }, [isPaused]);
+
+  return {
+    startDownloadAndLoad,
+    downloadProgress,
+    loadStatus,
+    isProcessing,
+    pauseDownload,
+    resumeDownload,
+  };
 };
 
 export default useElectronFileDownloader;
