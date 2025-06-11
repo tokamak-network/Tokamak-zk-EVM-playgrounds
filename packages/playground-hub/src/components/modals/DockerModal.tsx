@@ -3,6 +3,8 @@ import TransactionInputModalImage from "../../assets/modals/docker/docker-modal.
 import DownloadButtonImage from "../../assets/modals/docker/download-button.png";
 import PauseIconImage from "../../assets/modals/docker/pause.png";
 import DownloadedImage from "../../assets/modals/docker/run-button.png";
+import DockerImage from "../../assets/images/docker.svg";
+import RunningImage from "../../assets/images/running.svg";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import useElectronFileDownloader from "../../hooks/useFileDownload";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
@@ -15,12 +17,14 @@ const DockerModal: React.FC = () => {
     downloadProgress,
     loadStatus,
     isProcessing: isDownloading,
+    pauseDownload,
+    resumeDownload,
   } = useElectronFileDownloader();
 
   const { setupEvmSpec } = useTokamakZkEVMActions();
   const { updateActiveSection } = usePipelineAnimation();
   const { activeModal, closeModal } = useModals();
-  const { dockerStatus } = useDocker();
+  const { dockerStatus, isContainerRunning } = useDocker();
 
   const isDockerImageDownloaded = useMemo(() => {
     return dockerStatus.imageExists;
@@ -40,7 +44,7 @@ const DockerModal: React.FC = () => {
 
   const onClickStartProcess = () => {
     if (isDownloading) {
-      return;
+      return pauseDownload();
     }
     if (isDockerImageDownloaded) {
       return startProcess();
@@ -56,6 +60,8 @@ const DockerModal: React.FC = () => {
 
   if (!isOpen) return null;
 
+  console.log("isDownloading", isDownloading);
+
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
       <div className="relative w-[400px] h-[46px]">
@@ -68,30 +74,38 @@ const DockerModal: React.FC = () => {
           src={TransactionInputModalImage}
           alt={"transaction-input-modal"}
         ></img>
+
         <div
-          className={`absolute ${isDownloading ? "top-[88px]" : "top-[95px]"} left-[90px] w-[292px] text-[16px] font-[600] flex flex-col items-center justify-between ${
+          className={`absolute top-[68px] left-[16px] w-[368px] h-[64px] px-[10px] text-[16px] font-[600] flex flex-col items-center justify-between ${
             isDownloading ? "row-gap-[7px]" : "row-gap-[0px]"
-          }`}
+          } rounded-[10px]`}
           style={{
-            background: "white",
+            background: isContainerRunning ? "#ECFCFE" : "white",
           }}
         >
-          <div className="w-full h-[24px] flex  items-center justify-between">
-            <span className="cursor-pointer">TOKAMAK-ZK-EVM</span>
+          <div className="w-full h-full  flex  items-center justify-between">
+            <div className="flex items-center gap-[12px]">
+              <img src={DockerImage} alt="docker-image" />
+              <span className="cursor-pointer">TOKAMAK-ZK-EVM</span>
+            </div>
             <img
               className={`cursor-pointer ${
-                isDockerImageDownloaded
-                  ? "w-[57px] h-[24px]"
-                  : isDownloading
-                    ? "w-[10px] h-[10px]"
-                    : "w-[24px] h-[24px]"
+                isContainerRunning
+                  ? "w-[82px] h-[24px]"
+                  : isDockerImageDownloaded
+                    ? "w-[57px] h-[24px]"
+                    : isDownloading
+                      ? "w-[10px] h-[10px]"
+                      : "w-[24px] h-[24px]"
               }`}
               src={
-                isDockerImageDownloaded
-                  ? DownloadedImage
-                  : isDownloading
-                    ? PauseIconImage
-                    : DownloadButtonImage
+                isContainerRunning
+                  ? RunningImage
+                  : isDockerImageDownloaded
+                    ? DownloadedImage
+                    : isDownloading
+                      ? PauseIconImage
+                      : DownloadButtonImage
               }
               onClick={onClickStartProcess}
             ></img>

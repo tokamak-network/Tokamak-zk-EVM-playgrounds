@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   DockerImage,
   DockerContainer,
@@ -260,6 +260,10 @@ export const useDocker = () => {
     initialLoad();
   }, [loadImages, loadContainers]);
 
+  const isContainerRunning = useMemo(
+    () => !!dockerStatus.isContainerFromImageRunning,
+    [dockerStatus]
+  );
   return {
     // State
     images,
@@ -268,6 +272,7 @@ export const useDocker = () => {
     error,
     currentDockerContainer,
     dockerStatus,
+    isContainerRunning,
     // Actions
     loadImages,
     loadContainers,
