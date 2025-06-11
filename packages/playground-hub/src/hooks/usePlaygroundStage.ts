@@ -27,7 +27,7 @@ export function usePlaygroundStage() {
 
   const synthesizerStage = useMemo(() => {
     return {
-      isReady: playgroundStage.qap && playgroundStage.transactionHash,
+      isReady: playgroundStage.transactionHash,
       isDone: playgroundStage.synthesizer,
     };
   }, [playgroundStage]);

@@ -42,10 +42,10 @@ const TransactionInputModal: React.FC = () => {
   const inputClose = async () => {
     if (!isActive) return;
     if (allStagesAreDone) initializeWithNewTransaction();
-    onClose();
     try {
       const { bytecode, from, to } =
         await fetchTransactionBytecode(transactionHash);
+      onClose();
       setTransactionBytecode({ bytecode, from, to });
       updateActiveSection("transaction-to-synthesizer");
     } catch (error) {

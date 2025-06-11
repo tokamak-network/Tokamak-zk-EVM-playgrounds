@@ -24,51 +24,57 @@ export default function PeipelineHandles() {
         onClick={() => {
           updateActiveSection("qap-to-setup-synthesizer");
         }}
-        isActive={qapStage.isReady}
+        // isActive={qapStage.isReady}
+        isActive={true}
       />
       <Handle
         type="orange"
         className="top-[308px] left-[650px]"
         onClick={() => {
           runSynthesizer();
-          updateActiveSection("synthesizer-to-verify-bikzg");
+          updateActiveSection("synthesizer-to-prove-bikzg");
         }}
-        isActive={synthesizerStage.isReady}
+        // isActive={synthesizerStage.isReady}
+        isActive={true}
       />
       <Handle
         type="green"
         className="top-[417px] left-[325px]"
         onClick={() => {
-          updateActiveSection("setup-to-verify");
+          updateActiveSection("setup-to-prove");
         }}
-        isActive={setupStage.isReady}
+        // isActive={setupStage.isReady}
+        isActive={true}
       />
       <Handle
         type="green"
         className="top-[630px] left-[325px]"
         onClick={() => {
           runProve();
-          updateActiveSection("verify-to-prove");
+          updateActiveSection("prove-to-verify");
         }}
-        isActive={proveStage.isReady}
+        // isActive={proveStage.isReady}
+        isActive={true}
       />
       <Handle
         type="green"
         className="top-[740px] left-[628px]"
         onClick={() => {
           runVerify();
-          updateActiveSection("prove-to-result");
+          updateActiveSection("verify-to-result");
         }}
-        isActive={verifyStage.isReady}
+        // isActive={verifyStage.isReady}
+        isActive={true}
       />
       <Handle
         type="pink"
         className="top-[503px] left-[780px]"
         onClick={() => {
           runPreProcess();
-          updateActiveSection("bikzg-to-prove");
+          updateActiveSection("bikzg-to-verify");
         }}
-        isActive={bikzgStage.isReady}
+        // isActive={bikzgStage.isReady}
+        isActive={true}
       />
     </div>
   );

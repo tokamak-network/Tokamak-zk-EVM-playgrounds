@@ -5,11 +5,11 @@ export type Section =
   | "evm-to-qap"
   | "qap-to-setup-synthesizer"
   | "transaction-to-synthesizer"
-  | "setup-to-verify"
-  | "synthesizer-to-verify-bikzg"
-  | "verify-to-prove"
-  | "bikzg-to-prove"
-  | "prove-to-result";
+  | "setup-to-prove"
+  | "synthesizer-to-prove-bikzg"
+  | "prove-to-verify"
+  | "bikzg-to-verify"
+  | "verify-to-result";
 
 export const activeSectionAtom = atom<Section>("none");
 
