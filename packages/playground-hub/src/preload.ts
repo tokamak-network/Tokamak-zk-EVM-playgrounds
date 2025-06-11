@@ -30,6 +30,9 @@ contextBridge.exposeInMainWorld("fileDownloaderAPI", {
   downloadAndLoadImage: (args: { url: string; filename?: string }) =>
     ipcRenderer.invoke("download-and-load-docker-image", args),
 
+  pauseDownload: () => ipcRenderer.send("pause-download"),
+  resumeDownload: () => ipcRenderer.send("resume-download"),
+
   /**
    * 메인 프로세스로부터 다운로드 진행률 업데이트를 수신하기 위한 콜백을 등록합니다.
    * @param callback - (progressData: { percentage: number, downloadedSize: number, totalSize: number | null, message?: string }) => void

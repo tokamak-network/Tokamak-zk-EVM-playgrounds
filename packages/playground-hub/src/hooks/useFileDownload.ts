@@ -47,6 +47,7 @@ interface UseElectronFileDownloaderResult {
   loadStatus: DockerLoadStatusData;
   /** 파일 처리 중인지 여부 (다운로드 또는 로딩) */
   isProcessing: boolean;
+  isPaused: boolean;
   /** 일시 중지 상태 */
   pauseDownload: () => Promise<void>;
   /** 재개 상태 */
@@ -203,6 +204,7 @@ const useElectronFileDownloader = (): UseElectronFileDownloaderResult => {
     downloadProgress,
     loadStatus,
     isProcessing,
+    isPaused,
     pauseDownload,
     resumeDownload,
   };

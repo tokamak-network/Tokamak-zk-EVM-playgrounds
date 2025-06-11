@@ -5,6 +5,7 @@ import PauseIconImage from "../../assets/modals/docker/pause.png";
 import DownloadedImage from "../../assets/modals/docker/run-button.png";
 import DockerImage from "../../assets/images/docker.svg";
 import RunningImage from "../../assets/images/running.svg";
+import PauseImage from "../../assets/modals/docker/paused.svg";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import useElectronFileDownloader from "../../hooks/useFileDownload";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
@@ -16,6 +17,7 @@ const DockerModal: React.FC = () => {
     startDownloadAndLoad,
     downloadProgress,
     loadStatus,
+    isPaused,
     isProcessing: isDownloading,
     pauseDownload,
     resumeDownload,
@@ -43,6 +45,9 @@ const DockerModal: React.FC = () => {
   };
 
   const onClickStartProcess = () => {
+    if (isPaused) {
+      return resumeDownload();
+    }
     if (isDownloading) {
       return pauseDownload();
     }
@@ -61,6 +66,8 @@ const DockerModal: React.FC = () => {
   if (!isOpen) return null;
 
   console.log("isDownloading", isDownloading);
+  console.log("isPaused", isPaused);
+  console.log("loadStatus", loadStatus);
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
@@ -90,22 +97,26 @@ const DockerModal: React.FC = () => {
             </div>
             <img
               className={`cursor-pointer ${
-                isContainerRunning
-                  ? "w-[82px] h-[24px]"
-                  : isDockerImageDownloaded
-                    ? "w-[57px] h-[24px]"
-                    : isDownloading
-                      ? "w-[10px] h-[10px]"
-                      : "w-[24px] h-[24px]"
+                isPaused
+                  ? "w-[14px] h-[14px]"
+                  : isContainerRunning
+                    ? "w-[82px] h-[24px]"
+                    : isDockerImageDownloaded
+                      ? "w-[57px] h-[24px]"
+                      : isDownloading
+                        ? "w-[10px] h-[10px]"
+                        : "w-[24px] h-[24px]"
               }`}
               src={
-                isContainerRunning
-                  ? RunningImage
-                  : isDockerImageDownloaded
-                    ? DownloadedImage
-                    : isDownloading
-                      ? PauseIconImage
-                      : DownloadButtonImage
+                isPaused
+                  ? PauseImage
+                  : isContainerRunning
+                    ? RunningImage
+                    : isDockerImageDownloaded
+                      ? DownloadedImage
+                      : isDownloading
+                        ? PauseIconImage
+                        : DownloadButtonImage
               }
               onClick={onClickStartProcess}
             ></img>

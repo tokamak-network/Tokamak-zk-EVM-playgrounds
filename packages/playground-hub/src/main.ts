@@ -6,6 +6,7 @@ import {
   Menu,
   MenuItemConstructorOptions,
   session,
+  DownloadItem,
 } from "electron";
 import path from "node:path";
 import fs from "node:fs";
@@ -19,6 +20,8 @@ import {
   executeCommandInContainer,
   checkDockerStatus,
 } from "./api/docker-service";
+
+let downloadItem: DownloadItem | null = null;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -338,6 +341,7 @@ function setupIpcHandlers() {
           session.defaultSession.removeAllListeners("will-download");
 
           session.defaultSession.once("will-download", (_e, item) => {
+            downloadItem = item;
             item.setSavePath(filePath);
 
             item.on("updated", (_evt, state) => {
@@ -356,6 +360,7 @@ function setupIpcHandlers() {
             });
 
             item.on("done", (_evt, state) => {
+              downloadItem = null;
               if (state === "completed") {
                 webContents.send("download-progress", {
                   percentage: 100,
@@ -422,6 +427,33 @@ function setupIpcHandlers() {
       }
     }
   );
+
+  ipcMain.on("pause-download", () => {
+    if (downloadItem) {
+      downloadItem.pause();
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win) {
+        win.webContents.send("docker-load-status", {
+          stage: "paused",
+          message: "Download paused.",
+        });
+      }
+    }
+  });
+
+  ipcMain.on("resume-download", () => {
+    if (downloadItem) {
+      downloadItem.resume();
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win) {
+        win.webContents.send("docker-load-status", {
+          stage: "downloading",
+          message: "Download resumed.",
+        });
+      }
+    }
+  });
+
   // --- 파일 다운로드 및 Docker 이미지 로드 핸들러 끝 ---
 
   ipcMain.on("request-exit-modal", () => {
