@@ -7,6 +7,7 @@ import {
   MenuItemConstructorOptions,
   session,
   DownloadItem,
+  screen,
 } from "electron";
 import path from "node:path";
 import fs from "node:fs";
@@ -29,10 +30,11 @@ if (started) {
 }
 
 const createWindow = () => {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 600,
-    height: 900,
+    width,
+    height,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       // devTools: false,
