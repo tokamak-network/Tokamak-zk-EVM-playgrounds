@@ -465,6 +465,12 @@ function setupIpcHandlers() {
       webContents.send("show-exit-modal"); // 렌더러 프로세스에 메시지 전송
     }
   });
+
+  ipcMain.handle("get-env-vars", () => {
+    return {
+      RPC_URL: process.env.RPC_URL,
+    };
+  });
 }
 
 app.whenReady().then(() => {

@@ -74,7 +74,7 @@ export default function FillingTank({
   const clipValue = `inset(${100 - currentFill}% 0% 0% 0%)`;
   const tankImage = provingResult ? tankTrue : tankFalse;
 
-  // if (!active) return null;
+  if (!active) return null;
 
   return (
     <div

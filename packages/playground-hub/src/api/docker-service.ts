@@ -187,11 +187,16 @@ export async function getDockerImages(): Promise<DockerImage[]> {
 // For now, we assume it correctly fetches details after running.
 export async function runDockerContainer(
   imageName: string,
-  options: string[] = []
+  options: string[] = [],
+  containerName?: string
 ): Promise<DockerContainer> {
   // Return type is now the updated DockerContainer
   return new Promise((resolve, reject) => {
-    const args = ["run", "-d", ...options, imageName];
+    const args = ["run", "-d"];
+    if (containerName) {
+      args.push("--name", containerName);
+    }
+    args.push(...options, imageName);
     const dockerProcess = exec(`docker ${args.join(" ")}`); // Using exec for consistency, spawn is also fine
 
     let containerId = "";

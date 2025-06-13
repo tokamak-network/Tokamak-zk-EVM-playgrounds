@@ -4,8 +4,17 @@ import { contextBridge, ipcRenderer } from "electron";
 //Docker
 contextBridge.exposeInMainWorld("docker", {
   getImages: () => ipcRenderer.invoke("get-docker-images"),
-  runContainer: (imageName: string, options: string[] = []) =>
-    ipcRenderer.invoke("run-docker-container", imageName, options),
+  runContainer: (
+    imageName: string,
+    options: string[] = [],
+    containerName?: string
+  ) =>
+    ipcRenderer.invoke(
+      "run-docker-container",
+      imageName,
+      options,
+      containerName
+    ),
   getContainers: () => ipcRenderer.invoke("get-docker-containers"),
   stopContainer: (containerId: string) =>
     ipcRenderer.invoke("stop-docker-container", containerId),
@@ -97,4 +106,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   removeListener: (channel: string, func: (...args: any[]) => void) => {
     ipcRenderer.removeListener(channel, func);
   },
+});
+
+contextBridge.exposeInMainWorld("env", {
+  getEnvVars: () => ipcRenderer.invoke("get-env-vars"),
 });
