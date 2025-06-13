@@ -10,6 +10,8 @@ import Settings from "./pages/Settings";
 import DockerModal from "./components/modals/DockerModal";
 import ExitModal from "./components/modals/ExitModal";
 import LoadingModal from "./components/modals/LoadingModal";
+import SynthesizerError from "./components/modals/SynthesizerError";
+
 const MainContent = () => {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center">
@@ -21,6 +23,7 @@ const MainContent = () => {
       <ErrorModal />
       <ExitModal />
       <LoadingModal />
+      <SynthesizerError />
     </div>
   );
 };
