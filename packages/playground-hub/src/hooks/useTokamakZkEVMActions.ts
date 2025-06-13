@@ -131,6 +131,7 @@ export function useTokamakZkEVMActions() {
         await new Promise<void>((resolve) => {
           setTimeout(() => {
             setPlaygroundStageInProcess(false);
+            setPendingAnimation(false);
             resolve();
             closeModal();
           }, 0);

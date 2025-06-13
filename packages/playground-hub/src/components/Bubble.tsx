@@ -1,5 +1,5 @@
 //done
-import bubbleBikzg from "../assets/images/bubble-bikzg.png";
+import bubbleBikzg from "../assets/images/bubble-bikzg.svg";
 import bubbleCompiler from "../assets/images/bubble-compiler.png";
 import bubbleEvm from "../assets/images/bubble-evm.png";
 import bubbleProve from "../assets/images/bubble-prove.png";
