@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { DOCKER_NAME } from "../constants";
 
 export interface DockerImage {
   name: string;
@@ -11,7 +12,7 @@ export interface DockerContainer {
   status: string;
 }
 
-export type SupportedDockerImages = "tokamak-zk-evm-tontransfer";
+export type SupportedDockerImages = typeof DOCKER_NAME;
 
 export const currentDockerContainerAtom = atom<DockerContainer | null>(
   null as DockerContainer

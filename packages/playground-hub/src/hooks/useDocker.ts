@@ -41,7 +41,7 @@ declare global {
 // Add an optional parameter to the hook for the polling image name
 export const useDocker = () => {
   // const selectedDockerImage = useAtomValue(selectedDockerImageAtom);
-  const selectedDockerImage = "tokamak-zk-evm-tontransfer";
+  const selectedDockerImage = "tokamak-dev-env";
   const imageNameForPolling = selectedDockerImage ?? null;
   const [images, setImages] = useState<DockerImage[]>([]);
   const [containers, setContainers] = useState<DockerContainer[]>([]);

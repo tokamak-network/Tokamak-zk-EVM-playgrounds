@@ -11,6 +11,7 @@ import { useAtom } from "jotai";
 import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
 import { useModals } from "./useModals";
+import { DOCKER_NAME } from "../constants";
 
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
@@ -38,7 +39,7 @@ export function useTokamakZkEVMActions() {
         setPlaygroundStageInProcess(true);
         switch (actionType) {
           case TokamakActionType.SetupEvmSpec:
-            return await runContainer("tokamak-zk-evm-tontransfer");
+            return await runContainer(DOCKER_NAME);
 
           case TokamakActionType.RunSynthesizer:
             console.log("currentDockerContainer", currentDockerContainer);
@@ -122,6 +123,7 @@ export function useTokamakZkEVMActions() {
         }
       } catch (error) {
         initializeWhenCatchError();
+        console.log("gogo");
         console.error(error);
         return Promise.resolve({
           success: false,
