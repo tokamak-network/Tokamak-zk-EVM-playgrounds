@@ -6,6 +6,7 @@ export type Modal =
   | "error"
   | "docker-select"
   | "exit"
-  | "loading";
+  | "loading"
+  | "synthesizer-error";
 
 export const activeModalAtom = atom<Modal>("none");
