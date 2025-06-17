@@ -1,6 +1,6 @@
 {
-  "name": "playground-hub",
-  "productName": "playground-hub",
+  "name": "tokamak-zk-evm-playground-hub",
+  "productName": "tokamak-zk-evm-playground-hub",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
@@ -18,7 +18,12 @@
   "build": {
     "appId": "tokamak-zk-evm-playground-hub",
     "mac": {
-      "icon": "src/assets/icons/app-icon.icns"
+      "icon": "src/assets/icons/app-icon.icns",
+      "entitlements": "src/entitlements.plist",
+      "entitlementsInherit": "src/entitlements.plist",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "identity": "project-ooo"
     },
     "win": {
       "icon": "src/assets/icons/app-icon.png"

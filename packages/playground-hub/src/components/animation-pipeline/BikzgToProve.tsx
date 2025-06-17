@@ -1,3 +1,4 @@
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import { PipelineAnimationProps } from "../../types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
 
@@ -7,22 +8,40 @@ const BIKZG_TO_PROVE_SECTION = {
   segments: [
     {
       id: "segment1",
-      startX: 820,
-      startY: 417,
-      endX: 820,
-      endY: 550,
-      direction: "vertical" as const,
+      startX: 740,
+      startY: 325,
+      endX: 900,
+      endY: 325,
+      direction: "horizontal" as const,
       animationDuration: 1000,
     },
     {
       id: "segment2",
-      startX: 820,
-      startY: 523,
-      endX: 645,
-      endY: 523,
+      startX: 875,
+      startY: 325,
+      endX: 875,
+      endY: 470,
+      direction: "vertical" as const,
+      animationDuration: 1000,
+      delay: -500,
+    },
+    {
+      id: "segment3",
+      startX: 875,
+      startY: 465,
+      endX: 570,
+      endY: 465,
       direction: "horizontal" as const,
       animationDuration: 1000,
-      delay: -550,
+    },
+    {
+      id: "segment4",
+      startX: 590,
+      startY: 465,
+      endX: 590,
+      endY: 555,
+      direction: "vertical" as const,
+      animationDuration: 1000,
     },
   ],
 };
@@ -31,6 +50,7 @@ export default function BikzgToProve({
   isActive = false,
   onComplete,
   onStart,
+  resetAnimation,
 }: PipelineAnimationProps) {
   // 섹션 완료 핸들러
   const handleSectionComplete = () => {
@@ -38,6 +58,7 @@ export default function BikzgToProve({
       onComplete();
     }
   };
+  const { pendingAnimation } = usePipelineAnimation();
 
   return (
     <div className="absolute w-full h-full bottom-[5px]">
@@ -49,6 +70,8 @@ export default function BikzgToProve({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        isPaused={pendingAnimation}
+        resetAnimation={resetAnimation}
       />
     </div>
   );

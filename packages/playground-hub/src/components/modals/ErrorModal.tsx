@@ -2,12 +2,15 @@ import React, { useMemo } from "react";
 import { useAtom } from "jotai";
 import { activeModalAtom } from "../../atoms/modals";
 import ErrorModalImage from "../../assets/modals/error-modal.svg";
+import { useResetStage } from "../../hooks/useResetStage";
 
 const ErrorModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
   const isOpen = useMemo(() => activeModal === "error", [activeModal]);
+  const { initializeWithNewTransaction } = useResetStage();
 
   const onClose = () => {
+    initializeWithNewTransaction();
     setActiveModal("none");
   };
 

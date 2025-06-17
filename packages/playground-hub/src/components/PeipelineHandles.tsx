@@ -1,63 +1,80 @@
 import Handle from "./Handle";
 import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
 import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
+import { usePlaygroundStage } from "../hooks/usePlaygroundStage";
+
 export default function PeipelineHandles() {
   const { updateActiveSection } = usePipelineAnimation();
+  const { runSynthesizer, runProve, runPreProcess, runVerify } =
+    useTokamakZkEVMActions();
   const {
-    runSynthesizer,
-    runProve,
-    runSetupTrustedSetup,
-    runPreProcess,
-    runVerify,
-  } = useTokamakZkEVMActions();
+    qapStage,
+    synthesizerStage,
+    setupStage,
+    proveStage,
+    verifyStage,
+    bikzgStage,
+  } = usePlaygroundStage();
 
   return (
     <div className="w-full h-full absolute">
       <Handle
         type="orange"
-        className="top-[395px] left-[70px]"
+        className="top-[298px] left-[199px]"
         onClick={() => {
           updateActiveSection("qap-to-setup-synthesizer");
         }}
+        isActive={qapStage.isReady}
+        // isActive={true}
       />
       <Handle
         type="orange"
-        className="top-[535px] left-[482px]"
+        className="top-[308px] left-[650px]"
         onClick={() => {
           runSynthesizer();
-          updateActiveSection("synthesizer-to-verify-bikzg");
+          updateActiveSection("synthesizer-to-prove-bikzg");
         }}
+        isActive={synthesizerStage.isReady}
+        // isActive={true}
       />
       <Handle
         type="green"
-        className="top-[575px] left-[216px]"
+        className="top-[417px] left-[325px]"
         onClick={() => {
-          updateActiveSection("setup-to-verify");
+          updateActiveSection("setup-to-prove");
         }}
+        isActive={setupStage.isReady}
+        // isActive={true}
       />
       <Handle
         type="green"
-        className="top-[775px] left-[395px]"
+        className="top-[630px] left-[325px]"
         onClick={() => {
           runProve();
-          updateActiveSection("verify-to-prove");
+          updateActiveSection("prove-to-verify");
         }}
+        isActive={proveStage.isReady}
+        // isActive={true}
       />
       <Handle
         type="green"
-        className="top-[695px] left-[695px]"
+        className="top-[740px] left-[628px]"
         onClick={() => {
           runVerify();
-          updateActiveSection("prove-to-result");
+          updateActiveSection("verify-to-result");
         }}
+        isActive={verifyStage.isReady}
+        // isActive={true}
       />
       <Handle
-        type="pink"
-        className="top-[588px] left-[875px]"
+        type="green"
+        className="top-[503px] left-[780px]"
         onClick={() => {
           runPreProcess();
-          updateActiveSection("bikzg-to-prove");
+          updateActiveSection("bikzg-to-verify");
         }}
+        isActive={bikzgStage.isReady}
+        // isActive={true}
       />
     </div>
   );

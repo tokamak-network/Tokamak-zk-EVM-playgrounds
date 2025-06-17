@@ -4,8 +4,17 @@ import { contextBridge, ipcRenderer } from "electron";
 //Docker
 contextBridge.exposeInMainWorld("docker", {
   getImages: () => ipcRenderer.invoke("get-docker-images"),
-  runContainer: (imageName: string, options: string[] = []) =>
-    ipcRenderer.invoke("run-docker-container", imageName, options),
+  runContainer: (
+    imageName: string,
+    options: string[] = [],
+    containerName?: string
+  ) =>
+    ipcRenderer.invoke(
+      "run-docker-container",
+      imageName,
+      options,
+      containerName
+    ),
   getContainers: () => ipcRenderer.invoke("get-docker-containers"),
   stopContainer: (containerId: string) =>
     ipcRenderer.invoke("stop-docker-container", containerId),
@@ -29,6 +38,9 @@ contextBridge.exposeInMainWorld("fileDownloaderAPI", {
    */
   downloadAndLoadImage: (args: { url: string; filename?: string }) =>
     ipcRenderer.invoke("download-and-load-docker-image", args),
+
+  pauseDownload: () => ipcRenderer.send("pause-download"),
+  resumeDownload: () => ipcRenderer.send("resume-download"),
 
   /**
    * 메인 프로세스로부터 다운로드 진행률 업데이트를 수신하기 위한 콜백을 등록합니다.
@@ -85,4 +97,17 @@ contextBridge.exposeInMainWorld("fileDownloaderAPI", {
       ipcRenderer.removeListener("docker-load-status", listener);
     };
   },
+});
+
+contextBridge.exposeInMainWorld("electronAPI", {
+  on: (channel: string, func: (...args: any[]) => void) => {
+    ipcRenderer.on(channel, (event, ...args) => func(...args));
+  },
+  removeListener: (channel: string, func: (...args: any[]) => void) => {
+    ipcRenderer.removeListener(channel, func);
+  },
+});
+
+contextBridge.exposeInMainWorld("env", {
+  getEnvVars: () => ipcRenderer.invoke("get-env-vars"),
 });

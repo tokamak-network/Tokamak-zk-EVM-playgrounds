@@ -8,5 +8,10 @@ export interface ElectronAPI {
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
+    env: {
+      getEnvVars: () => Promise<{
+        RPC_URL: string;
+      }>;
+    };
   }
 }

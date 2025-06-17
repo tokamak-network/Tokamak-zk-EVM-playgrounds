@@ -2,15 +2,19 @@ import { useState } from "react";
 import handleOrange from "../assets/images/handles/handle-orange.png";
 import handleGreen from "../assets/images/handles/handle-green.png";
 import handlePink from "../assets/images/handles/handle-pink.png";
+import handleInactive from "../assets/images/handles/handle-inactive.svg";
+import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
 
 export default function Handle(props: {
   type: "orange" | "green" | "pink";
   className?: string;
+  isActive: boolean;
   onClick?: () => void;
 }) {
-  const { type, className, onClick } = props;
-  const handleImage =
-    type === "orange"
+  const { type, className, onClick, isActive } = props;
+  const handleImage = !isActive
+    ? handleInactive
+    : type === "orange"
       ? handleOrange
       : type === "green"
         ? handleGreen
@@ -18,6 +22,7 @@ export default function Handle(props: {
 
   const [rotation, setRotation] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const { isAnimationRunning } = usePipelineAnimation();
 
   const handleClick = () => {
     if (isAnimating) return; // 이미 애니메이션 중이면 무시
@@ -40,12 +45,12 @@ export default function Handle(props: {
       className={`
         absolute 
         ${className} 
-        cursor-pointer
+         ${!isActive || isAnimationRunning ? "cursor-not-allowed" : "cursor-pointer"}
         transition-transform duration-2000 ease-in-out
-        z-[100]
+        z-[100] 
       `}
       style={{ transform: `rotate(${rotation}deg)` }}
-      onClick={handleClick}
+      onClick={isActive && !isAnimationRunning ? handleClick : undefined}
     />
   );
 }

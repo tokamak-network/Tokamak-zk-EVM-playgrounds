@@ -1,31 +1,35 @@
 import { useAtomValue } from "jotai";
 import { useDocker } from "./useDocker";
-import { transactionBytecodeAtom } from "../atoms/api";
+import { transactionHashAtom } from "../atoms/api";
 import { useCallback } from "react";
+import { getEnvVars } from "../constants";
 
 export const useSynthesizer = () => {
-  const transactionBytecode = useAtomValue(transactionBytecodeAtom);
+  const transactionHash = useAtomValue(transactionHashAtom);
   const { executeCommand } = useDocker();
 
   const parseTONTransfer = useCallback(
     async (containerId: string) => {
       try {
-        console.log("parseTONTransfer ->", { transactionBytecode });
+        console.log("parseTONTransfer ->", { transactionHash });
+
+        const RPC_URL =
+          "https://eth-mainnet.g.alchemy.com/v2/PbqCcGx1oHN7yNaFdUJUYqPEN0QSp23S";
 
         const result = await executeCommand(containerId, [
           "bash",
           "-c",
-          `cd /app/frontend/synthesizer/examples/erc20 && 
-        tsx ton-transfer.ts ${transactionBytecode.bytecode} ${transactionBytecode.from}`,
+          `cd packages/frontend/synthesizer/examples/transaction && 
+        tsx index.ts ${RPC_URL} ${transactionHash}`,
         ]);
         console.log("result", result);
         return result;
       } catch (error) {
         console.error("도커 명령 실행 실패:", error);
-        return null;
+        throw error;
       }
     },
-    [transactionBytecode]
+    [transactionHash]
   );
 
   return { parseTONTransfer };

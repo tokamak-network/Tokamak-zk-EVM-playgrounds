@@ -3,12 +3,15 @@ import { useDocker } from "./useDocker";
 import { useSynthesizer } from "./useSynthesizer";
 import { useBackendCommand } from "./useBackend";
 import { usePipelineAnimation } from "./usePipelineAnimation";
-import { useModals } from "./useModals";
 import {
   provingResultAtom,
   provingIsDoneAtom,
 } from "../atoms/pipelineAnimation";
 import { useAtom } from "jotai";
+import { useResetStage } from "./useResetStage";
+import { usePlaygroundStage } from "./usePlaygroundStage";
+import { useModals } from "./useModals";
+import { DOCKER_NAME } from "../constants";
 
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
@@ -26,47 +29,58 @@ export function useTokamakZkEVMActions() {
   const { parseTONTransfer } = useSynthesizer();
   const { setup, preProcess, prove, verify } = useBackendCommand();
   const { setPendingAnimation } = usePipelineAnimation();
-  const { openModal } = useModals();
-  const { updateActiveSection, resetAnimationHandler } = usePipelineAnimation();
+  const { initializeWhenCatchError } = useResetStage();
+  const { setPlaygroundStageInProcess } = usePlaygroundStage();
+  const { openModal, closeModal } = useModals();
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
+      let hasError = false;
       try {
+        setPlaygroundStageInProcess(true);
         switch (actionType) {
           case TokamakActionType.SetupEvmSpec:
-            return await runContainer("tokamak-zk-evm-tontransfer");
+            return await runContainer(DOCKER_NAME);
 
           case TokamakActionType.RunSynthesizer:
             console.log("currentDockerContainer", currentDockerContainer);
             if (currentDockerContainer?.ID) {
+              setTimeout(() => {
+                setPendingAnimation(true);
+              }, 900);
+              openModal("loading");
               return await parseTONTransfer(currentDockerContainer.ID);
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.SetupTrustedSetup:
             if (currentDockerContainer?.ID) {
               return await setup(currentDockerContainer.ID);
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.PreProcess:
             if (currentDockerContainer?.ID) {
+              setTimeout(() => {
+                setPendingAnimation(true);
+              }, 500);
+              openModal("loading");
               return await preProcess(currentDockerContainer.ID);
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.ProveTransaction:
             if (currentDockerContainer?.ID) {
+              setTimeout(() => {
+                setPendingAnimation(true);
+              }, 500);
+              openModal("loading");
               return await prove(currentDockerContainer.ID);
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.Verify:
             if (currentDockerContainer?.ID) {
-              setTimeout(() => {
-                setPendingAnimation(true);
-              }, 1000);
-
               try {
                 const result = await verify(currentDockerContainer.ID);
 
@@ -104,7 +118,7 @@ export function useTokamakZkEVMActions() {
                 setPendingAnimation(false);
               }
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           default:
             console.warn(
@@ -113,14 +127,23 @@ export function useTokamakZkEVMActions() {
             return Promise.resolve(undefined);
         }
       } catch (error) {
-        setPendingAnimation(true);
-        updateActiveSection("none");
-        resetAnimationHandler();
-        openModal("error");
-        console.error(error);
+        console.log("error", error);
+        hasError = true;
+        initializeWhenCatchError();
         return Promise.resolve({
           success: false,
           error: error.message || "An unknown error occurred",
+        });
+      } finally {
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            setPlaygroundStageInProcess(false);
+            resolve();
+            if (!hasError) {
+              closeModal();
+              setPendingAnimation(false);
+            }
+          }, 0);
         });
       }
     },
@@ -130,8 +153,7 @@ export function useTokamakZkEVMActions() {
       parseTONTransfer,
       prove,
       setPendingAnimation,
-      setProvingIsDone,
-      setProvingResult,
+      initializeWhenCatchError,
     ]
   );
 
