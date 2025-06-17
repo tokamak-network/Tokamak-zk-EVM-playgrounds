@@ -18,3 +18,4 @@ export const provingResultAtom = atom<boolean>(false);
 export const pendingAnimationAtom = atom<boolean>(false);
 export const resetAnimationAtom = atom<boolean>(false);
 export const resetAllAnimationAtom = atom<boolean>(false);
+export const isAnimationRunningAtom = atom<boolean>(false);

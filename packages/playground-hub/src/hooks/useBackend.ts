@@ -16,8 +16,7 @@ export const useBackendCommand = () => {
         console.log("result", result);
         return result;
       } catch (error) {
-        console.error("Failed to execute Docker command:", error);
-        return null;
+        throw new error("Failed to execute Docker command:", error);
       }
     },
     [executeCommand]
@@ -36,8 +35,7 @@ export const useBackendCommand = () => {
         console.log("result", result);
         return result;
       } catch (error) {
-        console.error("Failed to execute Docker command:", error);
-        return null;
+        throw new Error("Failed to execute Docker command:", error);
       }
     },
     [executeCommand]
@@ -56,8 +54,7 @@ export const useBackendCommand = () => {
         console.log("result", result);
         return result;
       } catch (error) {
-        console.error("Failed to execute Docker command:", error);
-        return null;
+        throw new Error("Failed to execute Docker command:", error);
       }
     },
     [executeCommand]
@@ -76,8 +73,7 @@ export const useBackendCommand = () => {
         console.log("result", result);
         return result;
       } catch (error) {
-        console.error("Failed to execute Docker command:", error);
-        return null;
+        throw new Error("Failed to execute Docker command:", error);
       }
     },
     [executeCommand]
