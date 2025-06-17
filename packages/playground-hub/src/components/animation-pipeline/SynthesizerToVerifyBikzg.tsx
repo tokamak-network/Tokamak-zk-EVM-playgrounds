@@ -1,5 +1,6 @@
 import { PipelineAnimationProps } from "../../types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 
 // 파이프라인 섹션 정의
 const SYNTHESIZER_TO_PROVE_BIKZG_SECTION = {
@@ -90,6 +91,7 @@ export default function SynthesizerToVerifyBikzg({
       onComplete();
     }
   };
+  const { pendingAnimation } = usePipelineAnimation();
 
   return (
     <div className="absolute w-full h-full bottom-[5px]">
@@ -101,6 +103,7 @@ export default function SynthesizerToVerifyBikzg({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        isPaused={pendingAnimation}
         resetAnimation={resetAnimation}
       />
     </div>

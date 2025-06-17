@@ -25,9 +25,10 @@ export default function PipelineAnimations() {
     updateActiveSection,
     resetAnimation,
     setResetAnimation,
+    setIsAnimationRunning,
   } = usePipelineAnimation();
 
-  const handleOnStart = ({
+  const handleOnComplete = ({
     section,
     value,
   }: {
@@ -35,6 +36,7 @@ export default function PipelineAnimations() {
     value: boolean;
   }) => {
     setStage(section, value);
+    setIsAnimationRunning(false);
   };
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function PipelineAnimations() {
       <EvmToQAP
         isActive={activeSection === "evm-to-qap"}
         onComplete={() => {
-          handleOnStart({
+          handleOnComplete({
             section: "evmSpec",
             value: true,
           });
@@ -60,24 +62,27 @@ export default function PipelineAnimations() {
         onStart={() => {
           setStartStage("evmSpec", true);
           updateActiveSection("evm-to-qap");
+          setIsAnimationRunning(true);
         }}
       />
       <QAPToSetup
         isActive={activeSection === "qap-to-setup-synthesizer"}
         onComplete={() => {
-          handleOnStart({
+          handleOnComplete({
             section: "qap",
             value: true,
           });
         }}
         onStart={() => {
+          setStartStage("qap", true);
           updateActiveSection("qap-to-setup-synthesizer");
+          setIsAnimationRunning(true);
         }}
       />
       <TransactionToSynthesizer
         isActive={activeSection === "transaction-to-synthesizer"}
         onComplete={() => {
-          handleOnStart({
+          handleOnComplete({
             section: "transactionHash",
             value: true,
           });
@@ -85,56 +90,64 @@ export default function PipelineAnimations() {
         onStart={() => {
           setStartStage("transactionHash", true);
           updateActiveSection("transaction-to-synthesizer");
+          setIsAnimationRunning(true);
         }}
         resetAnimation={resetAnimation}
       />
       <SynthesizerToVerifyBikzg
         isActive={activeSection === "synthesizer-to-prove-bikzg"}
         onComplete={() => {
-          handleOnStart({
+          handleOnComplete({
             section: "synthesizer",
             value: true,
           });
         }}
         onStart={() => {
+          setStartStage("synthesizer", true);
           updateActiveSection("synthesizer-to-prove-bikzg");
+          setIsAnimationRunning(true);
         }}
         resetAnimation={resetAnimation}
       />
       <SetupToProve
         isActive={activeSection === "setup-to-prove"}
         onComplete={() => {
-          handleOnStart({
+          handleOnComplete({
             section: "setup",
             value: true,
           });
         }}
         onStart={() => {
+          setStartStage("setup", true);
           updateActiveSection("setup-to-prove");
+          setIsAnimationRunning(true);
         }}
       />
       <ProveToVerify
         isActive={activeSection === "prove-to-verify"}
         onComplete={() => {
-          handleOnStart({
+          handleOnComplete({
             section: "prove",
             value: true,
           });
         }}
         onStart={() => {
+          setStartStage("prove", true);
           updateActiveSection("prove-to-verify");
+          setIsAnimationRunning(true);
         }}
         resetAnimation={resetAnimation}
       />
       <BikzgToProve
         isActive={activeSection === "bikzg-to-verify"}
         onComplete={() => {
-          handleOnStart({
+          handleOnComplete({
             section: "bikzg",
             value: true,
           });
         }}
         onStart={() => {
+          setStartStage("preprocess", true);
           updateActiveSection("bikzg-to-verify");
         }}
         resetAnimation={resetAnimation}
@@ -142,13 +155,15 @@ export default function PipelineAnimations() {
       <VerifyToResult
         isActive={activeSection === "verify-to-result"}
         onComplete={() => {
-          handleOnStart({
+          handleOnComplete({
             section: "verify",
             value: true,
           });
         }}
         onStart={() => {
+          setStartStage("verify", true);
           updateActiveSection("verify-to-result");
+          setIsAnimationRunning(true);
         }}
         resetAnimation={resetAnimation}
       />

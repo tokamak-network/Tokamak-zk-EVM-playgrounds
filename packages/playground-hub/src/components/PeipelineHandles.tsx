@@ -4,7 +4,7 @@ import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 import { usePlaygroundStage } from "../hooks/usePlaygroundStage";
 
 export default function PeipelineHandles() {
-  const { updateActiveSection, isAnimationRunning } = usePipelineAnimation();
+  const { updateActiveSection } = usePipelineAnimation();
   const { runSynthesizer, runProve, runPreProcess, runVerify } =
     useTokamakZkEVMActions();
   const {
@@ -34,7 +34,7 @@ export default function PeipelineHandles() {
           runSynthesizer();
           updateActiveSection("synthesizer-to-prove-bikzg");
         }}
-        isActive={synthesizerStage.isReady && !isAnimationRunning}
+        isActive={synthesizerStage.isReady}
         // isActive={true}
       />
       <Handle
@@ -43,7 +43,7 @@ export default function PeipelineHandles() {
         onClick={() => {
           updateActiveSection("setup-to-prove");
         }}
-        isActive={setupStage.isReady && !isAnimationRunning}
+        isActive={setupStage.isReady}
         // isActive={true}
       />
       <Handle
@@ -53,7 +53,7 @@ export default function PeipelineHandles() {
           runProve();
           updateActiveSection("prove-to-verify");
         }}
-        isActive={proveStage.isReady && !isAnimationRunning}
+        isActive={proveStage.isReady}
         // isActive={true}
       />
       <Handle
@@ -63,7 +63,7 @@ export default function PeipelineHandles() {
           runVerify();
           updateActiveSection("verify-to-result");
         }}
-        isActive={verifyStage.isReady && !isAnimationRunning}
+        isActive={verifyStage.isReady}
         // isActive={true}
       />
       <Handle
@@ -73,7 +73,7 @@ export default function PeipelineHandles() {
           runPreProcess();
           updateActiveSection("bikzg-to-verify");
         }}
-        isActive={bikzgStage.isReady && !isAnimationRunning}
+        isActive={bikzgStage.isReady}
         // isActive={true}
       />
     </div>
