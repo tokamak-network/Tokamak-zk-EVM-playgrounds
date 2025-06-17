@@ -1,5 +1,5 @@
 import EvmToQAP from "./EvmToQAP";
-import pipeline from "../../assets/images/pipe.svg";
+import pipeline from "../../assets/images/pipe.png";
 
 import QAPToSetup from "./QAPToSetup";
 import TransactionToSynthesizer from "./TransactionToSynthesizer";

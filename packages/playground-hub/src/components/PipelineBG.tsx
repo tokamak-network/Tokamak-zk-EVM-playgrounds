@@ -9,16 +9,6 @@ import PeipelineHandles from "./PeipelineHandles";
 import Spinner from "./animation-pipeline/Spinner";
 import { useModals } from "../hooks/useModals";
 
-// 이미지에 맞게 X축 기준 색상 배열 (열별)
-// const colors = [
-//   "#365969", // 첫번째 열 - 진한 파란색
-//   "#159CFC", // 두번째 열 - 진한 회청색
-//   "#7AC8FF", // 세번째 열 - 밝은 파란색
-//   "#159CFC", // 네번째 열 - 하늘색
-//   "#0079D0", // 다섯번째 열 - 밝은 파란색
-//   "#365969", // 여섯번째 열 - 진한 파란색
-// ];
-
 export default function PipelineBG() {
   const { anyModalOpen } = useModals();
   return (
