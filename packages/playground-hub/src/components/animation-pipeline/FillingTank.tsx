@@ -1,10 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, act } from "react";
 import tankTrue from "../../assets/images/tank-true.png";
 import tankFalse from "../../assets/images/tank-false.png";
-import { useAtomValue } from "jotai";
-import { provingResultAtom } from "../../atoms/pipelineAnimation";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
-import { usePlaygroundStage } from "../../hooks/usePlaygroundStage";
+
 interface FillingTankProps {
   animationDuration?: number; // ms
   autoFill?: boolean;
@@ -24,13 +22,11 @@ export default function FillingTank({
   const startTimeRef = useRef<number | null>(null);
   const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { provingIsDone } = useTokamakZkEVMActions();
-  const { isReadyForResult } = usePlaygroundStage();
+  const { provingIsDone, provingResult } = useTokamakZkEVMActions();
 
   const active = useMemo(() => {
-    return provingIsDone && isReadyForResult;
-  }, [provingIsDone, isReadyForResult]);
-
+    return provingIsDone;
+  }, [provingIsDone]);
   // 애니메이션
   useEffect(() => {
     // active가 true이고 autoFill이 true이며 이미지가 로드되었을 때만 애니메이션 실행
@@ -75,13 +71,13 @@ export default function FillingTank({
 
   // clip-path 값 계산
   const clipValue = `inset(${100 - currentFill}% 0% 0% 0%)`;
-
-  const provingResult = useAtomValue(provingResultAtom);
   const tankImage = provingResult ? tankTrue : tankFalse;
+
+  if (!active) return null;
 
   return (
     <div
-      className="absolute max-w-full max-h-full object-contain top-[697px] right-[109px] flex items-end justify-end overflow-hidden"
+      className="absolute max-w-full max-h-full object-contain top-[695px] right-[111px] flex items-end justify-end overflow-hidden z-[2]"
       style={{ background: "transparent" }}
     >
       <img

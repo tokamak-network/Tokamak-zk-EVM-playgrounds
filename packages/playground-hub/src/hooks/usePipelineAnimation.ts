@@ -3,20 +3,32 @@ import {
   activeSectionAtom,
   pendingAnimationAtom,
   resetAnimationAtom,
+  resetAllAnimationAtom,
   Section,
+  isAnimationRunningAtom,
 } from "../atoms/pipelineAnimation";
 
 export const usePipelineAnimation = () => {
   const [activeSection, setActiveSection] = useAtom(activeSectionAtom);
   const [pendingAnimation, setPendingAnimation] = useAtom(pendingAnimationAtom);
   const [resetAnimation, setResetAnimation] = useAtom(resetAnimationAtom);
+  const [resetAllAnimation, setResetAllAnimation] = useAtom(
+    resetAllAnimationAtom
+  );
+  const [isAnimationRunning, setIsAnimationRunning] = useAtom(
+    isAnimationRunningAtom
+  );
 
   const updateActiveSection = (section: Section) => {
     setActiveSection(section);
   };
 
-  const resetAnimationHandler = () => {
+  const resetAnimationWithNewTransactionHandler = () => {
     setResetAnimation(true);
+  };
+
+  const resetAllAnimationHandler = () => {
+    setResetAllAnimation(true);
   };
 
   return {
@@ -26,6 +38,11 @@ export const usePipelineAnimation = () => {
     setPendingAnimation,
     resetAnimation,
     setResetAnimation,
-    resetAnimationHandler,
+    setResetAllAnimation,
+    resetAllAnimation,
+    resetAnimationWithNewTransactionHandler,
+    resetAllAnimationHandler,
+    isAnimationRunning,
+    setIsAnimationRunning,
   };
 };

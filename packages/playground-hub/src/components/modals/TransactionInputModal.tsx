@@ -14,6 +14,8 @@ import { useDebouncedEtherscanValidation } from "../../hooks/useEtherscanApi";
 import { useDebouncedTxHashValidation } from "../../hooks/useTransaction";
 import { fetchTransactionBytecode } from "../../utils/parseTransaction";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
+import { usePlaygroundStage } from "../../hooks/usePlaygroundStage";
+import { useResetStage } from "../../hooks/useResetStage";
 
 const TransactionInputModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
@@ -30,6 +32,8 @@ const TransactionInputModal: React.FC = () => {
   const { isValid: isValidApiKey } = useDebouncedEtherscanValidation(apiKey);
   const { isValid: isValidTxHash } =
     useDebouncedTxHashValidation(transactionHash);
+  const { allStagesAreDone } = usePlaygroundStage();
+  const { initializeWithNewTransaction } = useResetStage();
 
   const onClose = () => {
     setActiveModal("none");
@@ -37,12 +41,12 @@ const TransactionInputModal: React.FC = () => {
 
   const inputClose = async () => {
     if (!isActive) return;
-    onClose();
+    initializeWithNewTransaction();
     try {
-      const { bytecode, from, to } =
-        await fetchTransactionBytecode(transactionHash);
-      setTransactionBytecode({ bytecode, from, to });
+      // const { bytecode, from, to } =
+      //   await fetchTransactionBytecode(transactionHash);
       updateActiveSection("transaction-to-synthesizer");
+      onClose();
     } catch (error) {
       console.error("Transaction input modal input close error:", error);
       updateActiveSection("none");
@@ -55,8 +59,8 @@ const TransactionInputModal: React.FC = () => {
   );
 
   const isActive = useMemo(() => {
-    return isValidApiKey && isValidTxHash;
-  }, [isValidApiKey, isValidTxHash]);
+    return isValidApiKey && isValidTxHash && transactionHash.length > 0;
+  }, [isValidApiKey, isValidTxHash, transactionHash]);
 
   const errorMessage = useMemo(() => {
     if (!isValidApiKey) return "Invalid API key. Update in settings.";
@@ -64,10 +68,6 @@ const TransactionInputModal: React.FC = () => {
       return "Invalid transaction ID. Please verify.";
     return null;
   }, [isValidApiKey, isValidTxHash]);
-
-  useEffect(() => {
-    fetchTransactionBytecode(transactionHash);
-  }, [transactionHash]);
 
   if (!isOpen) return null;
 
@@ -92,6 +92,7 @@ const TransactionInputModal: React.FC = () => {
         <input
           className="absolute w-[238px] h-[40px] left-[30px] top-[82px] bg-transparent border-none outline-none px-[9px]"
           onChange={handleTransactionChange}
+          value={transactionHash}
         ></input>
         {errorMessage && (
           <div className="absolute top-[126px] left-[30px] flex items-center">

@@ -1,26 +1,33 @@
 import React, { useMemo } from "react";
 import TransactionInputModalImage from "../../assets/modals/docker/docker-modal.png";
 import DownloadButtonImage from "../../assets/modals/docker/download-button.png";
-import PauseIconImage from "../../assets/modals/docker/pause.svg";
-import DownloadedImage from "../../assets/modals/docker/circle-arrow-down.svg";
+import PauseIconImage from "../../assets/modals/docker/pause.png";
+import DownloadedImage from "../../assets/modals/docker/run-button.png";
+import DockerImage from "../../assets/images/docker.svg";
+import RunningImage from "../../assets/images/running.svg";
+import PauseImage from "../../assets/modals/docker/paused.svg";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import useElectronFileDownloader from "../../hooks/useFileDownload";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
 import { useModals } from "../../hooks/useModals";
 import { useDocker } from "../../hooks/useDocker";
+import { DOCKER_DOWNLOAD_URL, FILE_NAME } from "../../constants";
 
 const DockerModal: React.FC = () => {
   const {
     startDownloadAndLoad,
     downloadProgress,
     loadStatus,
+    isPaused,
     isProcessing: isDownloading,
+    pauseDownload,
+    resumeDownload,
   } = useElectronFileDownloader();
 
   const { setupEvmSpec } = useTokamakZkEVMActions();
   const { updateActiveSection } = usePipelineAnimation();
   const { activeModal, closeModal } = useModals();
-  const { dockerStatus } = useDocker();
+  const { dockerStatus, isContainerRunning } = useDocker();
 
   const isDockerImageDownloaded = useMemo(() => {
     return dockerStatus.imageExists;
@@ -38,10 +45,18 @@ const DockerModal: React.FC = () => {
     }
   };
 
-  const handleStartDownloadAndLoad = () => {
-    const fileUrl =
-      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm-tontransfer.tar"; // 실제 R2 파일 URL
-    const desiredFilename = "tokamak-zk-evm-tontransfer.tar";
+  const onClickStartProcess = () => {
+    if (isPaused) {
+      return resumeDownload();
+    }
+    if (isDownloading) {
+      return pauseDownload();
+    }
+    if (isDockerImageDownloaded) {
+      return startProcess();
+    }
+    const fileUrl = DOCKER_DOWNLOAD_URL; // 실제 R2 파일 URL
+    const desiredFilename = FILE_NAME;
 
     startDownloadAndLoad(fileUrl, desiredFilename);
   };
@@ -51,38 +66,55 @@ const DockerModal: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center ">
+    <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
       <div className="relative w-[400px] h-[46px]">
         <div
           className="absolute w-[18px] h-[18px] top-[20px] left-[372px] cursor-pointer"
           onClick={closeModal}
         ></div>
         <img
+          className="w-[412px h-[198px]"
           src={TransactionInputModalImage}
           alt={"transaction-input-modal"}
         ></img>
+
         <div
-          className={`absolute ${isDownloading ? "top-[88px]" : "top-[95px]"} left-[88px] w-[293px] text-[16px] font-[600] flex flex-col items-center justify-between ${
+          className={`absolute top-[68px] left-[16px] w-[368px] h-[64px] px-[10px] text-[16px] font-[600] flex flex-col items-center justify-between ${
             isDownloading ? "row-gap-[7px]" : "row-gap-[0px]"
-          }`}
+          } rounded-[10px]`}
           style={{
-            background: "white",
+            background: isContainerRunning ? "#ECFCFE" : "white",
           }}
         >
-          <div className="w-full h-[24px] flex  items-center justify-between">
-            <span className="cursor-pointer" onClick={startProcess}>
-              TOKAMAK-ZK-EVM
-            </span>
+          <div className="w-full h-full  flex  items-center justify-between">
+            <div className="flex items-center gap-[12px]">
+              <img src={DockerImage} alt="docker-image" />
+              <span className="cursor-pointer">TOKAMAK-ZK-EVM</span>
+            </div>
             <img
-              className="cursor-pointer"
+              className={`cursor-pointer ${
+                isPaused
+                  ? "w-[14px] h-[14px]"
+                  : isContainerRunning
+                    ? "w-[82px] h-[24px]"
+                    : isDockerImageDownloaded
+                      ? "w-[57px] h-[24px]"
+                      : isDownloading
+                        ? "w-[10px] h-[10px]"
+                        : "w-[24px] h-[24px]"
+              }`}
               src={
-                isDockerImageDownloaded
-                  ? DownloadedImage
-                  : isDownloading
-                    ? PauseIconImage
-                    : DownloadButtonImage
+                isPaused
+                  ? PauseImage
+                  : isContainerRunning
+                    ? RunningImage
+                    : isDockerImageDownloaded
+                      ? DownloadedImage
+                      : isDownloading
+                        ? PauseIconImage
+                        : DownloadButtonImage
               }
-              onClick={handleStartDownloadAndLoad}
+              onClick={onClickStartProcess}
             ></img>
           </div>
           {isDownloading && (

@@ -1,0 +1,13 @@
+/* Spinner.css */
+@keyframes spin {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-spin {
+  animation: spin 4s linear infinite;
+}

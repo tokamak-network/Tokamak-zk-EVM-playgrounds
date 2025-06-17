@@ -7,8 +7,9 @@ export type PlaygroundStartStage = {
   qap: boolean;
   setup: boolean;
   synthesizer: boolean;
-  verify: boolean;
   prove: boolean;
+  verify: boolean;
+  preprocess: boolean;
 };
 
 export const playgroundStartStageAtom = atom<PlaygroundStartStage>({
@@ -17,8 +18,9 @@ export const playgroundStartStageAtom = atom<PlaygroundStartStage>({
   qap: false,
   setup: false,
   synthesizer: false,
-  verify: false,
   prove: false,
+  verify: false,
+  preprocess: false,
 });
 
 //If the stage is completed, the value is true.
@@ -45,3 +47,5 @@ export const playgroundStageAtom = atom<PlaygroundStage>({
   bikzg: false,
   result: false,
 });
+
+export const playgroundStageInProcessAtom = atom<boolean>(false);

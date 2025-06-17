@@ -31,12 +31,14 @@ This tool is particularly useful for developers working with the Tokamak ZK-EVM 
 ## Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/tokamak-network/tokamak-zk-evm-playgrounds.git
    cd tokamak-zk-evm-playgrounds/packages/synthesizer-playground
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -52,6 +54,7 @@ This tool is particularly useful for developers working with the Tokamak ZK-EVM 
 The application consists of two parts: a Next.js frontend and an Express server for handling the Synthesizer operations.
 
 1. Start the Express server and develop server with a single command:
+
    ```bash
    npm run start:dev
    ```

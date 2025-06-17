@@ -34,6 +34,7 @@ export default function PipelineSection({
   onStart,
   baseDelay = 0,
   isPaused = false,
+  resetAnimation,
 }: PipelineSectionProps) {
   // 각 세그먼트의 활성화 상태 추적
   const [activeSegments, setActiveSegments] = useState<Record<string, boolean>>(
@@ -41,7 +42,7 @@ export default function PipelineSection({
   );
   const completedSegmentsRef = useRef<Set<string>>(new Set());
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
-  const { resetAnimation } = usePipelineAnimation();
+  const { resetAllAnimation } = usePipelineAnimation();
 
   // 모든 타임아웃 정리 함수
   const clearAllTimeouts = () => {

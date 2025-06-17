@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 
 type CustomErrorTabProps = {
   errorMessage?: string;
@@ -14,13 +14,13 @@ const CustomErrorTab = ({
 
   const errorMessageForInterface = useMemo(() => {
     switch (true) {
-      case errorMessage.includes('Invalid API KEY'):
+      case errorMessage.includes("Invalid API KEY"):
         return `Etherscan API key missing or invalid.
         Please set a valid API key in the settings and try again.`;
-      case errorMessage.includes("Unsupported method"):
-        return `Unsupported function. Please use standard ERC20 functions only. TON's approveAndCall function is not supported. `
-      case errorMessage.includes('Unsupported'):
-        return `Invalid token selected. Please select TON,USDC or USDT and try again.`;
+      // case errorMessage.includes("Unsupported method"):
+      //   return `Unsupported function. Please use standard ERC20 functions only. TON's approveAndCall function is not supported. `;
+      // case errorMessage.includes("Unsupported"):
+      // return `Invalid token selected. Please select TON,USDC or USDT and try again.`;
       // case errorMessage.includes('Unsupported'):
       //   return `Unsupported function. Please use standard ERC20 functions only. TON's approveAndCall function is not supported. `;
       default:
@@ -84,7 +84,7 @@ const CustomErrorTab = ({
                   <div className="self-stretch h-[1px] bg-[#A8A8A8]" />
                   <button
                     className={`self-stretch h-7 flex items-center justify-center transition-colors no-underline
-                      ${isHovered ? 'bg-[#A5A5A5]' : 'bg-[#BDBDBD]'}`}
+                      ${isHovered ? "bg-[#A5A5A5]" : "bg-[#BDBDBD]"}`}
                     onClick={handleGoToMain}
                     onMouseEnter={() => setIsHovered(true)}
                     onMouseLeave={() => setIsHovered(false)}
@@ -111,4 +111,4 @@ const CustomErrorTab = ({
   );
 };
 
-export default CustomErrorTab; 
+export default CustomErrorTab;
