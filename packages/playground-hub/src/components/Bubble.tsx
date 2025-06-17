@@ -1,7 +1,7 @@
 //done
 import bubbleBikzg from "../assets/images/bubble-bikzg.svg";
 import bubbleCompiler from "../assets/images/bubble-compiler.png";
-import bubbleEvm from "../assets/images/bubble-evm.png";
+import bubbleEvm from "../assets/images/bubble-evm.svg";
 import bubbleProve from "../assets/images/bubble-prove.png";
 import bubbleSynthesizer from "../assets/images/bubble-synthesizer.png";
 import bubbleTransaction from "../assets/images/bubble-transaction.png";
@@ -30,6 +30,7 @@ import {
 } from "../hooks/usePlaygroundStage";
 import bubbleEvmInactive from "../assets/images/bubbles/bubble-evm-inactive.svg";
 import bubbleTransactionInactive from "../assets/images/bubbles/bubble-transaction-inactive.svg";
+import { useModals } from "../hooks/useModals";
 
 interface BubbleProps {
   type:
@@ -44,41 +45,48 @@ interface BubbleProps {
   className?: string;
   isActive: boolean;
   isDone?: boolean;
+  onClick?: () => void;
 }
 
-export function Bubble({ type, className, isActive, isDone }: BubbleProps) {
+export function Bubble({
+  type,
+  className,
+  isActive,
+  isDone,
+  onClick,
+}: BubbleProps) {
   const bubbleImage = {
     bikzg: isDone
-      ? bubbleBikzg
+      ? bubbleBikzgActive // isDone일 때 Active 이미지
       : isActive
-        ? bubbleBikzgActive
+        ? bubbleBikzg // isActive일 때 Done(기본) 이미지
         : bubbleBikzgInactive,
     compiler: isDone
-      ? bubbleCompiler
+      ? bubbleQapActive // isDone일 때 Active 이미지
       : isActive
-        ? bubbleQapActive
+        ? bubbleCompiler // isActive일 때 Done(기본) 이미지
         : bubbleQapInactive,
-    evm: isActive ? bubbleEvm : bubbleEvmInactive,
+    evm: isActive ? bubbleEvm : bubbleEvmInactive, // isDone 상태가 없으므로 변경 없음
     prove: isDone
-      ? bubbleProve
+      ? bubbleProveActive // isDone일 때 Active 이미지
       : isActive
-        ? bubbleProveActive
+        ? bubbleProve // isActive일 때 Done(기본) 이미지
         : bubbleProveInactive,
     synthesizer: isDone
-      ? bubbleSynthesizer
+      ? bubbleSynthesizerActive // isDone일 때 Active 이미지
       : isActive
-        ? bubbleSynthesizerActive
+        ? bubbleSynthesizer // isActive일 때 Done(기본) 이미지
         : bubbleSynthesizerInactive,
     setup: isDone
-      ? bubbleSetup
+      ? bubbleSetupActive // isDone일 때 Active 이미지
       : isActive
-        ? bubbleSetupActive
+        ? bubbleSetup // isActive일 때 Done(기본) 이미지
         : bubbleSetupInactive,
-    transaction: isActive ? bubbleTransaction : bubbleTransactionInactive,
+    transaction: isActive ? bubbleTransaction : bubbleTransactionInactive, // isDone 상태가 없으므로 변경 없음
     verify: isDone
-      ? bubbleVerify
+      ? bubbleVerifyActive // isDone일 때 Active 이미지
       : isActive
-        ? bubbleVerifyActive
+        ? bubbleVerify // isActive일 때 Done(기본) 이미지
         : bubbleVerifyInactive,
   }[type];
 
@@ -87,6 +95,8 @@ export function Bubble({ type, className, isActive, isDone }: BubbleProps) {
       src={bubbleImage}
       alt={`bubble-${type}`}
       className={`absolute ${className}`}
+      onClick={onClick}
+      style={{ cursor: onClick ? "pointer" : "default" }}
     />
   );
 }
@@ -101,18 +111,24 @@ export default function Bubbles() {
     verifyStage,
   } = usePlaygroundStage();
   const { playgroundStartStage } = usePlaygroundStartStage();
-
+  const { openModal } = useModals();
   return (
     <div className="w-full h-full absolute">
       <Bubble
         type="evm"
         className="absolute top-[60px] left-[208px]"
         isActive={playgroundStartStage.evmSpec}
+        onClick={() => {
+          return openModal("docker-select");
+        }}
       />
       <Bubble
         type="transaction"
         className="absolute top-[55px] left-[830px]"
         isActive={playgroundStartStage.transactionHash}
+        onClick={() => {
+          return openModal("transaction-input");
+        }}
       />
       <Bubble
         type="compiler"
