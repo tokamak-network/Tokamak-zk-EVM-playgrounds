@@ -1,7 +1,7 @@
 //done
 import bubbleBikzg from "../assets/images/bubble-bikzg.svg";
 import bubbleCompiler from "../assets/images/bubble-compiler.png";
-import bubbleEvm from "../assets/images/bubble-evm.svg";
+import bubbleEvm from "../assets/images/bubble-evm.png";
 import bubbleProve from "../assets/images/bubble-prove.png";
 import bubbleSynthesizer from "../assets/images/bubble-synthesizer.png";
 import bubbleTransaction from "../assets/images/bubble-transaction.png";
@@ -94,7 +94,7 @@ export function Bubble({
     <img
       src={bubbleImage}
       alt={`bubble-${type}`}
-      className={`absolute ${className}`}
+      className={`absolute ${className} `}
       onClick={onClick}
       style={{ cursor: onClick ? "pointer" : "default" }}
     />
