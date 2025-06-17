@@ -28,7 +28,7 @@ import {
   usePlaygroundStage,
   usePlaygroundStartStage,
 } from "../hooks/usePlaygroundStage";
-import bubbleEvmInactive from "../assets/images/bubbles/bubble-evm-inactive.svg";
+import bubbleEvmInactive from "../assets/images/bubbles/bubble-evm-inactive.png";
 import bubbleTransactionInactive from "../assets/images/bubbles/bubble-transaction-inactive.svg";
 import { useModals } from "../hooks/useModals";
 
@@ -112,6 +112,7 @@ export default function Bubbles() {
   } = usePlaygroundStage();
   const { playgroundStartStage } = usePlaygroundStartStage();
   const { openModal } = useModals();
+
   return (
     <div className="w-full h-full absolute">
       <Bubble

@@ -48,7 +48,7 @@ export function usePlaygroundStage() {
 
   const bikzgStage = useMemo(() => {
     return {
-      isReady: playgroundStage.synthesizer,
+      isReady: playgroundStage.synthesizer && playgroundStage.setup,
       isDone: playgroundStage.bikzg,
     };
   }, [playgroundStage]);
