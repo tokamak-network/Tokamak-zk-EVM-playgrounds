@@ -11,6 +11,7 @@ import useElectronFileDownloader from "../../hooks/useFileDownload";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
 import { useModals } from "../../hooks/useModals";
 import { useDocker } from "../../hooks/useDocker";
+import { DOCKER_DOWNLOAD_URL, FILE_NAME } from "../../constants";
 
 const DockerModal: React.FC = () => {
   const {
@@ -54,9 +55,8 @@ const DockerModal: React.FC = () => {
     if (isDockerImageDownloaded) {
       return startProcess();
     }
-    const fileUrl =
-      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm-tontransfer.tar"; // 실제 R2 파일 URL
-    const desiredFilename = "tokamak-zk-evm-tontransfer.tar";
+    const fileUrl = DOCKER_DOWNLOAD_URL; // 실제 R2 파일 URL
+    const desiredFilename = FILE_NAME;
 
     startDownloadAndLoad(fileUrl, desiredFilename);
   };
@@ -64,10 +64,6 @@ const DockerModal: React.FC = () => {
   const isOpen = useMemo(() => activeModal === "docker-select", [activeModal]);
 
   if (!isOpen) return null;
-
-  console.log("isDownloading", isDownloading);
-  console.log("isPaused", isPaused);
-  console.log("loadStatus", loadStatus);
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">

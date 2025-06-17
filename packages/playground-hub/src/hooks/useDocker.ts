@@ -3,9 +3,9 @@ import {
   DockerImage,
   DockerContainer,
   currentDockerContainerAtom,
-  selectedDockerImageAtom,
 } from "../atoms/docker";
 import { useAtom, useAtomValue } from "jotai";
+import { DOCKER_NAME } from "../constants";
 
 // Define the expected shape of the status from window.docker.checkDockerStatus
 // This should match DockerStatusResult from your docker-service.ts
@@ -41,7 +41,7 @@ declare global {
 // Add an optional parameter to the hook for the polling image name
 export const useDocker = () => {
   // const selectedDockerImage = useAtomValue(selectedDockerImageAtom);
-  const selectedDockerImage = "tokamak-dev-env";
+  const selectedDockerImage = DOCKER_NAME;
   const imageNameForPolling = selectedDockerImage ?? null;
   const [images, setImages] = useState<DockerImage[]>([]);
   const [containers, setContainers] = useState<DockerContainer[]>([]);
