@@ -80,14 +80,17 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
    ![Program Initial Screen](./assets/images/5-4.png)
 5. After clicking, the modal automatically closes, and an animation begins to fill the pipeline starting from the cloud towards the next step. The animation ends when it reaches the handle part of the next step, and the color of the previously inactive **frontend/qap-compiler** heading is activated, indicating that the step is ready to be executed.
    ![Program Initial Screen](./assets/images/5-5.png)
-6. Let's set up the EVM Transaction in the same flow. Like EVM Spec, click the cloud located under the **Ethereum transaction** heading to display a modal like this. In the input area of this modal, you need to enter the Ethereum transaction hash value that matches the nature supported by the previously selected EVM Spec. (This explanation assumes that the selected Tokamak-zk-EVM only supports the Transfer function of the TON token.)
+6. Let's set up the EVM Transaction in the same flow. Click the cloud located under the **Ethereum transaction** heading to display a modal where you can input a transaction hash.
    ![Program Initial Screen](./assets/images/5-6.png)
-7. Access the [page](https://etherscan.io/token/0x2be5e8c109e2197D077D13A82dAead6a9b3433C5) showing transactions of the Tokamak Network token on Etherscan.
+7. Go to the [Etherscan page](https://etherscan.io/).
    ![Program Initial Screen](./assets/images/5-7.png)
-8. You can check what function each transaction was executed for through the Method area. This allows you to classify transactions corresponding to **Transfer**.
-   ![Program Initial Screen](./assets/images/5-8.png)
+8. Find a transaction you want to verify through the Tokamak-zk-EVM and copy its hash value using the copy button next to the Transaction Hash.
+   ![Program Initial Screen](./assets/images/5-9.png)
+
 9. When you find a transaction you want to verify through Tokamak-zk-EVM, use the copy button located to the right of the Transaction Hash to copy the hash value of the transaction.
    ![Program Initial Screen](./assets/images/5-9.png)
+   9-1. If the copied hash value is incorrect, an error like this will appear, and the Input button will not be activated. For any other issues, the button will also remain inactive, and a message corresponding to the problem will be displayed in the same area.  
+    ![Program Initial Screen](./assets/images/5-11.png)
 10. Paste the copied hash value into the input area of the modal, and if the transaction hash can be proven by the current Tokamak-zk-EVM, the Input button will be activated as follows.
     ![Program Initial Screen](./assets/images/5-10.png)
     10-1. If the copied hash value is incorrect, an error like this will appear, and the Input button will not be activated. In other cases of issues, the button will not be activated, and a message corresponding to each issue will be displayed in the same area.  

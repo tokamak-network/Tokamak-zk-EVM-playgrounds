@@ -27,7 +27,6 @@ export default function FillingTank({
   const active = useMemo(() => {
     return provingIsDone;
   }, [provingIsDone]);
-
   // 애니메이션
   useEffect(() => {
     // active가 true이고 autoFill이 true이며 이미지가 로드되었을 때만 애니메이션 실행
@@ -78,7 +77,7 @@ export default function FillingTank({
 
   return (
     <div
-      className="absolute max-w-full max-h-full object-contain top-[697px] right-[109px] flex items-end justify-end overflow-hidden z-[2]"
+      className="absolute max-w-full max-h-full object-contain top-[695px] right-[111px] flex items-end justify-end overflow-hidden z-[2]"
       style={{ background: "transparent" }}
     >
       <img
