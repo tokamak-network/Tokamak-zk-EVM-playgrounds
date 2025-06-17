@@ -74,42 +74,39 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
    ![Program Initial Screen](./assets/images/5-1.png)
 2. Click the cloud located under the **EVM Spec.** heading in the top left corner to display a modal screen like this.  
    ![Program Initial Screen](./assets/images/5-2.png)
-3. This modal allows you to select one of the various Tokamak-zk-EVM specs supported by the current Tokamak-zk-evm-playground. Click the download button located to the right of the title to start downloading the Docker image for the selected Tokamak-zk-EVM spec.
+3. This modal allows you to select one of the various Tokamak-zk-EVM specs supported by the playground. Click the download button to the right of the title to start downloading the Docker image for that spec.
    ![Program Initial Screen](./assets/images/5-3.png)
-4. Once the download is complete, the download button icon changes to a check icon, indicating that the Tokamak-zk-EVM image for the selected spec is ready for use. Clicking the Tokamak-zk-EVM text will proceed to the next step.  
+4. Once the download is complete, the download button icon will change to a check icon, indicating that the image is ready. Clicking the Tokamak-zk-EVM text in this state will proceed to the next step.  
    ![Program Initial Screen](./assets/images/5-4.png)
-5. After clicking, the modal automatically closes, and an animation begins to fill the pipeline starting from the cloud towards the next step. The animation ends when it reaches the handle part of the next step, and the color of the previously inactive **frontend/qap-compiler** heading is activated, indicating that the step is ready to be executed.
+5. After clicking, the modal will automatically close, and an animation filling the pipeline will start. The animation will stop when it reaches the handle for the next step, and the previously inactive **frontend/qap-compiler** heading will become colored, indicating it is ready for execution.
    ![Program Initial Screen](./assets/images/5-5.png)
-6. Let's set up the EVM Transaction in the same flow. Click the cloud located under the **Ethereum transaction** heading to display a modal where you can input a transaction hash.
+6. Let's set up the EVM Transaction in the same flow. Similar to the EVM Spec, click the cloud under the **Ethereum transaction** heading to open a modal. In this modal's input area, you need to enter the hash of an Ethereum transaction that matches the characteristics supported by the previously selected EVM Spec. Go to the [Etherscan page](https://etherscan.io/).
    ![Program Initial Screen](./assets/images/5-6.png)
-7. Go to the [Etherscan page](https://etherscan.io/).
-   ![Program Initial Screen](./assets/images/5-7.png)
-8. Find a transaction you want to verify through the Tokamak-zk-EVM and copy its hash value using the copy button next to the Transaction Hash.
+7. Find a transaction you want to verify through the Tokamak-zk-EVM and copy its hash value using the copy button next to the Transaction Hash.
    ![Program Initial Screen](./assets/images/5-9.png)
-
-9. When you find a transaction you want to verify through Tokamak-zk-EVM, use the copy button located to the right of the Transaction Hash to copy the hash value of the transaction.
-   ![Program Initial Screen](./assets/images/5-9.png)
-   9-1. If the copied hash value is incorrect, an error like this will appear, and the Input button will not be activated. For any other issues, the button will also remain inactive, and a message corresponding to the problem will be displayed in the same area.  
-    ![Program Initial Screen](./assets/images/5-11.png)
-10. Paste the copied hash value into the input area of the modal, and if the transaction hash can be proven by the current Tokamak-zk-EVM, the Input button will be activated as follows.
-    ![Program Initial Screen](./assets/images/5-10.png)
-    10-1. If the copied hash value is incorrect, an error like this will appear, and the Input button will not be activated. In other cases of issues, the button will not be activated, and a message corresponding to each issue will be displayed in the same area.  
-    ![Program Initial Screen](./assets/images/5-11.png)
-11. When the Input button is activated, click the button to close the modal, and an animation similar to before will start. Since frontend/synthesizer requires both the Ethereum transaction just activated and the operation of frontend/qap-compiler, it appears inactive. To activate frontend/synthesizer, first click the handle part of the activated frontend/qap-compiler to execute it.
-    ![Program Initial Screen](./assets/images/5-12.png)
-12. Once frontend/qap-compiler execution is complete, you will see that **frontend/synthesizer** and **backend/setup** are both activated. You can execute any of the activated handles in any order. In this document, we will execute frontend/synthesizer first.
+8. Paste the copied hash value into the modal's input area. If the transaction hash is provable by the current Tokamak-zk-EVM, the Input button will be activated as follows.
+   ![Program Initial Screen](./assets/images/5-10.png)
+   8-1. If the copied hash value is incorrect, an error like this will appear, and the Input button will not be activated. For any other issues, the button will also remain inactive, and a message corresponding to the problem will be displayed in the same area.  
+   ![Program Initial Screen](./assets/images/5-11.png)
+9. When the Input button is activated, click it to close the modal, and an animation similar to the previous one will start. Once the animation is complete, you will see that the handles for both frontend/qap-compiler and frontend/synthesizer are activated. You can execute the activated handles in any order. In this guide, we will execute qap-compiler first.
+   ![Program Initial Screen](./assets/images/5-12.png)
+10. Once frontend/qap-compiler has finished, you will see that both **frontend/synthesizer** and **backend/setup** are activated. Next, let's run frontend/synthesizer. (For processes that take some time to execute, a loading modal like the one below will appear. When the process is complete, the modal will automatically close, and the animation will continue.)
     ![Program Initial Screen](./assets/images/5-13.png)
-13. After frontend/synthesizer execution is complete, you will see that **libs/internal/bikzg** is activated. Before executing this part, let's proceed with backend/setup first. Again, you can execute activated handles in any order, so if you want to execute libs/internal/bikzg first, feel free to do so.
+    ![Program Loading Screen](./assets/images/5-13-1.png)
+11. After frontend/synthesizer finishes, you can infer from the pipelines that **backend/setup** must also be completed. Let's proceed with the only activated part, backend/setup.
     ![Program Initial Screen](./assets/images/5-14.png)
-14. Once backend/setup is complete, **backend/prove** is activated. The actual setup process takes a considerable amount of time, but since the setup is already completed through the Docker image downloaded earlier, it takes almost no time within the playground, and you can see it quickly executed.
+12. Once backend/setup is complete, **backend/prove** is activated. The actual setup process takes a considerable amount of time, but it is already complete within the Docker image you downloaded earlier. Therefore, it runs very quickly inside the playground.
     ![Program Initial Screen](./assets/images/5-15.png)
-15. Once backend/setup is complete, you can see that both packages for executing the final action, Verify, are ready. First, execute libs/internal/bikzg.
+13. Once backend/setup is complete, both packages required for the final action, Verify, are ready for execution. First, run backend/preprocess.
+    ![Program Loading Screen](./assets/images/5-16-1.png)
     ![Program Initial Screen](./assets/images/5-16.png)
-16. Then, execute backend/prove, and you will see that **backend/verify** is activated. By operating prove, you can check the final result of how the Ethereum transaction we selected earlier is analyzed through Tokamak-zk-EVM.
+14. Next, run backend/prove, and you will see **backend/verify** become activated. By running verify, you can see the final result of how the Ethereum transaction you selected is analyzed by the Tokamak-zk-EVM.
+    ![Program Loading Screen](./assets/images/5-17-1.png)
     ![Program Initial Screen](./assets/images/5-17.png)
-17. Once backend/prove operation is complete, the water tank changes according to the evidence created earlier and the verification result. If the evidence was created correctly and the verification was successful, the tank will be filled with blue water along with the number **1**, indicating True. This means that Tokamak-zk-EVM operated correctly.
+15. After backend/prove completes, the water tank will change based on the generated proof and its verification result. If the proof was generated correctly and verified successfully, the tank will fill with blue water along with the number **1**, signifying "True". This indicates that the Tokamk-zk-EVM has operated correctly.
     ![Program Initial Screen](./assets/images/5-18.png)
-    17-1. If it did not operate correctly or there was an issue, the tank will be filled with white along with the number 0, indicating False. In such cases, there may be a problem with Tokamak-zk-EVM, so please report it using section 6 below!
+    15-1. If it did not operate correctly or an issue occurred, the tank will fill with white water along with the number 0, signifying "False". In this case, there may be an issue with the Tokamak-zk-EVM, so please report it using Section 6 below!
+    ![Result False Screen](./assets/images/5-18-1.png)
 
 ## 6. Having Trouble? (Simple Troubleshooting) 🤔
 
