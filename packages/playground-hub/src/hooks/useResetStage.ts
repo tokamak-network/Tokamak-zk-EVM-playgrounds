@@ -1,6 +1,9 @@
 import { useCallback } from "react";
 import { usePipelineAnimation } from "./usePipelineAnimation";
-import { usePlaygroundStartStage } from "./usePlaygroundStage";
+import {
+  usePlaygroundStage,
+  usePlaygroundStartStage,
+} from "./usePlaygroundStage";
 import { useModals } from "./useModals";
 import {
   provingIsDoneAtom,
@@ -19,6 +22,7 @@ export const useResetStage = () => {
   } = usePipelineAnimation();
   const { resetAllStartStage, resetStartStageWithNewTransaction } =
     usePlaygroundStartStage();
+  const { resetPlaygroundStageWithNewTransaction } = usePlaygroundStage();
   const { openModal } = useModals();
 
   const initializeWhenCatchError = useCallback(() => {
@@ -44,9 +48,11 @@ export const useResetStage = () => {
     setProvingIsDone(false);
     setProvingResult(false);
     resetStartStageWithNewTransaction();
+    resetPlaygroundStageWithNewTransaction();
   }, [
     resetAnimationWithNewTransactionHandler,
     resetStartStageWithNewTransaction,
+    resetPlaygroundStageWithNewTransaction,
   ]);
 
   return {

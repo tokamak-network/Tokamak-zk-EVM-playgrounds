@@ -85,6 +85,18 @@ export function usePlaygroundStage() {
     );
   }, [playgroundStage]);
 
+  const resetPlaygroundStageWithNewTransaction = () => {
+    setPlaygroundStage({
+      ...playgroundStage,
+      transactionHash: false,
+      synthesizer: false,
+      prove: false,
+      verify: false,
+      bikzg: false,
+      result: false,
+    });
+  };
+
   return {
     playgroundStage,
     setStage,
@@ -98,6 +110,7 @@ export function usePlaygroundStage() {
     proveStage,
     bikzgStage,
     verifyStage,
+    resetPlaygroundStageWithNewTransaction,
   };
 }
 
@@ -112,7 +125,12 @@ export function usePlaygroundStartStage() {
 
   const resetStartStageWithNewTransaction = () => {
     setPlaygroundStartStage({
-      ...playgroundStartStage,
+      // 유지되어야 할 상태들
+      evmSpec: playgroundStartStage.evmSpec,
+      qap: playgroundStartStage.qap,
+      setup: playgroundStartStage.setup,
+      preprocess: playgroundStartStage.preprocess,
+      // 초기화되어야 할 상태들
       transactionHash: false,
       synthesizer: false,
       prove: false,
@@ -129,6 +147,7 @@ export function usePlaygroundStartStage() {
       synthesizer: false,
       prove: false,
       verify: false,
+      preprocess: false,
     });
   };
 
@@ -140,7 +159,8 @@ export function usePlaygroundStartStage() {
       !playgroundStartStage.setup &&
       !playgroundStartStage.synthesizer &&
       !playgroundStartStage.prove &&
-      !playgroundStartStage.verify
+      !playgroundStartStage.verify &&
+      !playgroundStartStage.preprocess
     );
   }, [playgroundStartStage]);
 

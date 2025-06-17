@@ -1,6 +1,6 @@
 import outlinePipeline from "../assets/images/outline-pipe.svg";
 import smallPipeline from "../assets/images/small-pipe.svg";
-import tank from "../assets/images/tank.png";
+import tank from "../assets/images/tank.svg";
 import CloudWithRain from "./CloudWithRain";
 import Bubbles from "./Bubble";
 import "../styles/pipelineAnimation.css";

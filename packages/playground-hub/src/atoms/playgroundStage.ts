@@ -9,6 +9,7 @@ export type PlaygroundStartStage = {
   synthesizer: boolean;
   prove: boolean;
   verify: boolean;
+  preprocess: boolean;
 };
 
 export const playgroundStartStageAtom = atom<PlaygroundStartStage>({
@@ -19,6 +20,7 @@ export const playgroundStartStageAtom = atom<PlaygroundStartStage>({
   synthesizer: false,
   prove: false,
   verify: false,
+  preprocess: false,
 });
 
 //If the stage is completed, the value is true.
