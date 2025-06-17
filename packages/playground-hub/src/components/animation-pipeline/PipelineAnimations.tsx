@@ -15,11 +15,17 @@ import BikzgToProve from "./BikzgToProve";
 import VerifyToResult from "./VerifyToResult";
 import FillingTank from "./FillingTank";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
+import { useEffect } from "react";
 
 export default function PipelineAnimations() {
   const { setStage } = usePlaygroundStage();
   const { setStartStage } = usePlaygroundStartStage();
-  const { activeSection, updateActiveSection } = usePipelineAnimation();
+  const {
+    activeSection,
+    updateActiveSection,
+    resetAnimation,
+    setResetAnimation,
+  } = usePipelineAnimation();
 
   const handleOnStart = ({
     section,
@@ -30,7 +36,15 @@ export default function PipelineAnimations() {
   }) => {
     setStage(section, value);
   };
-  const { resetAnimation } = usePipelineAnimation();
+
+  useEffect(() => {
+    if (resetAnimation) {
+      const timer = setTimeout(() => {
+        setResetAnimation(false);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [resetAnimation, setResetAnimation]);
 
   return (
     <div className="relative w-full h-full top-[54px] left-[84px] animation-part">
@@ -98,7 +112,6 @@ export default function PipelineAnimations() {
         onStart={() => {
           updateActiveSection("setup-to-prove");
         }}
-        resetAnimation={resetAnimation}
       />
       <ProveToVerify
         isActive={activeSection === "prove-to-verify"}

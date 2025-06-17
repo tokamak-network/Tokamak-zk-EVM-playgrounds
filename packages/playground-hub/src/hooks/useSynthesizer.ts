@@ -26,7 +26,7 @@ export const useSynthesizer = () => {
         return result;
       } catch (error) {
         console.error("도커 명령 실행 실패:", error);
-        return null;
+        throw error;
       }
     },
     [transactionHash]

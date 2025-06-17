@@ -35,6 +35,7 @@ export function useTokamakZkEVMActions() {
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
+      let hasError = false;
       try {
         setPlaygroundStageInProcess(true);
         switch (actionType) {
@@ -122,9 +123,8 @@ export function useTokamakZkEVMActions() {
             return Promise.resolve(undefined);
         }
       } catch (error) {
+        hasError = true;
         initializeWhenCatchError();
-        console.log("gogo");
-        console.error(error);
         return Promise.resolve({
           success: false,
           error: error.message || "An unknown error occurred",
@@ -135,7 +135,9 @@ export function useTokamakZkEVMActions() {
             setPlaygroundStageInProcess(false);
             setPendingAnimation(false);
             resolve();
-            closeModal();
+            if (!hasError) {
+              closeModal();
+            }
           }, 0);
         });
       }
