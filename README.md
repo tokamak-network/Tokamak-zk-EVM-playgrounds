@@ -1,104 +1,34 @@
-# Tokamak zk-EVM Playground
+# Tokamak ZK-EVM Playgrounds
 
-A playground for experimenting with Tokamak zk-EVM, featuring Docker-based execution environment and interactive UI.
+Interactive tools and playgrounds for exploring [the Tokamak ZK-EVM](https://github.com/tokamak-network/Tokamak-zk-EVM/tree/main) ecosystem, focusing on transaction analysis and visualization.
 
-## Features
+## 📦 Packages
 
-- **Docker Integration**
+This monorepo contains:
 
-  - Docker image management through Cloudflare R2
-  - Container status monitoring
-  - Command execution in Docker environment
+- [synthesizer-playground](./packages/synthesizer-playground) - A web interface for analyzing Ethereum transactions using the Synthesizer library, providing visualization of:
+  - Storage operations (loads and stores)
+  - Transaction logs
+  - ZK-EVM execution traces
+  - Placement indices used in the Synthesizer
 
-- **Interactive UI**
+## 📋 Prerequisites
 
-  - Real-time pipeline animation
-  - Progress visualization
-  - Transaction modal
-  - Light/Dark theme support
+- Node.js 18.x or higher
+- Etherscan API key (for transaction data)
 
-- **Backend Operations**
-  - Setup trusted setup
-  - Pre-process transactions
-  - Prove transactions
-  - Verify proofs
+## 🔍 Features
 
-## Prerequisites
+- **Transaction Analysis**: Process any Ethereum transaction through the Synthesizer
+- **Storage Visualization**: View all storage operations during execution
+- **Log Inspection**: Examine transaction event logs
+- **ZK-EVM Integration**: Seamless integration with Tokamak's ZK-EVM
+- **Developer Tools**: Debug and analyze transaction processing
 
-- Node.js (v16 or higher)
-- Docker Desktop
-- Cloudflare R2 credentials (for Docker image download)
+## 🤝 Contributing
 
-## Installation
+Contributions are welcome! Please see our [Contributing Guidelines](./CONTRIBUTING.md).
 
-1. Clone the repository:
+## 📚 Documentation
 
-```bash
-git clone https://github.com/your-username/Tokamak-zk-EVM-playgrounds.git
-cd Tokamak-zk-EVM-playgrounds
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Set up your API key:
-   - Open the application
-   - Navigate to settings
-   - Enter your API key
-
-## Usage
-
-1. **Start the Application**
-
-```bash
-npm start
-```
-
-2. **Docker Image Setup**
-
-   - The application will automatically check for the required Docker image
-   - If not present, it will download from Cloudflare R2
-
-3. **Running Transactions**
-   - Enter transaction details in the transaction modal
-   - Follow the pipeline animation for progress
-   - View results in the UI
-
-## Development
-
-### Project Structure
-
-```
-packages/
-  ├── playground-hub/     # Main application
-  ├── playground-ui/      # UI components
-  └── playground-core/    # Core functionality
-```
-
-### Available Scripts
-
-- `npm start`: Start the development server
-- `npm run build`: Build the application
-- `npm test`: Run tests
-- `npm run lint`: Run linter
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Tokamak Network
-- Cloudflare R2
-- Docker
+- [Synthesizer Documentation](https://tokamak.notion.site/Synthesizer-documentation-164d96a400a3808db0f0f636e20fca24?pvs=4)
