@@ -45,15 +45,19 @@ export function useTokamakZkEVMActions() {
           case TokamakActionType.RunSynthesizer:
             console.log("currentDockerContainer", currentDockerContainer);
             if (currentDockerContainer?.ID) {
+              setTimeout(() => {
+                setPendingAnimation(true);
+              }, 900);
+              openModal("loading");
               return await parseTONTransfer(currentDockerContainer.ID);
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.SetupTrustedSetup:
             if (currentDockerContainer?.ID) {
               return await setup(currentDockerContainer.ID);
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.PreProcess:
             if (currentDockerContainer?.ID) {
@@ -63,7 +67,7 @@ export function useTokamakZkEVMActions() {
               openModal("loading");
               return await preProcess(currentDockerContainer.ID);
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.ProveTransaction:
             if (currentDockerContainer?.ID) {
@@ -73,7 +77,7 @@ export function useTokamakZkEVMActions() {
               openModal("loading");
               return await prove(currentDockerContainer.ID);
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.Verify:
             if (currentDockerContainer?.ID) {
@@ -114,7 +118,7 @@ export function useTokamakZkEVMActions() {
                 setPendingAnimation(false);
               }
             }
-            return Promise.resolve(undefined);
+            throw new Error("currentDockerContainer is not found");
 
           default:
             console.warn(
@@ -123,6 +127,7 @@ export function useTokamakZkEVMActions() {
             return Promise.resolve(undefined);
         }
       } catch (error) {
+        console.log("error", error);
         hasError = true;
         initializeWhenCatchError();
         return Promise.resolve({
@@ -133,10 +138,10 @@ export function useTokamakZkEVMActions() {
         await new Promise<void>((resolve) => {
           setTimeout(() => {
             setPlaygroundStageInProcess(false);
-            setPendingAnimation(false);
             resolve();
             if (!hasError) {
               closeModal();
+              setPendingAnimation(false);
             }
           }, 0);
         });

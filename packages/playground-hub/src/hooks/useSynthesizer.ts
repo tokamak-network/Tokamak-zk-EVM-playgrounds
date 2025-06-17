@@ -13,7 +13,8 @@ export const useSynthesizer = () => {
       try {
         console.log("parseTONTransfer ->", { transactionHash });
 
-        const RPC_URL = await getEnvVars();
+        const RPC_URL =
+          "https://eth-mainnet.g.alchemy.com/v2/PbqCcGx1oHN7yNaFdUJUYqPEN0QSp23S";
         console.log("RPC_URL", RPC_URL);
 
         const result = await executeCommand(containerId, [

@@ -3,6 +3,7 @@ import handleOrange from "../assets/images/handles/handle-orange.png";
 import handleGreen from "../assets/images/handles/handle-green.png";
 import handlePink from "../assets/images/handles/handle-pink.png";
 import handleInactive from "../assets/images/handles/handle-inactive.svg";
+import { usePipelineAnimation } from "../hooks/usePipelineAnimation";
 
 export default function Handle(props: {
   type: "orange" | "green" | "pink";
@@ -21,6 +22,7 @@ export default function Handle(props: {
 
   const [rotation, setRotation] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const { isAnimationRunning } = usePipelineAnimation();
 
   const handleClick = () => {
     if (isAnimating) return; // 이미 애니메이션 중이면 무시
@@ -43,12 +45,12 @@ export default function Handle(props: {
       className={`
         absolute 
         ${className} 
-         ${!isActive ? "cursor-not-allowed" : "cursor-pointer"}
+         ${!isActive || isAnimationRunning ? "cursor-not-allowed" : "cursor-pointer"}
         transition-transform duration-2000 ease-in-out
         z-[100] 
       `}
       style={{ transform: `rotate(${rotation}deg)` }}
-      onClick={isActive ? handleClick : undefined}
+      onClick={isActive && !isAnimationRunning ? handleClick : undefined}
     />
   );
 }
