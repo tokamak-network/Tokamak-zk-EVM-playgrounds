@@ -5,7 +5,7 @@ Interactive tools and playgrounds for exploring [the Tokamak ZK-EVM](https://git
 ## 📦 Packages
 
 This monorepo contains:
-
+- [playground-hub](./packages/playground-hub) - An interactive desktop application that visualizes the entire Tokamak-zk-EVM proof generation pipeline. It uses Docker to run backend components and provides real-time animations of the process.
 - [synthesizer-playground](./packages/synthesizer-playground) - A web interface for analyzing Ethereum transactions using the Synthesizer library, providing visualization of:
   - Storage operations (loads and stores)
   - Transaction logs

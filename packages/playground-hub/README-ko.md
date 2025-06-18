@@ -50,7 +50,7 @@
   - [최신 버전 다운로드](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/releases/tag/0.0.1-alpha)
   - 다운로드 파일은 압축 파일(`.zip`) 형태입니다.
   - **Mac 사용자 (Apple Silicon):** arm-64 버전을 다운로드하세요. (예: `playground-hub-macOS-arm64-v0.0.1-portable.zip`)
-  - **Windows 사용자:** Windows 버전을 다운로드하세요.
+  - **Windows 사용자:** 지원 예정입니다.
 - **압축 해제:**
   - 다운로드한 압축 파일을 사용하기 편한 폴더에 풀어주세요. (예: Windows에서는 마우스 오른쪽 클릭 후 "압축 풀기...", Mac에서는 더블 클릭)
 - **파일 위치:**
