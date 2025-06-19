@@ -29,44 +29,46 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
   2. **Proceed with download and installation:**
      - Run the downloaded installation file (`Docker Desktop Installer.exe` or `Docker.dmg`) and follow the on-screen instructions to complete the installation.
      - (For Windows, you may need to install or configure WSL 2. Follow the on-screen instructions carefully.)
-     - (If there are any special options to select, specify them here. Most of the time, keeping the default settings is fine.)
+     - (There are no special options to select; keeping the default settings is fine.)
   3. **Verify installation (Most important! ✨):**
 
-     - You may need to reboot your computer after installation.
      - Launch **Docker Desktop** from the desktop or application list.
-     - Check if the **whale icon** 🐳 appears in the taskbar (Windows) or dock menu (Mac).
+     - Check if the **whale icon** 🐳 appears in the taskbar (Windows) or the menu bar at the top of the screen (Mac).
        ![Docker Installation Success - MacOS](./assets/images/4-1.png)
-     - If you see the message "Docker Desktop is running" (or a green "Running" indicator) when you click the whale icon, or if the Docker program window opens, it means it has been successfully executed!
+     - You can check the running status from the menu that appears when you click the whale icon. Look for a message like "Docker Desktop is running" or a green "Running" indicator.
 
        ![Docker Running Success - MacOS](./assets/images/4-2.png)
 
        ![Docker Running Success - MacOS](./assets/images/4-3.png)
 
-       - If it doesn't run or you see an error message, try rebooting your computer and running Docker Desktop again.
+       - If Docker doesn't run correctly or you see an error, try restarting your computer. A reboot is sometimes required after installation.
 
 ### 3.2. Downloading and Preparing Tokamak-zk-evm-playground
 
 - **Download:**
   - [Download the latest version](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/releases/tag/0.0.1-alpha)
-  - The download file is in a compressed `.zip` format.
-  - **Mac users (Apple Silicon):** Download the arm-64 version. (e.g., `playground-hub-macOS-arm64-v0.0.1-portable.zip`)
-  - **Windows users:** Download the Windows version.
-- **Extract:**
-  - Extract the downloaded compressed file to a convenient folder. (e.g., Right-click and "Extract..." on Windows, double-click on Mac)
-- **File Location:**
-  - Place the extracted `Tokamak-zk-evm-playground` folder in an easily accessible location. (e.g., `Desktop`, `Documents`, or `Downloads` folder)
+  - From the download page, download only one file that matches your operating system and CPU.
+  - **Mac users (Apple Silicon):** Download the `playground-hub-macOS-arm64-vX.X.X-portable.zip` file. (`X.X.X` is the version)
+  - **Mac users (Intel Chip):** Download the `playground-hub-macOS-x64-vX.X.X-portable.zip` file.
+  - **Windows users:** Support is planned.
+  - **Note:** You do not need to download the files marked as `Source code`, as they are for developers.
+- **Extract and File Location:**
+  - Extract the downloaded compressed file.
+  - **Mac:** After extracting, you will get a `tokamak-zk-evm-playground.app` file. Move this file to a convenient location, such as the `Applications` folder or your Desktop.
+  - **Windows:** Place the folder created after extraction in a convenient location, such as `My Documents` or your Desktop.
 
 ## 4. Running Tokamak-zk-evm-playground 🚀
 
-1. **(Most important!) First, make sure Docker Desktop is running.** (The whale icon 🐳 should be visible and in "running" status!)
+1. **(Most important!) First, make sure Docker Desktop is running.** (The whale icon 🐳 should be visible and in "running" status in the taskbar for Windows or the menu bar for Mac!)
 
 - If Docker is not installed or running, a warning message will appear, and you cannot proceed to the next step.
 
-2. Navigate to the folder where you previously extracted `Tokamak-zk-evm-playground`.
-3. Find and double-click the following executable file inside the folder:
-   - **Windows:** `(Executable file name.exe)` (e.g., `tokamak-zk-evm-playground.exe`)
-   - **macOS:** `(Executable file name.app)` (e.g., `tokamak-zk-evm-playground.app`)
-4. Wait a moment for the program to start.
+2.  Run `tokamak-zk-evm-playground`.
+
+- **Windows:** Navigate to the folder you extracted earlier and double-click the executable file, such as `tokamak-zk-evm-playground.exe`.
+- **macOS:** Double-click the `tokamak-zk-evm-playground.app` file from the location where you moved it (e.g., `Applications` folder or Desktop).
+
+3. Wait a moment for the program to start.
 
 ## 5. How to Use the Program (Brief Introduction) 📖
 

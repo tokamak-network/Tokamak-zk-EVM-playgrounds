@@ -29,44 +29,44 @@
   2.  **다운로드 및 설치 진행:**
       - 다운로드된 설치 파일(`Docker Desktop Installer.exe` 또는 `Docker.dmg`)을 실행하고, 화면에 나오는 안내에 따라 설치를 진행해주세요.
       - (Windows의 경우, WSL 2 관련 설치나 설정이 필요할 수 있습니다. 화면 안내를 잘 따라주세요.)
-      - (특별히 선택해야 하는 옵션이 있다면 여기에 명시. 대부분 기본 설정을 유지하면 됩니다.)
+      - (대부분 기본 설정을 유지하면 되며, 특별히 변경해야 할 옵션은 없습니다.)
   3.  **설치 확인 (가장 중요! ✨):**
 
-      - 설치가 완료되면 컴퓨터를 재부팅해야 할 수 있습니다.
       - 바탕화면이나 응용 프로그램 목록에서 **Docker Desktop**을 실행해주세요.
-      - 컴퓨터 화면 오른쪽 아래 작업 표시줄(Windows)이나 화면 독 메뉴(Mac)에 **고래 모양 아이콘**🐳이 나타나는지 확인해주세요.
+      - 컴퓨터 화면 오른쪽 아래 작업 표시줄(Windows)이나 화면 상단 메뉴 막대(Mac)에 **고래 모양 아이콘**🐳이 나타나는지 확인해주세요.
         ![Docker 설치 성공 - MacOS](./assets/images/4-1.png)
-      - 고래 아이콘을 클릭했을 때 "Docker Desktop is running" (또는 초록색으로 "Running" 표시) 메시지가 보이거나 도커 프로그램 창이 열린다면 성공적으로 실행된 것입니다!
+      - 고래 아이콘을 클릭하면 나타나는 메뉴에서 "Docker Desktop is running"이라는 문구나 초록색 "Running" 표시를 통해 실행 상태를 확인할 수 있습니다.
 
         ![Docker 실행 성공 - MacOS](./assets/images/4-2.png)
 
         ![Docker 실행 성공 - MacOS](./assets/images/4-3.png)
 
-        - 만약 실행되지 않거나 오류 메시지가 보인다면, 컴퓨터를 다시 한번 재부팅하고 Docker Desktop을 실행해보세요.
+        - 만약 Docker가 정상적으로 실행되지 않거나 오류가 발생하면, 컴퓨터를 재부팅한 후 다시 시도해보세요. 설치 과정에서 재부팅이 필요한 경우가 있습니다.
 
 ### 3.2. Tokamak-zk-evm-playground 다운로드 및 준비하기
 
 - **다운로드:**
   - [최신 버전 다운로드](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/releases/tag/0.0.1-alpha)
-  - 다운로드 파일은 압축 파일(`.zip`) 형태입니다.
-  - **Mac 사용자 (Apple Silicon):** arm-64 버전을 다운로드하세요. (예: `playground-hub-macOS-arm64-v0.0.1-portable.zip`)
+  - 다운로드 페이지에서 사용자의 운영체제와 CPU에 맞는 파일을 하나만 다운로드하세요.
+  - **Mac 사용자 (Apple Silicon):** `playground-hub-macOS-arm64-vX.X.X-portable.zip` 파일을 다운로드하세요. (`X.X.X`는 버전)
+  - **Mac 사용자 (Intel Chip):** `playground-hub-macOS-x64-vX.X.X-portable.zip` 파일을 다운로드하세요.
   - **Windows 사용자:** 지원 예정입니다.
-- **압축 해제:**
-  - 다운로드한 압축 파일을 사용하기 편한 폴더에 풀어주세요. (예: Windows에서는 마우스 오른쪽 클릭 후 "압축 풀기...", Mac에서는 더블 클릭)
-- **파일 위치:**
-  - 압축을 푼 `Tokamak-zk-evm-playground` 폴더를 사용자가 찾기 쉬운 곳에 두세요. (예: `바탕화면`, `내 문서` 또는 `다운로드` 폴더 등)
+  - **주의:** `Source code`라고 표시된 파일은 개발자용이므로 다운로드할 필요가 없습니다.
+- **압축 해제 및 파일 위치:**
+  - 다운로드한 압축 파일의 압축을 해제하세요.
+  - **Mac:** 압축을 풀면 `tokamak-zk-evm-playground.app` 파일이 생성됩니다. 이 파일을 `응용 프로그램` 폴더나 바탕화면 등 편리한 위치로 옮겨주세요.
+  - **Windows:** 압축을 풀면 생성되는 폴더를 `내 문서`나 바탕화면 등 편리한 위치에 두세요.
 
 ## 4. Tokamak-zk-evm-playground 실행하기 🚀
 
-1.  **(가장 중요!) 먼저 Docker Desktop이 실행 중인지 다시 한번 확인해주세요.** (화면에 고래 아이콘🐳이 보이고 "running" 상태여야 합니다!)
+1.  **(가장 중요!) 먼저 Docker Desktop이 실행 중인지 다시 한번 확인해주세요.** (Windows의 경우 작업 표시줄, Mac의 경우 메뉴 막대에 고래 아이콘🐳이 보이고 "running" 상태여야 합니다!)
 
 - 도커가 설치돼있지않거나 실행하지 않고 Tokamak-zk-evm-playground를 실행한다면 도커를 설치하거나 실행하라고 경고 메세지가 나타나며 다음 단계로 진행되지 않습니다.
 
-2.  이전에 `Tokamak-zk-evm-playground` 압축을 푼 폴더로 이동합니다.
-3.  폴더 안에서 다음 실행 파일을 찾아 더블 클릭하여 실행합니다:
-    - **Windows:** `(실행 파일 이름.exe)` (예: `tokamak-zk-evm-playground.exe`)
-    - **macOS:** `(실행 파일 이름.app)` (예: `tokamak-zk-evm-playground.app`)
-4.  프로그램이 시작되면 잠시 기다려주세요.
+2.  `tokamak-zk-evm-playground`를 실행합니다.
+    - **Windows:** 이전에 압축을 푼 폴더로 이동하여, `tokamak-zk-evm-playground.exe`와 같은 실행 파일을 더블 클릭합니다.
+    - **macOS:** `응용 프로그램` 폴더나 바탕화면 등 이전에 `.app` 파일을 옮겨둔 위치에서 `tokamak-zk-evm-playground.app`을 더블 클릭하여 실행합니다.
+3.  프로그램이 시작되면 잠시 기다려주세요.
 
 ## 5. 프로그램 사용 방법 (간단 소개) 📖
 
