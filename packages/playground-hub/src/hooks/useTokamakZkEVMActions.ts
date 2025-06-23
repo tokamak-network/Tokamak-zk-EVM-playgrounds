@@ -55,7 +55,16 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.SetupTrustedSetup:
             if (currentDockerContainer?.ID) {
-              return await setup(currentDockerContainer.ID);
+              // setTimeout(() => {
+              //   setPendingAnimation(true);
+              // }, 500);
+              // openModal("loading");
+              // await new Promise((resolve) => setTimeout(resolve, 60000));
+              // closeModal();
+              // setPendingAnimation(false);
+              // return await setup(currentDockerContainer.ID);
+              // return await setup(currentDockerContainer.ID);
+              return Promise.resolve(true);
             }
             throw new Error("currentDockerContainer is not found");
 

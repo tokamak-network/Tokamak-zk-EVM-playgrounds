@@ -5,8 +5,13 @@ import { usePlaygroundStage } from "../hooks/usePlaygroundStage";
 
 export default function PeipelineHandles() {
   const { updateActiveSection } = usePipelineAnimation();
-  const { runSynthesizer, runProve, runPreProcess, runVerify } =
-    useTokamakZkEVMActions();
+  const {
+    runSynthesizer,
+    runProve,
+    runPreProcess,
+    runVerify,
+    runSetupTrustedSetup,
+  } = useTokamakZkEVMActions();
   const {
     qapStage,
     synthesizerStage,
@@ -41,6 +46,7 @@ export default function PeipelineHandles() {
         type="green"
         className="top-[417px] left-[325px]"
         onClick={() => {
+          runSetupTrustedSetup();
           updateActiveSection("setup-to-prove");
         }}
         isActive={setupStage.isReady}

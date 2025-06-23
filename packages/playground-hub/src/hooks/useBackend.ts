@@ -35,6 +35,7 @@ export const useBackendCommand = () => {
         console.log("result", result);
         return result;
       } catch (error) {
+        console.log("error", error);
         throw new Error("Failed to execute Docker command:", error);
       }
     },
