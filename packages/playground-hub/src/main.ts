@@ -13,6 +13,8 @@ import path from "node:path";
 import fs from "node:fs";
 import { exec } from "node:child_process";
 import started from "electron-squirrel-startup";
+import fixPath from "fix-path";
+
 import {
   getDockerImages,
   runDockerContainer,

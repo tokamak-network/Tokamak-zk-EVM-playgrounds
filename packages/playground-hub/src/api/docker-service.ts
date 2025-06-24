@@ -1,6 +1,9 @@
 // src/docker-service.ts
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
+import { dialog } from "electron";
+import * as fs from "fs/promises";
+import * as path from "path";
 
 const execAsync = promisify(exec);
 
@@ -39,13 +42,26 @@ export async function checkDockerStatus(
   let isContainerFromImageRunning = false;
 
   try {
-    // The command to check for Docker installation differs between Windows and macOS/Linux, so we branch based on the platform.
-    const checkDockerInstalledCommand =
-      process.platform === "win32" ? "where docker" : "which docker";
-    await execAsync(checkDockerInstalledCommand);
-    isInstalled = true;
+    if (process.platform === "win32") {
+      // On Windows, directly check for docker.exe in the default installation path.
+      // This is more reliable in packaged apps where the PATH environment variable might not be correctly inherited.
+      const dockerPath = path.join(
+        process.env["ProgramFiles"] || "C:\\Program Files",
+        "Docker",
+        "Docker",
+        "resources",
+        "bin",
+        "docker.exe"
+      );
+      await fs.access(dockerPath); // This will throw an error if the file doesn't exist.
+      isInstalled = true;
+    } else {
+      // For macOS and Linux, the 'which' command is generally reliable.
+      await execAsync("which docker");
+      isInstalled = true;
+    }
   } catch (error) {
-    // If the command fails, we assume Docker is not installed.
+    // If the check fails, we assume Docker is not installed.
     return {
       isInstalled: false,
       isRunning: false,
