@@ -39,34 +39,36 @@ export async function checkDockerStatus(
   let isContainerFromImageRunning = false;
 
   try {
-    const { stdout: dockerPath } = await execAsync("which docker");
-    await execAsync("docker info");
+    // The command to check for Docker installation differs between Windows and macOS/Linux, so we branch based on the platform.
+    const checkDockerInstalledCommand =
+      process.platform === "win32" ? "where docker" : "which docker";
+    await execAsync(checkDockerInstalledCommand);
     isInstalled = true;
-    isDaemonRunning = true;
   } catch (error) {
-    // Check if it's a "command not found" type of error for isInstalled
-    // This is a basic check; more robust checks might be needed for different OS/shells
-    if (
-      error.message &&
-      (error.message.includes("command not found") ||
-        error.message.includes("not recognized"))
-    ) {
-      isInstalled = false;
-    } else {
-      // Assume installed, but daemon not running or other error
-      isInstalled = true; // Or false if 'docker info' failing always means not installed in your context
-    }
-    isDaemonRunning = false;
-
-    // If daemon isn't running or Docker isn't installed, no need to check image/container
+    // If the command fails, we assume Docker is not installed.
     return {
-      isInstalled,
-      isRunning: isDaemonRunning,
-      imageExists,
-      isContainerFromImageRunning,
+      isInstalled: false,
+      isRunning: false,
+      imageExists: false,
+      isContainerFromImageRunning: false,
     };
   }
 
+  try {
+    // Check if the Docker daemon is running using the 'docker info' command.
+    await execAsync("docker info");
+    isDaemonRunning = true;
+  } catch (error) {
+    // If the 'docker info' command fails, assume the daemon is not running.
+    return {
+      isInstalled: true, // It's installed, but
+      isRunning: false, // not running
+      imageExists: false,
+      isContainerFromImageRunning: false,
+    };
+  }
+
+  // The following logic is executed only if the Docker daemon is running and a specific image name is provided.
   if (isDaemonRunning && imageNameToCheck) {
     try {
       const allImages = await getDockerImages();
