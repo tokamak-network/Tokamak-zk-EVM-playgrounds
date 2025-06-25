@@ -7,10 +7,17 @@ import { VitePlugin } from "@electron-forge/plugin-vite";
 import { FusesPlugin } from "@electron-forge/plugin-fuses";
 import { FuseV1Options, FuseVersion } from "@electron/fuses";
 
+const isWindows = process.platform === "win32";
+const isMac = process.platform === "darwin";
+
+const iconPath = isWindows
+  ? "src/assets/icons/app-icon.ico"
+  : "src/assets/icons/app-icon.icns";
+
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    icon: "src/assets/icons/app-icon.icns",
+    icon: iconPath,
   },
   rebuildConfig: {},
   makers: [
