@@ -15,6 +15,7 @@ import { DOCKER_NAME } from "../constants";
 
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
+  CompileQAP = "COMPILE_QAP",
   RunSynthesizer = "RUN_SYNTHESIZER",
   ProveTransaction = "PROVE_TRANSACTION",
   SetupTrustedSetup = "SETUP_TRUSTED_SETUP",
@@ -27,7 +28,7 @@ export function useTokamakZkEVMActions() {
   const [provingResult, setProvingResult] = useAtom(provingResultAtom);
   const { runContainer, currentDockerContainer } = useDocker();
   const { parseTONTransfer } = useSynthesizer();
-  const { setup, preProcess, prove, verify } = useBackendCommand();
+  const { compileQAP, setup, preProcess, prove, verify } = useBackendCommand();
   const { setPendingAnimation } = usePipelineAnimation();
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
@@ -41,6 +42,9 @@ export function useTokamakZkEVMActions() {
         switch (actionType) {
           case TokamakActionType.SetupEvmSpec:
             return await runContainer(DOCKER_NAME);
+
+          case TokamakActionType.CompileQAP:
+            return await compileQAP(currentDockerContainer.ID);
 
           case TokamakActionType.RunSynthesizer:
             console.log("currentDockerContainer", currentDockerContainer);
@@ -64,7 +68,8 @@ export function useTokamakZkEVMActions() {
               // setPendingAnimation(false);
               // return await setup(currentDockerContainer.ID);
               // return await setup(currentDockerContainer.ID);
-              return Promise.resolve(true);
+              // return Promise.resolve(true);
+              return await setup(currentDockerContainer.ID);
             }
             throw new Error("currentDockerContainer is not found");
 
@@ -166,6 +171,10 @@ export function useTokamakZkEVMActions() {
     ]
   );
 
+  const runCompileQAP = useCallback(() => {
+    return executeTokamakAction(TokamakActionType.CompileQAP);
+  }, [executeTokamakAction]);
+
   const setupEvmSpec = useCallback(() => {
     return executeTokamakAction(TokamakActionType.SetupEvmSpec);
   }, [executeTokamakAction]);
@@ -191,6 +200,7 @@ export function useTokamakZkEVMActions() {
   }, [executeTokamakAction]);
 
   return {
+    runCompileQAP,
     executeTokamakAction,
     setupEvmSpec,
     runSynthesizer,

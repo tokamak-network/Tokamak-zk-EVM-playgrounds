@@ -1,6 +1,7 @@
 // src/docker-service.ts
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
+import type { WebContents } from "electron";
 
 const execAsync = promisify(exec);
 
@@ -288,26 +289,31 @@ export async function executeCommandInContainer(
   command: string[]
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const args = ["exec", containerId, ...command];
+    const dockerProcess = spawn("docker", ["exec", containerId, ...command]);
 
-    const process = spawn("docker", args);
     let stdout = "";
     let stderr = "";
 
-    process.stdout.on("data", (data) => {
+    dockerProcess.stdout.on("data", (data) => {
       stdout += data.toString();
     });
 
-    process.stderr.on("data", (data) => {
+    dockerProcess.stderr.on("data", (data) => {
       stderr += data.toString();
     });
 
-    process.on("close", (code) => {
+    dockerProcess.on("close", (code) => {
       if (code === 0) {
         resolve(stdout);
       } else {
-        reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
+        reject(
+          new Error(`Command failed with exit code ${code}. Stderr: ${stderr}`)
+        );
       }
+    });
+
+    dockerProcess.on("error", (error) => {
+      reject(new Error(`Failed to start command: ${error.message}`));
     });
   });
 }

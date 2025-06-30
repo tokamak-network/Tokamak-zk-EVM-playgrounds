@@ -172,7 +172,7 @@ export const useDocker = () => {
         throw new Error(errorMessage);
       }
 
-      const options = ["-it", "--rm", "-p", "8080:8080"];
+      const options = ["-i", "--rm", "-p", "8080:8080"];
       setLoading(true);
       setError(null);
       try {

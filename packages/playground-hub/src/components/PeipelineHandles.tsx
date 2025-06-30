@@ -6,6 +6,7 @@ import { usePlaygroundStage } from "../hooks/usePlaygroundStage";
 export default function PeipelineHandles() {
   const { updateActiveSection } = usePipelineAnimation();
   const {
+    runCompileQAP,
     runSynthesizer,
     runProve,
     runPreProcess,
@@ -27,6 +28,7 @@ export default function PeipelineHandles() {
         type="orange"
         className="top-[298px] left-[199px]"
         onClick={() => {
+          runCompileQAP();
           updateActiveSection("qap-to-setup-synthesizer");
         }}
         isActive={qapStage.isReady}

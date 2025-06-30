@@ -20,7 +20,7 @@ export const useSynthesizer = () => {
           "bash",
           "-c",
           `cd packages/frontend/synthesizer/examples/transaction && 
-        tsx index.ts ${RPC_URL} ${transactionHash}`,
+        tsx index.ts ${RPC_URL} ${transactionHash} > /proc/1/fd/1 2>/proc/1/fd/2`,
         ]);
         console.log("result", result);
         return result;
