@@ -63,6 +63,8 @@ export default function CloudWithRain({
         src={cloudImage}
         alt={`cloud-${cloudType}`}
         className="max-w-full max-h-full object-contain z-[100] cursor-pointer"
+        draggable={false}
+        style={{ userSelect: "none" }}
         onClick={() => {
           if (isEVMSpec) {
             return openModal("docker-select");

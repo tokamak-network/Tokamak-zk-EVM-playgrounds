@@ -32,6 +32,7 @@ export default function PipelineBG() {
         src={tank}
         alt="tank"
         className="absolute max-w-full max-h-full object-contain bottom-[12px] right-[27px] z-[1] w-[195px] h-[174px]"
+        draggable={false}
       />
       <Spinner />
 
