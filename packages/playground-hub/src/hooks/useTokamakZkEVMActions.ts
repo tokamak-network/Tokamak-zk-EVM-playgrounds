@@ -55,7 +55,8 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.SetupTrustedSetup:
             if (currentDockerContainer?.ID) {
-              return await setup(currentDockerContainer.ID);
+              return Promise.resolve(true);
+              // return await setup(currentDockerContainer.ID);
             }
             throw new Error("currentDockerContainer is not found");
 

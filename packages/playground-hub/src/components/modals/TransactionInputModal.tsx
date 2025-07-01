@@ -75,28 +75,36 @@ const TransactionInputModal: React.FC = () => {
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
       <div className="relative">
         <div
-          className="absolute w-[18px] h-[18px] top-[20px] left-[372px] cursor-pointer"
+          className="absolute w-[18px] h-[18px] top-[20px] right-[22px] cursor-pointer bg-red-500"
           onClick={onClose}
         ></div>
         <img
           src={TransactionInputModalImage}
           alt={"transaction-input-modal"}
+          draggable={false}
+          style={{ userSelect: "none", pointerEvents: "none" }}
         ></img>
-        <div className="absolute top-[82px] left-[280px]">
+        <div className="absolute top-[82px] right-[30px]">
           <img
             src={isActive ? InputButtonActiveImage : InputButtonInactiveImage}
             className={`${isActive ? "cursor-pointer" : ""}`}
             onClick={inputClose}
+            draggable={false}
+            style={{ userSelect: "none" }}
           />
         </div>
         <input
-          className="absolute w-[238px] h-[40px] left-[30px] top-[82px] bg-transparent border-none outline-none px-[9px]"
+          className="absolute w-[578px] h-[40px] left-[30px] top-[82px] bg-transparent border-none outline-none px-[9px] z-[1] bg-white font-[14px]"
           onChange={handleTransactionChange}
           value={transactionHash}
         ></input>
         {errorMessage && (
           <div className="absolute top-[126px] left-[30px] flex items-center">
-            <img src={WarningIconImage} />
+            <img
+              src={WarningIconImage}
+              draggable={false}
+              style={{ userSelect: "none" }}
+            />
             <span className="text-[#DD140E] text-[14px] ml-[6px] pb-[2px]">
               {errorMessage}
             </span>
