@@ -96,7 +96,8 @@ export function Bubble({
       alt={`bubble-${type}`}
       className={`absolute ${className} `}
       onClick={onClick}
-      style={{ cursor: onClick ? "pointer" : "default" }}
+      draggable={false}
+      style={{ userSelect: "none", cursor: onClick ? "pointer" : "default" }}
     />
   );
 }

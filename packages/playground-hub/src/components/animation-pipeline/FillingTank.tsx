@@ -88,9 +88,10 @@ export default function FillingTank({
           clipPath: clipValue,
           WebkitClipPath: clipValue,
           transition: `clip-path ${animationDuration}ms linear, -webkit-clip-path ${animationDuration}ms linear`,
+          userSelect: "none",
         }}
-        onLoad={() => setImgLoaded(true)}
         draggable={false}
+        onLoad={() => setImgLoaded(true)}
       />
     </div>
   );
