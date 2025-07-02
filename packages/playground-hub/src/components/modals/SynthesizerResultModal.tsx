@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useAtom } from "jotai";
 import { activeModalAtom } from "../../atoms/modals";
 import SynthesizerResultModalImage from "../../assets/modals/synthesizer/synthesizer-result.svg";
+import { useSynthesizerResult } from "../../hooks/useSynthesizerResult";
 
 // Mock data types - you can replace these with actual types later
 type StorageItem = {
@@ -144,55 +145,16 @@ const SynthesizerResultModal: React.FC = () => {
   const [permutationHovered, setPermutationHovered] = useState(false);
   const [placementHovered, setPlacementHovered] = useState(false);
 
-  // Mock data - replace with actual data later
-  const storageLoad: StorageItem[] = [
-    {
-      contractAddress: "0x1234567890abcdef1234567890abcdef12345678",
-      key: "abc123",
-      valueDecimal: "1000",
-      valueHex: "3e8",
-    },
-  ];
-
-  const placementLogs: LogItem[] = [
-    {
-      topics: [
-        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-      ],
-      valueDec:
-        "0x1234567890123456789012345678901234567890123456789012345678901234567890123456",
-      valueHex:
-        "ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-    },
-    {
-      topics: ["0xabcd1234", "0xefgh5678"],
-      valueDec: "2000",
-      valueHex: "7d0",
-    },
-    {
-      topics: ["0xabcd1234efgh5678", "0x9876543210fedcba"],
-      valueDec: "3000",
-      valueHex: "bb8",
-    },
-  ];
-
-  const storageStore: StorageStoreItem[] = [
-    {
-      contractAddress: "0x1234567890abcdef1234567890abcdef12345678",
-      key: "def456",
-      value: "3000",
-      valueHex: "bb8",
-    },
-  ];
-
-  const evmContractAddress = "0x1234567890abcdef1234567890abcdef12345678";
-
-  const serverData: ServerData = {
-    permutation: '{"test": "permutation"}',
-    placementInstance: '{"test": "placement"}',
-  };
+  // Use the custom hook to get synthesizer result data
+  const {
+    storageLoad,
+    placementLogs,
+    storageStore,
+    evmContractAddress,
+    serverData,
+    isLoading,
+    error,
+  } = useSynthesizerResult();
 
   const isOpen = useMemo(
     () => activeModal === "synthesizer-result",
@@ -214,6 +176,9 @@ const SynthesizerResultModal: React.FC = () => {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  //   handleDownload(serverData.permutation, "permutation.json");
+  // handleDownload(serverData.placementInstance, "placement_instance.json");
 
   const renderActiveTab = () => {
     if (activeTab === "storageLoad") {
