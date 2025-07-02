@@ -5,6 +5,7 @@ import DockerModal from "./DockerModal";
 import ExitModal from "./ExitModal";
 import LoadingModal from "./LoadingModal";
 import TransactionInputModal from "./TransactionInputModal";
+import SetupResult from "./SetupResult";
 
 export default function PlaygroundModals() {
   return (
@@ -16,6 +17,7 @@ export default function PlaygroundModals() {
       <LoadingModal />
       <SynthesizerError />
       <SynthesizerResultModal />
+      <SetupResult />
     </>
   );
 }
