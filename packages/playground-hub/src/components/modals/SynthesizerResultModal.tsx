@@ -4,32 +4,6 @@ import { activeModalAtom } from "../../atoms/modals";
 import SynthesizerResultModalImage from "../../assets/modals/synthesizer/synthesizer-result.svg";
 import { useSynthesizerResult } from "../../hooks/useSynthesizerResult";
 
-// Mock data types - you can replace these with actual types later
-type StorageItem = {
-  contractAddress?: string;
-  key: string;
-  valueDecimal?: string;
-  valueHex: string;
-};
-
-type LogItem = {
-  topics?: string[];
-  valueDec?: string;
-  valueHex: string;
-};
-
-type StorageStoreItem = {
-  contractAddress?: string;
-  key: string;
-  value?: string;
-  valueHex: string;
-};
-
-type ServerData = {
-  permutation?: string;
-  placementInstance?: string;
-};
-
 // Helper function - you can move this to utils later
 const add0xPrefix = (value: string): string => {
   if (!value) return "";
