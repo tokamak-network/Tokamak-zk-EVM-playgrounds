@@ -143,6 +143,9 @@ export default function Bubbles() {
         className="absolute top-[255px] left-[661px]"
         isActive={synthesizerStage.isReady}
         isDone={synthesizerStage.isDone}
+        onClick={() => {
+          return openModal("synthesizer-result");
+        }}
       />
       <Bubble
         type="prove"
@@ -161,6 +164,9 @@ export default function Bubbles() {
         className="absolute top-[370px] left-[339px]"
         isActive={setupStage.isReady}
         isDone={setupStage.isDone}
+        onClick={() => {
+          return openModal("setup-result");
+        }}
       />
       <Bubble
         type="bikzg"
