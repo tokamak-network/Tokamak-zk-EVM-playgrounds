@@ -12,7 +12,6 @@ import {
 } from "../../atoms/api";
 import { useDebouncedEtherscanValidation } from "../../hooks/useEtherscanApi";
 import { useDebouncedTxHashValidation } from "../../hooks/useTransaction";
-import { fetchTransactionBytecode } from "../../utils/parseTransaction";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import { usePlaygroundStage } from "../../hooks/usePlaygroundStage";
 import { useResetStage } from "../../hooks/useResetStage";

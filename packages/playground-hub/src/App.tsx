@@ -1,16 +1,10 @@
 import React from "react";
 import { HashRouter, Routes, Route } from "react-router-dom";
-
 import Background from "./components/Background";
 import PipelineBG from "./components/PipelineBG";
 import Logo from "./components/Logo";
-import TransactionInputModal from "./components/modals/TransactionInputModal";
-import ErrorModal from "./components/modals/ErrorModal";
 import Settings from "./pages/Settings";
-import DockerModal from "./components/modals/DockerModal";
-import ExitModal from "./components/modals/ExitModal";
-import LoadingModal from "./components/modals/LoadingModal";
-import SynthesizerError from "./components/modals/SynthesizerError";
+import PlaygroundModals from "./components/modals";
 
 const MainContent = () => {
   return (
@@ -18,12 +12,7 @@ const MainContent = () => {
       <Background />
       <Logo />
       <PipelineBG />
-      <TransactionInputModal />
-      <DockerModal />
-      <ErrorModal />
-      <ExitModal />
-      <LoadingModal />
-      <SynthesizerError />
+      <PlaygroundModals />
     </div>
   );
 };
