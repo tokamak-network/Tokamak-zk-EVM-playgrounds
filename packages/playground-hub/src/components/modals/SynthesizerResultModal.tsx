@@ -24,8 +24,8 @@ const LogCard: React.FC<{
   valueHex,
   summarizeAddress,
 }) => (
-  <div className="space-y-3 text-left">
-    <div>
+  <div className="flex flex-col" style={{ rowGap: "5px" }}>
+    <div className="flex flex-col" style={{ rowGap: "5px" }}>
       <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
         Contract Address:
       </strong>
@@ -35,7 +35,7 @@ const LogCard: React.FC<{
           : contractAddress}
       </span>
     </div>
-    <div>
+    <div className="flex flex-col" style={{ rowGap: "5px" }}>
       <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
         Key:
       </strong>
@@ -43,7 +43,7 @@ const LogCard: React.FC<{
         {keyValue}
       </span>
     </div>
-    <div>
+    <div className="flex flex-col" style={{ rowGap: "5px" }}>
       <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
         Value (Dec):
       </strong>
@@ -51,7 +51,7 @@ const LogCard: React.FC<{
         {valueDecimal}
       </span>
     </div>
-    <div>
+    <div className="flex flex-col" style={{ rowGap: "5px" }}>
       <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
         Value (Hex):
       </strong>
@@ -390,8 +390,8 @@ const SynthesizerResultModal: React.FC = () => {
               setActiveTab={setActiveTab}
             />
             <div
-              className="flex-1 w-full overflow-y-auto border border-t-0 border-[#5f5f5f] bg-[#fafafa] p-4 
-            "
+              className="flex-1 w-full overflow-y-auto border border-t-0 border-[#E5E5E5] bg-[#fafafa] p-4 
+             px-[6px]"
             >
               {renderActiveTab()}
             </div>

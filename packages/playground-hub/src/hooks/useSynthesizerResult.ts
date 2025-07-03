@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { useDocker } from "./useDocker";
 import { transactionHashAtom } from "../atoms/api";
@@ -42,16 +42,78 @@ export type SynthesizerResultData = {
 export const useSynthesizerResult = (): SynthesizerResultData => {
   const transactionHash = useAtomValue(transactionHashAtom);
   const { executeCommand, currentDockerContainer } = useDocker();
+  // const [data, setData] = useState<SynthesizerResultData>({
+  //   storageLoad: [],
+  //   placementLogs: [],
+  //   storageStore: [],
+  //   evmContractAddress: "",
+  //   serverData: null,
+  // })
 
-  const [data, setData] = useState<SynthesizerResultData>({
-    storageLoad: [],
-    placementLogs: [],
-    storageStore: [],
-    evmContractAddress: "",
-    serverData: null,
+  // Mock data for design testing
+  const mockData: SynthesizerResultData = {
+    storageLoad: [
+      {
+        contractAddress: "0x1234567890123456789012345678901234567890",
+        key: "0x0000000000000000000000000000000000000000000000000000000000000001",
+        valueDecimal: "100",
+        valueHex: "0x64",
+      },
+      {
+        contractAddress: "0x1234567890123456789012345678901234567890",
+        key: "0x0000000000000000000000000000000000000000000000000000000000000002",
+        valueDecimal: "200",
+        valueHex: "0xc8",
+      },
+      {
+        contractAddress: "0x1234567890123456789012345678901234567890",
+        key: "0x0000000000000000000000000000000000000000000000000000000000000003",
+        valueDecimal: "300",
+        valueHex: "0x12c",
+      },
+    ],
+    placementLogs: [
+      {
+        topics: [
+          "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        ],
+        valueDec: "1000",
+        valueHex: "0x3e8",
+      },
+      {
+        topics: [
+          "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+          "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+        ],
+        valueDec: "2000",
+        valueHex: "0x7d0",
+      },
+    ],
+    storageStore: [
+      {
+        contractAddress: "0x1234567890123456789012345678901234567890",
+        key: "0x0000000000000000000000000000000000000000000000000000000000000001",
+        value: "150",
+        valueHex: "0x96",
+      },
+      {
+        contractAddress: "0x1234567890123456789012345678901234567890",
+        key: "0x0000000000000000000000000000000000000000000000000000000000000002",
+        value: "250",
+        valueHex: "0xfa",
+      },
+    ],
+    evmContractAddress: "0x1234567890123456789012345678901234567890",
+    serverData: {
+      permutation: '{"example": "permutation data", "values": [1, 2, 3, 4, 5]}',
+      placementInstance:
+        '{"instance": "placement instance", "data": {"key": "value"}}',
+    },
     isLoading: false,
     error: null,
-  });
+  };
+
+  const [data, setData] = useState<SynthesizerResultData>(mockData);
 
   // Helper function to safely convert BigInts to strings (same as server)
   const convertBigIntsToStrings = (obj: unknown) => {
@@ -225,11 +287,12 @@ export const useSynthesizerResult = (): SynthesizerResultData => {
   }, [currentDockerContainer, transactionHash, executeCommand]);
 
   // Auto-fetch when container and transaction hash are available
-  useEffect(() => {
-    if (currentDockerContainer?.ID && transactionHash) {
-      fetchSynthesizerResult();
-    }
-  }, [currentDockerContainer?.ID, transactionHash, fetchSynthesizerResult]);
+  // Commented out for mock data testing
+  // useEffect(() => {
+  //   if (currentDockerContainer?.ID && transactionHash) {
+  //     fetchSynthesizerResult();
+  //   }
+  // }, [currentDockerContainer?.ID, transactionHash, fetchSynthesizerResult]);
 
   return {
     ...data,
