@@ -93,9 +93,10 @@ const TransactionInputModal: React.FC = () => {
           />
         </div>
         <input
-          className="absolute w-[578px] h-[40px] left-[30px] top-[82px] bg-transparent border-none outline-none px-[9px] z-[1] bg-white font-[14px]"
+          className="absolute w-[578px] h-[40px] left-[30px] top-[82px] bg-transparent border-none outline-none px-[9px] z-[1] bg-white font-[14px] placeholder:text-[14px]"
           onChange={handleTransactionChange}
           value={transactionHash}
+          placeholder="Enter transaction ID"
         ></input>
         {errorMessage && (
           <div className="absolute top-[126px] left-[30px] flex items-center">
