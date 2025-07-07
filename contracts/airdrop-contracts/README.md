@@ -196,15 +196,6 @@ The contract emits the following events:
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Audit Status
-
-⚠️ **This contract has not been audited. Use at your own risk.**
-
-Before deploying to mainnet:
-1. Conduct a professional security audit
-2. Test thoroughly on testnet
-3. Consider a bug bounty program
-4. Implement monitoring and emergency pause mechanisms
 
 ## Support
 
