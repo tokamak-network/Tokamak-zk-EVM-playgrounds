@@ -99,7 +99,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
     /**
      * @dev Verify proofs and transfer tokens to all eligible users who haven't been rewarded
      */
-    function verifyAndRewardAll() external nonReentrant onlyOwner {
+    function rewardAll() external nonReentrant onlyOwner {
         require(eligibleUsers.length > 0, "No eligible users");
         require(!airdropCompleted, "Airdrop event completed");
 
@@ -145,7 +145,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
      * @dev Verify proof and transfer tokens for a specific user
      * @param user The eligible user
      */
-    function verifyAndRewardSingle(address user) external nonReentrant onlyOwner {
+    function rewardSingle(address user) external nonReentrant onlyOwner {
         require(eligibleUser[user].snsId != bytes32(0), "User not eligible");
         require(!eligibleUser[user].hasBeenRewarded, "Already rewarded");
         require(wton.balanceOf(address(this)) >= eligibleUser[user].amountGranted, "Insufficient tokens in contract");
