@@ -9,6 +9,7 @@ import {IVerifier} from "./interface/IVerifier.sol";
 contract Airdrop is Ownable, ReentrancyGuard {
     struct UserInfo {
         bytes32 snsId;
+        bytes32 proofHash;
         uint256 amountGranted;
         bool isProofValid;
         bool hasBeenRewarded;
@@ -17,8 +18,11 @@ contract Airdrop is Ownable, ReentrancyGuard {
     struct Proof {
         uint128[] proof_part1;
         uint256[] proof_part2;
-        uint256[] publicInputs;
-        uint256 smax;
+    }
+
+    struct Preprocessed {
+        uint128[] preprocessedPart1;
+        uint256[] preprocessedPart2;
     }
 
     // wton token
@@ -29,6 +33,9 @@ contract Airdrop is Ownable, ReentrancyGuard {
 
     mapping(address => UserInfo) public eligibleUser;
     address[] public eligibleUsers;
+    uint256 public totalUserRewarded;
+    uint256 public totalAmountDistributed;
+    uint256 public smax;
 
     uint256 public constant MAXIMUM_PARTICIPANTS = 50;
 
@@ -40,6 +47,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
     event VerifierUpdated(address indexed newVerifier);
     event WinnerListUpdated(uint256 numberOfWinners);
     event BatchRewardCompleted(uint256 successfulRewards, uint256 totalRewardAmount);
+    event SmaxUpdated(uint256 newSmax);
 
     constructor(address _wton, address _verifier) Ownable(msg.sender) {
         require(_wton != address(0), "Invalid token address");
@@ -48,33 +56,48 @@ contract Airdrop is Ownable, ReentrancyGuard {
         wton = IERC20(_wton);
         verifier = IVerifier(_verifier);
         airdropCompleted = false;
+        smax = 64;
     }
 
     function inputWinnerList(
         address[] calldata users,
         bytes32[] calldata snsIds,
         Proof[] calldata proofs,
-        uint256[] calldata amountsGranted
+        Preprocessed calldata preprocessed,
+        uint256[] calldata publicInputs,
+        uint256[] calldata amountsGranted,
+        bytes32[] calldata proofHashes
     ) external onlyOwner {
         require(users.length == snsIds.length, "Users and SNS IDs length mismatch");
         require(users.length == proofs.length, "Users and proofs length mismatch");
         require(users.length == amountsGranted.length, "Users and amounts length mismatch");
+        require(users.length == proofHashes.length, "Users and proof hashes lengh mismatch");
         require(users.length > 0, "Empty arrays not allowed");
         require(!airdropCompleted, "Airdrop event completed");
 
         for (uint256 i = 0; i < users.length; i++) {
             require(users[i] != address(0), "Invalid user address");
             require(snsIds[i] != bytes32(0), "Invalid SNS ID");
-            require(amountsGranted[i] <= 100 * 10 ** 27, "max granted amount per user reached");
+            require(amountsGranted[i] <= 100 * 10 ** 27, "max granted amount per user exceeded");
 
             // Check if user is already in the list
             require(eligibleUser[users[i]].snsId == bytes32(0), "User already exists");
 
             // Store user information
 
-            if (verifier.verify(proofs[i].proof_part1, proofs[i].proof_part2, proofs[i].publicInputs, proofs[i].smax)) {
+            if (
+                verifier.verify(
+                    proofs[i].proof_part1,
+                    proofs[i].proof_part2,
+                    preprocessed.preprocessedPart1,
+                    preprocessed.preprocessedPart2,
+                    publicInputs,
+                    smax
+                )
+            ) {
                 eligibleUser[users[i]] = UserInfo({
                     snsId: snsIds[i],
+                    proofHash: proofHashes[i],
                     hasBeenRewarded: false,
                     amountGranted: amountsGranted[i],
                     isProofValid: true
@@ -82,6 +105,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
             } else {
                 eligibleUser[users[i]] = UserInfo({
                     snsId: snsIds[i],
+                    proofHash: proofHashes[i],
                     hasBeenRewarded: false,
                     amountGranted: amountsGranted[i],
                     isProofValid: false
@@ -90,7 +114,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
 
             // array for iteration
             eligibleUsers.push(users[i]);
-            require(eligibleUsers.length <= MAXIMUM_PARTICIPANTS, "maximum number of participants reached");
+            require(eligibleUsers.length <= MAXIMUM_PARTICIPANTS, "maximum number of participants exceeded");
         }
 
         emit WinnerListUpdated(users.length);
@@ -142,23 +166,28 @@ contract Airdrop is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev Verify proof and transfer tokens for a specific user
-     * @param user The eligible user
+     * @dev update granted amount for specific users
      */
-    function rewardSingle(address user) external nonReentrant onlyOwner {
-        require(eligibleUser[user].snsId != bytes32(0), "User not eligible");
-        require(!eligibleUser[user].hasBeenRewarded, "Already rewarded");
-        require(wton.balanceOf(address(this)) >= eligibleUser[user].amountGranted, "Insufficient tokens in contract");
-        require(!airdropCompleted, "Airdrop event completed");
-        require(eligibleUser[user].isProofValid, "user provided a wrong proof");
+    function updateGrantedAmount(address[] calldata users, uint256[] calldata amountsGranted) external onlyOwner {
+        require(users.length == amountsGranted.length, "Users and amounts length mismatch");
+        require(users.length > 0, "Empty arrays not allowed");
+        require(!airdropCompleted, "Airdrop already completed");
 
-        // Mark as rewarded
-        eligibleUser[user].hasBeenRewarded = true;
+        for (uint256 i = 0; i < users.length; i++) {
+            // Check if user exists
+            require(eligibleUser[users[i]].snsId != bytes32(0), "User not found");
 
-        // Transfer tokens
-        require(wton.transfer(user, eligibleUser[user].amountGranted), "Token transfer failed");
+            // Check if user hasn't been rewarded yet
+            require(!eligibleUser[users[i]].hasBeenRewarded, "User already rewarded");
 
-        emit UserRewarded(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
+            // Check new amount doesn't exceed maximum
+            require(amountsGranted[i] <= 100 * 10 ** 27, "max granted amount per user reached");
+
+            // Update the granted amount
+            eligibleUser[users[i]].amountGranted = amountsGranted[i];
+        }
+
+        emit WinnerListUpdated(users.length);
     }
 
     // emergency functions
@@ -185,6 +214,11 @@ contract Airdrop is Ownable, ReentrancyGuard {
      */
     function completeAirdrop() external onlyOwner {
         airdropCompleted = true;
+    }
+
+    function setSmax(uint256 _smax) external onlyOwner {
+        smax = _smax;
+        emit SmaxUpdated(_smax);
     }
 
     /**
