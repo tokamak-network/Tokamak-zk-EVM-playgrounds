@@ -9,9 +9,9 @@ import {IVerifier} from "./interface/IVerifier.sol";
 contract Airdrop is Ownable, ReentrancyGuard {
     struct UserInfo {
         bytes32 snsId;
-        Proof proof;
-        bool hasBeenRewarded;
         uint256 amountGranted;
+        bool isPoofValid;
+        bool hasBeenRewarded;
     }
 
     struct Proof {
@@ -71,8 +71,22 @@ contract Airdrop is Ownable, ReentrancyGuard {
             require(eligibleUser[users[i]].snsId == bytes32(0), "User already exists");
 
             // Store user information
-            eligibleUser[users[i]] =
-                UserInfo({snsId: snsIds[i], proof: proofs[i], hasBeenRewarded: false, amountGranted: amountsGranted[i]});
+
+            if (verifier.verify(proofs[i].proof_part1, proofs[i].proof_part2, proofs[i].publicInputs, proofs[i].smax)) {
+                eligibleUser[users[i]] = UserInfo({
+                    snsId: snsIds[i],
+                    hasBeenRewarded: false,
+                    amountGranted: amountsGranted[i],
+                    isPoofValid: true
+                });
+            } else {
+                eligibleUser[users[i]] = UserInfo({
+                    snsId: snsIds[i],
+                    hasBeenRewarded: false,
+                    amountGranted: amountsGranted[i],
+                    isPoofValid: false
+                });
+            }
 
             // array for iteration
             eligibleUsers.push(users[i]);
@@ -100,33 +114,30 @@ contract Airdrop is Ownable, ReentrancyGuard {
                 continue;
             }
 
+            // Skip users associated with a wrong proof
+            if (!eligibleUser[user].isPoofValid) {
+                emit WrongProofProvided(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
+                continue;
+            }
+
             // Check if contract has enough tokens for this reward
             if (wton.balanceOf(address(this)) < eligibleUser[user].amountGranted) {
                 break; // Stop if insufficient tokens
             }
 
-            Proof memory userProof = eligibleUser[user].proof;
-
-            // Verify the proof
-            bool isValidProof =
-                verifier.verify(userProof.proof_part1, userProof.proof_part2, userProof.publicInputs, userProof.smax);
-
             // Mark as rewarded
             eligibleUser[user].hasBeenRewarded = true;
 
-            if (isValidProof) {
-                successfulRewards++;
-                totalRewardAmount += eligibleUser[user].amountGranted;
+            successfulRewards++;
+            totalRewardAmount += eligibleUser[user].amountGranted;
 
-                // Transfer tokens
-                require(wton.transfer(user, eligibleUser[user].amountGranted), "Token transfer failed");
+            // Transfer tokens
+            require(wton.transfer(user, eligibleUser[user].amountGranted), "Token transfer failed");
 
-                emit UserRewarded(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
-            } else {
-                emit WrongProofProvided(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
-            }
+            emit UserRewarded(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
         }
 
+        airdropCompleted = true;
         emit BatchRewardCompleted(successfulRewards, totalRewardAmount);
     }
 
@@ -139,13 +150,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
         require(!eligibleUser[user].hasBeenRewarded, "Already rewarded");
         require(wton.balanceOf(address(this)) >= eligibleUser[user].amountGranted, "Insufficient tokens in contract");
         require(!airdropCompleted, "Airdrop event completed");
-
-        Proof memory userProof = eligibleUser[user].proof;
-
-        require(
-            verifier.verify(userProof.proof_part1, userProof.proof_part2, userProof.publicInputs, userProof.smax),
-            "Invalid proof"
-        );
+        require(eligibleUser[user].isPoofValid, "user provided a wrong proof");
 
         // Mark as rewarded
         eligibleUser[user].hasBeenRewarded = true;
@@ -190,22 +195,6 @@ contract Airdrop is Ownable, ReentrancyGuard {
         uint256 balance = wton.balanceOf(address(this));
         require(balance > 0, "No tokens to withdraw");
         require(wton.transfer(owner(), balance), "Token transfer failed");
-    }
-
-    /**
-     * @dev function to check if proof verification might fail
-     */
-    function testProofVerification(address user) external view returns (bool) {
-        require(eligibleUser[user].snsId != bytes32(0), "User not eligible");
-
-        Proof memory userProof = eligibleUser[user].proof;
-
-        try verifier.verify(userProof.proof_part1, userProof.proof_part2, userProof.publicInputs, userProof.smax)
-        returns (bool result) {
-            return result;
-        } catch {
-            return false;
-        }
     }
 
     /**
