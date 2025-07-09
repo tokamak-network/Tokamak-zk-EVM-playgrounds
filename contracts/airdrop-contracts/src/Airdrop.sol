@@ -10,7 +10,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
     struct UserInfo {
         bytes32 snsId;
         uint256 amountGranted;
-        bool isPoofValid;
+        bool isProofValid;
         bool hasBeenRewarded;
     }
 
@@ -77,14 +77,14 @@ contract Airdrop is Ownable, ReentrancyGuard {
                     snsId: snsIds[i],
                     hasBeenRewarded: false,
                     amountGranted: amountsGranted[i],
-                    isPoofValid: true
+                    isProofValid: true
                 });
             } else {
                 eligibleUser[users[i]] = UserInfo({
                     snsId: snsIds[i],
                     hasBeenRewarded: false,
                     amountGranted: amountsGranted[i],
-                    isPoofValid: false
+                    isProofValid: false
                 });
             }
 
@@ -115,7 +115,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
             }
 
             // Skip users associated with a wrong proof
-            if (!eligibleUser[user].isPoofValid) {
+            if (!eligibleUser[user].isProofValid) {
                 emit WrongProofProvided(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
                 continue;
             }
@@ -150,7 +150,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
         require(!eligibleUser[user].hasBeenRewarded, "Already rewarded");
         require(wton.balanceOf(address(this)) >= eligibleUser[user].amountGranted, "Insufficient tokens in contract");
         require(!airdropCompleted, "Airdrop event completed");
-        require(eligibleUser[user].isPoofValid, "user provided a wrong proof");
+        require(eligibleUser[user].isProofValid, "user provided a wrong proof");
 
         // Mark as rewarded
         eligibleUser[user].hasBeenRewarded = true;

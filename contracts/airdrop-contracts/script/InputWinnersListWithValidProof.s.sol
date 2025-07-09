@@ -6,7 +6,7 @@ import {Airdrop} from "../src/Airdrop.sol";
 
 contract InputWinnersListWithValidProof is Script {
     // Deployed Airdrop contract address
-    address constant AIRDROP_CONTRACT = 0x9F243180CCd5FeBf2c01fA9279D76a70Cf7Ee80d;
+    address constant AIRDROP_CONTRACT = 0xE411B62a7A1D5b465ce7ae8e2437537928907937;
 
     // WTON has 27 decimals
     uint256 constant WTON_DECIMALS = 27;
