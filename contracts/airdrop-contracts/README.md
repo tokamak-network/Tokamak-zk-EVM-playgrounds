@@ -38,9 +38,9 @@ The Airdrop contract enables administrators to distribute tokens to a whitelist 
    ```solidity
    struct UserInfo {
        bytes32 snsId;          // User's SNS identifier
-       Proof proof;            // Zero-knowledge proof
-       bool hasBeenRewarded;   // Claim status
        uint256 amountGranted;  // Token amount to receive
+       bool isValidProof;      // Zero-knowledge proof
+       bool hasBeenRewarded;   // Claim status
    }
    ```
 
