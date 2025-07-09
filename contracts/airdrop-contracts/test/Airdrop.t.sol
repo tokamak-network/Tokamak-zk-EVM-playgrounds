@@ -29,12 +29,17 @@ contract AirdropTest is Test {
     bytes32 public bobSnsId = keccak256("bob456");
     bytes32 public charlieSnsId = keccak256("charlie789");
 
+    bytes32 public dummyProofHash = keccak256("proofHash");
+
     uint128[] public serializedProofPart1;
     uint256[] public serializedProofPart2;
+    uint128[] public preprocessedPart1;
+    uint256[] public preprocessedPart2;
     uint256[] public publicInputs;
     uint256 public smax;
 
-    Airdrop.Proof public validProof;
+    Airdrop.Proof validProof;
+    Airdrop.Preprocessed validPreprocessed;
 
     event UserRewarded(address indexed user, bytes32 snsId, uint256 amount);
     event WrongProofProvided(address indexed user, bytes32 snsId, uint256 amount);
@@ -56,9 +61,12 @@ contract AirdropTest is Test {
         // Setup valid proof
         validProof = Airdrop.Proof({
             proof_part1: serializedProofPart1,
-            proof_part2: serializedProofPart2,
-            publicInputs: publicInputs,
-            smax: smax
+            proof_part2: serializedProofPart2
+        });
+
+        validPreprocessed = Airdrop.Preprocessed({
+            preprocessedPart1: preprocessedPart1,
+            preprocessedPart2: preprocessedPart2
         });
 
         // Fund airdrop contract
@@ -97,123 +105,48 @@ contract AirdropTest is Test {
         proofs[0] = validProof;
         proofs[1] = validProof;
 
+        bytes32[] memory proofHashes = new bytes32[](2);
+        proofHashes[0] = dummyProofHash;
+        proofHashes[1] = dummyProofHash;
+
         uint256[] memory amounts = new uint256[](2);
-        amounts[0] = 100 * 10 ** 18;
-        amounts[1] = 100 * 10 ** 18;
+        amounts[0] = 100 * 10 ** 27;
+        amounts[1] = 100 * 10 ** 27;
 
         vm.expectEmit(true, true, true, true);
         emit WinnerListUpdated(2);
 
-        airdrop.inputWinnerList(users, snsIds, proofs, amounts);
+        airdrop.inputWinnerList(users, snsIds, proofs, validPreprocessed, publicInputs, amounts, proofHashes);
 
         // Verify data
-        (bytes32 snsId, uint256 amountGranted, bool isValidProof , bool hasBeenRewarded) = airdrop.eligibleUser(alice);
+        (bytes32 snsId,, uint256 amountGranted, bool isValidProof, bool hasBeenRewarded) = airdrop.eligibleUser(alice);
         assertEq(snsId, aliceSnsId);
         assertFalse(hasBeenRewarded);
         assertTrue(isValidProof);
-        assertEq(amountGranted, 100 * 10 ** 18);
+        assertEq(amountGranted, 100 * 10 ** 27);
 
         assertEq(airdrop.getEligibleUsersCount(), 2);
         assertEq(airdrop.getEligibleUserByIndex(0), alice);
     }
 
-/*
-    function testInputWinnerListReverts() public {
-        address[] memory users = new address[](2);
-        bytes32[] memory snsIds = new bytes32[](1);
-        Airdrop.Proof[] memory proofs = new Airdrop.Proof[](2);
-        uint256[] memory amounts = new uint256[](2);
-
-        // Length mismatch
-        vm.expectRevert("Users and SNS IDs length mismatch");
-        airdrop.inputWinnerList(users, snsIds, proofs, amounts);
-
-        // Empty arrays
-        address[] memory emptyUsers = new address[](0);
-        bytes32[] memory emptySnsIds = new bytes32[](0);
-        Airdrop.Proof[] memory emptyProofs = new Airdrop.Proof[](0);
-        uint256[] memory emptyAmounts = new uint256[](0);
-
-        vm.expectRevert("Empty arrays not allowed");
-        airdrop.inputWinnerList(emptyUsers, emptySnsIds, emptyProofs, emptyAmounts);
-
-        // Invalid user address
-        users[0] = address(0);
-        users[1] = alice;
-        snsIds = new bytes32[](2);
-        snsIds[0] = aliceSnsId;
-        snsIds[1] = bobSnsId;
-
-        vm.expectRevert("Invalid user address");
-        airdrop.inputWinnerList(users, snsIds, proofs, amounts);
-
-        // Invalid SNS ID
-        users[0] = alice;
-        snsIds[0] = bytes32(0);
-
-        vm.expectRevert("Invalid SNS ID");
-        airdrop.inputWinnerList(users, snsIds, proofs, amounts);
-
-        // Duplicate user
-        users[0] = alice;
-        users[1] = alice;
-        snsIds[0] = aliceSnsId;
-        snsIds[1] = aliceSnsId;
-        proofs[0] = validProof;
-        proofs[1] = validProof;
-
-        vm.expectRevert("User already exists");
-        airdrop.inputWinnerList(users, snsIds, proofs, amounts);
-    }
-*/
     function testMaximumParticipants() public {
         address[] memory users = new address[](101);
         bytes32[] memory snsIds = new bytes32[](101);
         Airdrop.Proof[] memory proofs = new Airdrop.Proof[](101);
+        bytes32[] memory proofHashes = new bytes32[](101);
         uint256[] memory amounts = new uint256[](101);
 
         for (uint256 i = 0; i < 51; i++) {
             users[i] = address(uint160(i + 1));
             snsIds[i] = keccak256(abi.encodePacked(i));
             proofs[i] = validProof;
+            proofHashes[i] = dummyProofHash;
+
             amounts[i] = 100 * 10 ** 27;
         }
 
-        vm.expectRevert("maximum number of participants reached");
-        airdrop.inputWinnerList(users, snsIds, proofs, amounts);
-    }
-
-    // Test rewardSingle
-    function testrewardSingle() public {
-        // Setup eligible user
-        _setupSingleUser(alice, aliceSnsId, 100 * 10 ** 27);
-
-        vm.expectEmit(true, true, true, true);
-        emit UserRewarded(alice, aliceSnsId, 100 * 10 ** 27);
-
-        airdrop.rewardSingle(alice);
-
-        // Check state
-        (,, bool rewarded,) = airdrop.eligibleUser(alice);
-        assertTrue(rewarded);
-        assertEq(wton.balanceOf(alice), 100 * 10 ** 27);
-    }
-
-    function testrewardSingleReverts() public {
-        // User not eligible
-        vm.expectRevert("User not eligible");
-        airdrop.rewardSingle(alice);
-
-        // Already rewarded
-        _setupSingleUser(alice, aliceSnsId, 100 * 10 ** 27);
-        airdrop.rewardSingle(alice);
-
-        vm.expectRevert("Already rewarded");
-        airdrop.rewardSingle(alice);
-
-        // Insufficient tokens
-        vm.expectRevert("max granted amount per user reached");
-        _setupSingleUser(bob, bobSnsId, 1000000 * 10 ** 27);
+        vm.expectRevert("maximum number of participants exceeded");
+        airdrop.inputWinnerList(users, snsIds, proofs, validPreprocessed, publicInputs, amounts, proofHashes);
     }
 
     // Test rewardAll
@@ -234,25 +167,10 @@ contract AirdropTest is Test {
         assertEq(wton.balanceOf(bob), 100 * 10 ** 27);
 
         // Check states
-        (,, bool aliceRewarded,) = airdrop.eligibleUser(alice);
-        (,, bool bobRewarded,) = airdrop.eligibleUser(bob);
+        (,,, bool aliceRewarded,) = airdrop.eligibleUser(alice);
+        (,,, bool bobRewarded,) = airdrop.eligibleUser(bob);
         assertTrue(aliceRewarded);
         assertTrue(bobRewarded);
-    }
-
-    function testrewardAllSkipsRewarded() public {
-        _setupMultipleUsers();
-
-        // Reward alice first
-        airdrop.rewardSingle(alice);
-
-        // Call rewardAll
-        vm.expectEmit(true, true, true, true);
-        emit UserRewarded(bob, bobSnsId, 100 * 10 ** 27);
-        vm.expectEmit(true, true, true, true);
-        emit BatchRewardCompleted(1, 100 * 10 ** 27);
-
-        airdrop.rewardAll();
     }
 
     // Test removeUser
@@ -262,7 +180,7 @@ contract AirdropTest is Test {
         airdrop.removeUser(alice);
 
         // Check user is removed
-        (bytes32 snsId,,,) = airdrop.eligibleUser(alice);
+        (bytes32 snsId,,,,) = airdrop.eligibleUser(alice);
         assertEq(snsId, bytes32(0));
         assertEq(airdrop.getEligibleUsersCount(), 1);
         assertEq(airdrop.getEligibleUserByIndex(0), bob);
@@ -275,14 +193,7 @@ contract AirdropTest is Test {
 
         // User already rewarded
         _setupSingleUser(alice, aliceSnsId, 100 * 10 ** 18);
-        airdrop.rewardSingle(alice);
-
-        vm.expectRevert("User already rewarded");
-        airdrop.removeUser(alice);
-
-        // Airdrop completed
-        _setupSingleUser(bob, bobSnsId, 100 * 10 ** 18);
-        airdrop.completeAirdrop();
+        airdrop.rewardAll();
 
         vm.expectRevert("Airdrop already completed");
         airdrop.removeUser(bob);
@@ -308,13 +219,15 @@ contract AirdropTest is Test {
         proofs[0] = validProof;
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 100 * 10 ** 18;
+        bytes32[] memory proofHashes = new bytes32[](1);
+        proofHashes[0] = dummyProofHash;
 
         vm.expectRevert("Airdrop event completed");
-        airdrop.inputWinnerList(users, snsIds, proofs, amounts);
+        airdrop.inputWinnerList(users, snsIds, proofs, validPreprocessed, publicInputs, amounts, proofHashes);
 
         // Cannot verify and reward
         vm.expectRevert("Airdrop event completed");
-        airdrop.rewardSingle(alice);
+        airdrop.rewardAll();
 
         vm.expectRevert("Airdrop event completed");
         airdrop.rewardAll();
@@ -323,7 +236,7 @@ contract AirdropTest is Test {
     // Test withdraw remaining tokens
     function testWithdrawRemainingTokens() public {
         _setupSingleUser(alice, aliceSnsId, 100 * 10 ** 18);
-        airdrop.rewardSingle(alice);
+        airdrop.rewardAll();
 
         uint256 remainingBalance = wton.balanceOf(address(airdrop));
         uint256 ownerBalanceBefore = wton.balanceOf(owner);
@@ -359,12 +272,12 @@ contract AirdropTest is Test {
         assertEq(rewarded, 0);
         assertEq(pending, 2);
 
-        airdrop.rewardSingle(alice);
+        airdrop.rewardAll();
 
         (total, rewarded, pending) = airdrop.getRewardStats();
         assertEq(total, 2);
-        assertEq(rewarded, 1);
-        assertEq(pending, 1);
+        assertEq(rewarded, 2);
+        assertEq(pending, 0);
     }
 
     function testGetContractBalance() public view {
@@ -379,13 +292,16 @@ contract AirdropTest is Test {
         bytes32[] memory snsIds = new bytes32[](1);
         snsIds[0] = snsId;
 
+        bytes32[] memory proofHashes = new bytes32[](1);
+        proofHashes[0] = dummyProofHash;
+
         Airdrop.Proof[] memory proofs = new Airdrop.Proof[](1);
         proofs[0] = validProof;
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
-        airdrop.inputWinnerList(users, snsIds, proofs, amounts);
+        airdrop.inputWinnerList(users, snsIds, proofs, validPreprocessed, publicInputs, amounts, proofHashes);
     }
 
     function _setupMultipleUsers() private {
@@ -397,6 +313,10 @@ contract AirdropTest is Test {
         snsIds[0] = aliceSnsId;
         snsIds[1] = bobSnsId;
 
+        bytes32[] memory proofHashes = new bytes32[](2);
+        proofHashes[0] = dummyProofHash;
+        proofHashes[1] = dummyProofHash;
+
         Airdrop.Proof[] memory proofs = new Airdrop.Proof[](2);
         proofs[0] = validProof;
         proofs[1] = validProof;
@@ -405,18 +325,29 @@ contract AirdropTest is Test {
         amounts[0] = 100 * 10 ** 27;
         amounts[1] = 100 * 10 ** 27;
 
-        airdrop.inputWinnerList(users, snsIds, proofs, amounts);
+        airdrop.inputWinnerList(users, snsIds, proofs, validPreprocessed, publicInputs, amounts, proofHashes);
     }
 
     function _initializeValidProofData() internal {
         // serializedProofPart1: First 16 bytes (32 hex chars) of each coordinate
         // serializedProofPart2: Last 32 bytes (64 hex chars) of each coordinate
+        // preprocessedPart1: First 16 bytes (32 hex chars) of each preprocessed committment coordinate
+        // preprocessedPart2: last 32 bytes (64 hex chars) of each preprocessed committment coordinate
+        
+        // PREPROCESSED PART 1 (First 16 bytes - 32 hex chars)
+        preprocessedPart1.push(0x0d8838cc826baa7ccd8cfe0692e8a13d); // s^{(0)}(x,y)_X
+        preprocessedPart1.push(0x103aeb959c53fdd5f13b70a350363881); // s^{(0)}(x,y)_Y
+        preprocessedPart1.push(0x09f0f94fd2dc8976bfeab5da30e1fa04); // s^{(1)}(x,y)_X
+        preprocessedPart1.push(0x17cb62f5e698fe087b0f334e2fb2439c); // s^{(1)}(x,y)_Y
+
+        // PREPROCESSED PART 2 (Last 32 bytes - 64 hex chars)
+        preprocessedPart2.push(0xbbae56c781b300594dac0753e75154a00b83cc4e6849ef3f07bb56610a02c828); // s^{(0)}(x,y)_X
+        preprocessedPart2.push(0xf3447285889202e7e24cd08a058a758a76ee4c8440131be202ad8bc0cc91ee70); // s^{(0)}(x,y)_Y
+        preprocessedPart2.push(0x76e577ad778dc4476b10709945e71e289be5ca05c412ca04c133c485ae8bc757); // s^{(1)}(x,y)_X
+        preprocessedPart2.push(0x7ada41cb993109dc7c194693dbcc461f8512755054966319bcbdea3a1da86938); // s^{(1)}(x,y)_Y
+
 
         // SERIALIZED PROOF PART 1 (First 16 bytes - 32 hex chars)
-        serializedProofPart1.push(0x0d8838cc826baa7ccd8cfe0692e8a13d); // s^{(0)}(x,y)_X
-        serializedProofPart1.push(0x103aeb959c53fdd5f13b70a350363881); // s^{(0)}(x,y)_Y
-        serializedProofPart1.push(0x09f0f94fd2dc8976bfeab5da30e1fa04); // s^{(1)}(x,y)_X
-        serializedProofPart1.push(0x17cb62f5e698fe087b0f334e2fb2439c); // s^{(1)}(x,y)_Y
         serializedProofPart1.push(0x05b4f308ff641adb31b740431cee5d70); // U_X
         serializedProofPart1.push(0x12ae9a8d3ec9c65c98664e311e634d64); // U_Y
         serializedProofPart1.push(0x08e6d6c1e6691e932692e3942a6cbef7); // V_X
@@ -457,10 +388,6 @@ contract AirdropTest is Test {
         serializedProofPart1.push(0x104de32201c5ba649cc17df4cf759a1f); // A_Y
 
         // SERIALIZED PROOF PART 2 (Last 32 bytes - 64 hex chars)
-        serializedProofPart2.push(0xbbae56c781b300594dac0753e75154a00b83cc4e6849ef3f07bb56610a02c828); // s^{(0)}(x,y)_X
-        serializedProofPart2.push(0xf3447285889202e7e24cd08a058a758a76ee4c8440131be202ad8bc0cc91ee70); // s^{(0)}(x,y)_Y
-        serializedProofPart2.push(0x76e577ad778dc4476b10709945e71e289be5ca05c412ca04c133c485ae8bc757); // s^{(1)}(x,y)_X
-        serializedProofPart2.push(0x7ada41cb993109dc7c194693dbcc461f8512755054966319bcbdea3a1da86938); // s^{(1)}(x,y)_Y
         serializedProofPart2.push(0x12f31df6476c99289584549ae13292a824df5e10f546a9659d08479cf55b3bb2); // U_X
         serializedProofPart2.push(0xd28e43565c5c0a0b6d625a4572e02fbb6de2b255911ebe90f551a43a48c52ec0); // U_Y
         serializedProofPart2.push(0x185457d5b78e0dd03fb83b4af872c2f9800e0d4d3bbb1e36ca85a9d8ce763e55); // V_X
@@ -653,7 +580,7 @@ contract AirdropTest is Test {
 contract MockVerifier is IVerifier {
     bool public shouldVerify = false;
 
-    function verify(uint128[] memory, uint256[] memory, uint256[] memory, uint256) external view returns (bool) {
+    function verify(uint128[] memory, uint256[] memory, uint128[] memory, uint256[] memory, uint256[] memory, uint256) external view returns (bool) {
         return shouldVerify;
     }
 }
