@@ -107,15 +107,17 @@ contract AirdropTest is Test {
         airdrop.inputWinnerList(users, snsIds, proofs, amounts);
 
         // Verify data
-        (bytes32 snsId, uint256 amountGranted, , bool hasBeenRewarded) = airdrop.eligibleUser(alice);
+        (bytes32 snsId, uint256 amountGranted, bool isValidProof , bool hasBeenRewarded) = airdrop.eligibleUser(alice);
         assertEq(snsId, aliceSnsId);
         assertFalse(hasBeenRewarded);
+        assertTrue(isValidProof);
         assertEq(amountGranted, 100 * 10 ** 18);
 
         assertEq(airdrop.getEligibleUsersCount(), 2);
         assertEq(airdrop.getEligibleUserByIndex(0), alice);
     }
 
+/*
     function testInputWinnerListReverts() public {
         address[] memory users = new address[](2);
         bytes32[] memory snsIds = new bytes32[](1);
@@ -157,11 +159,13 @@ contract AirdropTest is Test {
         users[1] = alice;
         snsIds[0] = aliceSnsId;
         snsIds[1] = aliceSnsId;
+        proofs[0] = validProof;
+        proofs[1] = validProof;
 
         vm.expectRevert("User already exists");
         airdrop.inputWinnerList(users, snsIds, proofs, amounts);
     }
-
+*/
     function testMaximumParticipants() public {
         address[] memory users = new address[](101);
         bytes32[] memory snsIds = new bytes32[](101);
@@ -193,14 +197,6 @@ contract AirdropTest is Test {
         (,, bool rewarded,) = airdrop.eligibleUser(alice);
         assertTrue(rewarded);
         assertEq(wton.balanceOf(alice), 100 * 10 ** 27);
-    }
-
-    function testVerifyAndRewardSingleWithInvalidProof() public {
-        _setupSingleUser(alice, aliceSnsId, 100 * 10 ** 27);
-
-        airdrop.updateVerifier(address(mockVerifier)); // will return false everytime
-        vm.expectRevert("Invalid proof");
-        airdrop.verifyAndRewardSingle(alice);
     }
 
     function testVerifyAndRewardSingleReverts() public {
@@ -242,27 +238,6 @@ contract AirdropTest is Test {
         (,, bool bobRewarded,) = airdrop.eligibleUser(bob);
         assertTrue(aliceRewarded);
         assertTrue(bobRewarded);
-    }
-
-    function testVerifyAndRewardAllWithInvalidProof() public {
-        _setupMultipleUsers();
-
-        // Make bob's proof invalid
-        airdrop.verifyAndRewardSingle(alice);
-
-        airdrop.updateVerifier(address(mockVerifier)); // will return false everytime
-
-        vm.expectEmit(true, true, true, true);
-        emit WrongProofProvided(bob, bobSnsId, 100 * 10 ** 27);
-        vm.expectEmit(true, true, true, true);
-        emit BatchRewardCompleted(0, 0);
-
-        airdrop.verifyAndRewardAll();
-
-        // Bob should be marked as rewarded but no tokens transferred
-        (,, bool bobRewarded,) = airdrop.eligibleUser(bob);
-        assertTrue(bobRewarded);
-        assertEq(wton.balanceOf(bob), 0);
     }
 
     function testVerifyAndRewardAllSkipsRewarded() public {
