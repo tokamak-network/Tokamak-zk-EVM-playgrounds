@@ -183,15 +183,15 @@ contract AirdropTest is Test {
         airdrop.inputWinnerList(users, snsIds, proofs, amounts);
     }
 
-    // Test verifyAndRewardSingle
-    function testVerifyAndRewardSingle() public {
+    // Test rewardSingle
+    function testrewardSingle() public {
         // Setup eligible user
         _setupSingleUser(alice, aliceSnsId, 100 * 10 ** 27);
 
         vm.expectEmit(true, true, true, true);
         emit UserRewarded(alice, aliceSnsId, 100 * 10 ** 27);
 
-        airdrop.verifyAndRewardSingle(alice);
+        airdrop.rewardSingle(alice);
 
         // Check state
         (,, bool rewarded,) = airdrop.eligibleUser(alice);
@@ -199,25 +199,25 @@ contract AirdropTest is Test {
         assertEq(wton.balanceOf(alice), 100 * 10 ** 27);
     }
 
-    function testVerifyAndRewardSingleReverts() public {
+    function testrewardSingleReverts() public {
         // User not eligible
         vm.expectRevert("User not eligible");
-        airdrop.verifyAndRewardSingle(alice);
+        airdrop.rewardSingle(alice);
 
         // Already rewarded
         _setupSingleUser(alice, aliceSnsId, 100 * 10 ** 27);
-        airdrop.verifyAndRewardSingle(alice);
+        airdrop.rewardSingle(alice);
 
         vm.expectRevert("Already rewarded");
-        airdrop.verifyAndRewardSingle(alice);
+        airdrop.rewardSingle(alice);
 
         // Insufficient tokens
         vm.expectRevert("max granted amount per user reached");
         _setupSingleUser(bob, bobSnsId, 1000000 * 10 ** 27);
     }
 
-    // Test verifyAndRewardAll
-    function testVerifyAndRewardAll() public {
+    // Test rewardAll
+    function testrewardAll() public {
         _setupMultipleUsers();
 
         vm.expectEmit(true, true, true, true);
@@ -227,7 +227,7 @@ contract AirdropTest is Test {
         vm.expectEmit(true, true, true, true);
         emit BatchRewardCompleted(2, 200 * 10 ** 27);
 
-        airdrop.verifyAndRewardAll();
+        airdrop.rewardAll();
 
         // Check balances
         assertEq(wton.balanceOf(alice), 100 * 10 ** 27);
@@ -240,19 +240,19 @@ contract AirdropTest is Test {
         assertTrue(bobRewarded);
     }
 
-    function testVerifyAndRewardAllSkipsRewarded() public {
+    function testrewardAllSkipsRewarded() public {
         _setupMultipleUsers();
 
         // Reward alice first
-        airdrop.verifyAndRewardSingle(alice);
+        airdrop.rewardSingle(alice);
 
-        // Call verifyAndRewardAll
+        // Call rewardAll
         vm.expectEmit(true, true, true, true);
         emit UserRewarded(bob, bobSnsId, 100 * 10 ** 27);
         vm.expectEmit(true, true, true, true);
         emit BatchRewardCompleted(1, 100 * 10 ** 27);
 
-        airdrop.verifyAndRewardAll();
+        airdrop.rewardAll();
     }
 
     // Test removeUser
@@ -275,7 +275,7 @@ contract AirdropTest is Test {
 
         // User already rewarded
         _setupSingleUser(alice, aliceSnsId, 100 * 10 ** 18);
-        airdrop.verifyAndRewardSingle(alice);
+        airdrop.rewardSingle(alice);
 
         vm.expectRevert("User already rewarded");
         airdrop.removeUser(alice);
@@ -314,16 +314,16 @@ contract AirdropTest is Test {
 
         // Cannot verify and reward
         vm.expectRevert("Airdrop event completed");
-        airdrop.verifyAndRewardSingle(alice);
+        airdrop.rewardSingle(alice);
 
         vm.expectRevert("Airdrop event completed");
-        airdrop.verifyAndRewardAll();
+        airdrop.rewardAll();
     }
 
     // Test withdraw remaining tokens
     function testWithdrawRemainingTokens() public {
         _setupSingleUser(alice, aliceSnsId, 100 * 10 ** 18);
-        airdrop.verifyAndRewardSingle(alice);
+        airdrop.rewardSingle(alice);
 
         uint256 remainingBalance = wton.balanceOf(address(airdrop));
         uint256 ownerBalanceBefore = wton.balanceOf(owner);
@@ -359,7 +359,7 @@ contract AirdropTest is Test {
         assertEq(rewarded, 0);
         assertEq(pending, 2);
 
-        airdrop.verifyAndRewardSingle(alice);
+        airdrop.rewardSingle(alice);
 
         (total, rewarded, pending) = airdrop.getRewardStats();
         assertEq(total, 2);
