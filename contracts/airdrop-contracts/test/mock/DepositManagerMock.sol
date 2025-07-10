@@ -17,5 +17,4 @@ contract DepositManagerMock {
         emit Deposited(layer2, account, amount);
         return true;
     }
-
 }

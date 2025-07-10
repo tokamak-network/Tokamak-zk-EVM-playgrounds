@@ -86,7 +86,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
         require(users.length == stakes.length, "Users and stakes lengh mismatch");
         require(users.length > 0, "Empty arrays not allowed");
         require(!airdropCompleted, "Airdrop event completed");
-        
+
         uint256 totalAmountGranted;
 
         for (uint256 i = 0; i < users.length; i++) {
@@ -165,11 +165,13 @@ contract Airdrop is Ownable, ReentrancyGuard {
             totalAmountDistributed += eligibleUser[user].amountGranted;
 
             // Transfer tokens
-            if(!eligibleUser[user].stake){
+            if (!eligibleUser[user].stake) {
                 require(wton.transfer(user, eligibleUser[user].amountGranted), "Token transfer failed");
             } else {
-
-                require(depositManagerProxy.deposit(layer2, user, eligibleUser[user].amountGranted), "Failed to stake tokens");
+                require(
+                    depositManagerProxy.deposit(layer2, user, eligibleUser[user].amountGranted),
+                    "Failed to stake tokens"
+                );
             }
 
             emit UserRewarded(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
@@ -211,7 +213,6 @@ contract Airdrop is Ownable, ReentrancyGuard {
 
         // Ensure contract has enough balance
         require(wton.balanceOf(address(this)) >= totalPendingRewards, "Insufficient WTON balance for updated amounts");
-
 
         emit WinnerListUpdated(users.length);
     }
@@ -272,7 +273,6 @@ contract Airdrop is Ownable, ReentrancyGuard {
         require(index < eligibleUsers.length, "Index out of bounds");
         return eligibleUsers[index];
     }
-
 
     /**
      * @dev Get the contract's token balance
