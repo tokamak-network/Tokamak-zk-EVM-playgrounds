@@ -6,6 +6,7 @@ import ExitModal from "./ExitModal";
 import LoadingModal from "./LoadingModal";
 import TransactionInputModal from "./TransactionInputModal";
 import SetupResult from "./SetupResult";
+import SubmitModal from "./SubmitModal";
 
 export default function PlaygroundModals() {
   return (
@@ -18,6 +19,7 @@ export default function PlaygroundModals() {
       <SynthesizerError />
       <SynthesizerResultModal />
       <SetupResult />
+      <SubmitModal />
     </>
   );
 }
