@@ -5,6 +5,7 @@ import "@openzeppelin/token/ERC20/IERC20.sol";
 import "@openzeppelin/access/Ownable.sol";
 import "@openzeppelin/utils/ReentrancyGuard.sol";
 import {IVerifier} from "./interface/IVerifier.sol";
+import {IDepositManager} from "./interface/IDepositManager.sol";
 
 contract Airdrop is Ownable, ReentrancyGuard {
     struct UserInfo {
@@ -13,6 +14,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
         uint256 amountGranted;
         bool isProofValid;
         bool hasBeenRewarded;
+        bool stake;
     }
 
     struct Proof {
@@ -27,14 +29,17 @@ contract Airdrop is Ownable, ReentrancyGuard {
 
     // wton token
     IERC20 public immutable wton;
-
     // The proof verification contract
     IVerifier public verifier;
+    // deposit manager for user willing to stake their rewards
+    IDepositManager public depositManagerProxy;
+    address public layer2;
 
     mapping(address => UserInfo) public eligibleUser;
     address[] public eligibleUsers;
     uint256 public totalUserRewarded;
     uint256 public totalAmountDistributed;
+
     uint256 public smax;
 
     uint256 public constant MAXIMUM_PARTICIPANTS = 50;
@@ -49,12 +54,17 @@ contract Airdrop is Ownable, ReentrancyGuard {
     event BatchRewardCompleted(uint256 successfulRewards, uint256 totalRewardAmount);
     event SmaxUpdated(uint256 newSmax);
 
-    constructor(address _wton, address _verifier) Ownable(msg.sender) {
+    constructor(address _wton, address _verifier, address _depositManagerProxy, address _layer2) Ownable(msg.sender) {
         require(_wton != address(0), "Invalid token address");
         require(_verifier != address(0), "Invalid proof verifier address");
+        require(_depositManagerProxy != address(0), "Invalid Deposit Manager address");
+        require(_layer2 != address(0), "Invalid layer2 address");
 
         wton = IERC20(_wton);
         verifier = IVerifier(_verifier);
+        depositManagerProxy = IDepositManager(_depositManagerProxy);
+        wton.approve(_depositManagerProxy, 5000 * 10 ** 27);
+        layer2 = _layer2;
         airdropCompleted = false;
         smax = 64;
     }
@@ -66,14 +76,18 @@ contract Airdrop is Ownable, ReentrancyGuard {
         Preprocessed calldata preprocessed,
         uint256[] calldata publicInputs,
         uint256[] calldata amountsGranted,
-        bytes32[] calldata proofHashes
+        bytes32[] calldata proofHashes,
+        bool[] calldata stakes
     ) external onlyOwner {
         require(users.length == snsIds.length, "Users and SNS IDs length mismatch");
         require(users.length == proofs.length, "Users and proofs length mismatch");
         require(users.length == amountsGranted.length, "Users and amounts length mismatch");
         require(users.length == proofHashes.length, "Users and proof hashes lengh mismatch");
+        require(users.length == stakes.length, "Users and stakes lengh mismatch");
         require(users.length > 0, "Empty arrays not allowed");
         require(!airdropCompleted, "Airdrop event completed");
+        
+        uint256 totalAmountGranted;
 
         for (uint256 i = 0; i < users.length; i++) {
             require(users[i] != address(0), "Invalid user address");
@@ -100,7 +114,8 @@ contract Airdrop is Ownable, ReentrancyGuard {
                     proofHash: proofHashes[i],
                     hasBeenRewarded: false,
                     amountGranted: amountsGranted[i],
-                    isProofValid: true
+                    isProofValid: true,
+                    stake: stakes[i]
                 });
             } else {
                 eligibleUser[users[i]] = UserInfo({
@@ -108,15 +123,17 @@ contract Airdrop is Ownable, ReentrancyGuard {
                     proofHash: proofHashes[i],
                     hasBeenRewarded: false,
                     amountGranted: amountsGranted[i],
-                    isProofValid: false
+                    isProofValid: false,
+                    stake: stakes[i]
                 });
             }
 
             // array for iteration
             eligibleUsers.push(users[i]);
+            totalAmountGranted += amountsGranted[i];
             require(eligibleUsers.length <= MAXIMUM_PARTICIPANTS, "maximum number of participants exceeded");
         }
-
+        require(wton.balanceOf(address(this)) >= totalAmountGranted, "Not enough wton available");
         emit WinnerListUpdated(users.length);
     }
 
@@ -126,9 +143,6 @@ contract Airdrop is Ownable, ReentrancyGuard {
     function rewardAll() external nonReentrant onlyOwner {
         require(eligibleUsers.length > 0, "No eligible users");
         require(!airdropCompleted, "Airdrop event completed");
-
-        uint256 successfulRewards = 0;
-        uint256 totalRewardAmount = 0;
 
         for (uint256 i = 0; i < eligibleUsers.length; i++) {
             address user = eligibleUsers[i];
@@ -144,25 +158,25 @@ contract Airdrop is Ownable, ReentrancyGuard {
                 continue;
             }
 
-            // Check if contract has enough tokens for this reward
-            if (wton.balanceOf(address(this)) < eligibleUser[user].amountGranted) {
-                break; // Stop if insufficient tokens
-            }
-
             // Mark as rewarded
             eligibleUser[user].hasBeenRewarded = true;
 
-            successfulRewards++;
-            totalRewardAmount += eligibleUser[user].amountGranted;
+            totalUserRewarded++;
+            totalAmountDistributed += eligibleUser[user].amountGranted;
 
             // Transfer tokens
-            require(wton.transfer(user, eligibleUser[user].amountGranted), "Token transfer failed");
+            if(!eligibleUser[user].stake){
+                require(wton.transfer(user, eligibleUser[user].amountGranted), "Token transfer failed");
+            } else {
+
+                require(depositManagerProxy.deposit(layer2, user, eligibleUser[user].amountGranted), "Failed to stake tokens");
+            }
 
             emit UserRewarded(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
         }
 
         airdropCompleted = true;
-        emit BatchRewardCompleted(successfulRewards, totalRewardAmount);
+        emit BatchRewardCompleted(totalUserRewarded, totalAmountDistributed);
     }
 
     /**
@@ -173,7 +187,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
         require(users.length > 0, "Empty arrays not allowed");
         require(!airdropCompleted, "Airdrop already completed");
 
-        for (uint256 i = 0; i < users.length; i++) {
+        for (uint256 i = 0; i < users.length; ++i) {
             // Check if user exists
             require(eligibleUser[users[i]].snsId != bytes32(0), "User not found");
 
@@ -186,6 +200,18 @@ contract Airdrop is Ownable, ReentrancyGuard {
             // Update the granted amount
             eligibleUser[users[i]].amountGranted = amountsGranted[i];
         }
+
+        // Calculate total pending rewards after updates
+        uint256 totalPendingRewards = 0;
+        for (uint256 i = 0; i < eligibleUsers.length; i++) {
+            if (!eligibleUser[eligibleUsers[i]].hasBeenRewarded) {
+                totalPendingRewards += eligibleUser[eligibleUsers[i]].amountGranted;
+            }
+        }
+
+        // Ensure contract has enough balance
+        require(wton.balanceOf(address(this)) >= totalPendingRewards, "Insufficient WTON balance for updated amounts");
+
 
         emit WinnerListUpdated(users.length);
     }
@@ -200,13 +226,14 @@ contract Airdrop is Ownable, ReentrancyGuard {
         delete eligibleUser[user];
 
         // Remove from array - find and replace with last element
-        for (uint256 i = 0; i < eligibleUsers.length; i++) {
+        for (uint256 i = 0; i < eligibleUsers.length; ++i) {
             if (eligibleUsers[i] == user) {
                 eligibleUsers[i] = eligibleUsers[eligibleUsers.length - 1];
                 eligibleUsers.pop();
                 break;
             }
         }
+        emit WinnerListUpdated(eligibleUsers.length);
     }
 
     /**
@@ -246,24 +273,6 @@ contract Airdrop is Ownable, ReentrancyGuard {
         return eligibleUsers[index];
     }
 
-    /**
-     * @dev Get reward statistics
-     */
-    function getRewardStats()
-        external
-        view
-        returns (uint256 totalEligible, uint256 totalRewarded, uint256 pendingRewards)
-    {
-        totalEligible = eligibleUsers.length;
-
-        for (uint256 i = 0; i < eligibleUsers.length; i++) {
-            if (eligibleUser[eligibleUsers[i]].hasBeenRewarded) {
-                totalRewarded++;
-            }
-        }
-
-        pendingRewards = totalEligible - totalRewarded;
-    }
 
     /**
      * @dev Get the contract's token balance
