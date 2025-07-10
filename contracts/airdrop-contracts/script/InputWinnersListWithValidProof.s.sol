@@ -95,7 +95,9 @@ contract InputWinnersListWithValidProof is Script {
         Airdrop airdrop = Airdrop(AIRDROP_CONTRACT);
 
         // Call inputWinnerList
-        airdrop.inputWinnerList(users, snsIds, proofs, validPreprocessed, publicInputs, amountsGranted, proofHashes, stakes);
+        airdrop.inputWinnerList(
+            users, snsIds, proofs, validPreprocessed, publicInputs, amountsGranted, proofHashes, stakes
+        );
 
         vm.stopBroadcast();
 

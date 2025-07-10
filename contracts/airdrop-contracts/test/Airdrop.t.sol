@@ -124,7 +124,8 @@ contract AirdropTest is Test {
         airdrop.inputWinnerList(users, snsIds, proofs, validPreprocessed, publicInputs, amounts, proofHashes, stakes);
 
         // Verify data
-        (bytes32 snsId,, uint256 amountGranted, bool isValidProof, bool hasBeenRewarded, bool stake) = airdrop.eligibleUser(alice);
+        (bytes32 snsId,, uint256 amountGranted, bool isValidProof, bool hasBeenRewarded, bool stake) =
+            airdrop.eligibleUser(alice);
         assertEq(snsId, aliceSnsId);
         assertFalse(hasBeenRewarded);
         assertTrue(isValidProof);
