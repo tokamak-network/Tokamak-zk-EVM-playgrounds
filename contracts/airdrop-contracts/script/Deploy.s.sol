@@ -10,6 +10,8 @@ contract DeployAirdrop is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address wton = vm.envAddress("WTON_TOKEN_SEPOLIA");
         address verifier = vm.envAddress("VERIFIER_CONTRACT_SEPOLIA");
+        address depositManagerProxy = vm.envAddress("DEPOSIT_MANAGER_PROXY_ADDRESS_SEPOLIA");
+        address layer2 = vm.envAddress("LAYER2_ADDRESS_SEPOLIA");
 
         // Validate addresses
         require(wton != address(0), "WTON token address not set");
@@ -19,7 +21,7 @@ contract DeployAirdrop is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        Airdrop airdrop = new Airdrop(wton, verifier);
+        Airdrop airdrop = new Airdrop(wton, verifier, depositManagerProxy, layer2);
 
         vm.stopBroadcast();
 

@@ -21,6 +21,18 @@ contract InputWinnersListWithValidProof is Script {
         Airdrop.Proof[] memory proofs = new Airdrop.Proof[](10);
         bytes32[] memory proofHashes = new bytes32[](10);
         uint256[] memory amountsGranted = new uint256[](10);
+        bool[] memory stakes = new bool[](10);
+
+        stakes[0] = false;
+        stakes[1] = false;
+        stakes[2] = false;
+        stakes[3] = false;
+        stakes[4] = false;
+        stakes[5] = false;
+        stakes[6] = false;
+        stakes[7] = false;
+        stakes[8] = false;
+        stakes[9] = false;
 
         // Use realistic test addresses
         users[0] = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
@@ -47,7 +59,8 @@ contract InputWinnersListWithValidProof is Script {
         snsIds[9] = bytes32("@jack_validator");
 
         // Create valid proof structure from test data
-        (Airdrop.Proof memory validProof, Airdrop.Preprocessed memory validPreprocessed, uint256[] memory publicInputs) = _createValidProof();
+        (Airdrop.Proof memory validProof, Airdrop.Preprocessed memory validPreprocessed, uint256[] memory publicInputs)
+        = _createValidProof();
 
         // Assign the same valid proof to all users (in production, each user would have their own proof)
         for (uint256 i = 0; i < 10; i++) {
@@ -82,7 +95,7 @@ contract InputWinnersListWithValidProof is Script {
         Airdrop airdrop = Airdrop(AIRDROP_CONTRACT);
 
         // Call inputWinnerList
-        airdrop.inputWinnerList(users, snsIds, proofs, validPreprocessed, publicInputs, amountsGranted, proofHashes);
+        airdrop.inputWinnerList(users, snsIds, proofs, validPreprocessed, publicInputs, amountsGranted, proofHashes, stakes);
 
         vm.stopBroadcast();
 
@@ -95,7 +108,11 @@ contract InputWinnersListWithValidProof is Script {
         console2.log("Total eligible users:", newCount);
     }
 
-    function _createValidProof() private pure returns (Airdrop.Proof memory, Airdrop.Preprocessed memory, uint256[] memory) {
+    function _createValidProof()
+        private
+        pure
+        returns (Airdrop.Proof memory, Airdrop.Preprocessed memory, uint256[] memory)
+    {
         uint128[] memory proof_part1 = new uint128[](38);
         uint256[] memory proof_part2 = new uint256[](42);
         uint128[] memory preprocessedPart1 = new uint128[](4);
@@ -216,7 +233,11 @@ contract InputWinnersListWithValidProof is Script {
         publicInputs[70] = 0x000000000000000000000000000000001f924fe321c5cf7ad7a47b57891fbcb0;
         publicInputs[71] = 0x0000000000000000000000000000000081f4f96b68c216b824fb32a8c09bd5a8;
 
-        return (Airdrop.Proof({proof_part1: proof_part1, proof_part2: proof_part2}), Airdrop.Preprocessed({preprocessedPart1: preprocessedPart1, preprocessedPart2: preprocessedPart2}), publicInputs);
+        return (
+            Airdrop.Proof({proof_part1: proof_part1, proof_part2: proof_part2}),
+            Airdrop.Preprocessed({preprocessedPart1: preprocessedPart1, preprocessedPart2: preprocessedPart2}),
+            publicInputs
+        );
     }
 
     function _calculateTotalWTON(uint256[] memory amounts) private pure returns (uint256) {
