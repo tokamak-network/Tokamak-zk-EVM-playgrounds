@@ -9,6 +9,7 @@ export type Modal =
   | "loading"
   | "synthesizer-error"
   | "synthesizer-result"
-  | "setup-result";
+  | "setup-result"
+  | "submit";
 
 export const activeModalAtom = atom<Modal>("none");
