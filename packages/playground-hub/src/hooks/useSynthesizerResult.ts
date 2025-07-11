@@ -1,6 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useAtomValue } from "jotai";
-import { useDocker } from "./useDocker";
 import { transactionHashAtom } from "../atoms/api";
 
 // Types matching the SynthesizerResultModal requirements
@@ -24,6 +23,27 @@ export type StorageStoreItem = {
   valueHex: string;
 };
 
+// Raw data types from synthesizer (before transformation)
+type RawLogItem = {
+  topics?: string[];
+  valueDec?: string | number;
+  valueHex?: string;
+};
+
+type RawStorageItem = {
+  contractAddress?: string;
+  key?: string;
+  valueDecimal?: string | number;
+  valueHex?: string;
+};
+
+type RawStorageStoreItem = {
+  contractAddress?: string;
+  key?: string;
+  value?: string | number;
+  valueHex?: string;
+};
+
 export type ServerData = {
   permutation?: string;
   placementInstance?: string;
@@ -41,104 +61,18 @@ export type SynthesizerResultData = {
 
 export const useSynthesizerResult = (): SynthesizerResultData => {
   const transactionHash = useAtomValue(transactionHashAtom);
-  const { executeCommand, currentDockerContainer } = useDocker();
-  // const [data, setData] = useState<SynthesizerResultData>({
-  //   storageLoad: [],
-  //   placementLogs: [],
-  //   storageStore: [],
-  //   evmContractAddress: "",
-  //   serverData: null,
-  // })
 
-  // Mock data for design testing
-  const mockData: SynthesizerResultData = {
-    storageLoad: [
-      {
-        contractAddress: "0x1234567890123456789012345678901234567890",
-        key: "0x0000000000000000000000000000000000000000000000000000000000000001",
-        valueDecimal: "100",
-        valueHex: "0x64",
-      },
-      {
-        contractAddress: "0x1234567890123456789012345678901234567890",
-        key: "0x0000000000000000000000000000000000000000000000000000000000000002",
-        valueDecimal: "200",
-        valueHex: "0xc8",
-      },
-      {
-        contractAddress: "0x1234567890123456789012345678901234567890",
-        key: "0x0000000000000000000000000000000000000000000000000000000000000003",
-        valueDecimal: "300",
-        valueHex: "0x12c",
-      },
-    ],
-    placementLogs: [
-      {
-        topics: [
-          "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-        ],
-        valueDec: "1000",
-        valueHex: "0x3e8",
-      },
-      {
-        topics: [
-          "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-          "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-        ],
-        valueDec: "2000",
-        valueHex: "0x7d0",
-      },
-    ],
-    storageStore: [
-      {
-        contractAddress: "0x1234567890123456789012345678901234567890",
-        key: "0x0000000000000000000000000000000000000000000000000000000000000001",
-        value: "150",
-        valueHex: "0x96",
-      },
-      {
-        contractAddress: "0x1234567890123456789012345678901234567890",
-        key: "0x0000000000000000000000000000000000000000000000000000000000000002",
-        value: "250",
-        valueHex: "0xfa",
-      },
-    ],
-    evmContractAddress: "0x1234567890123456789012345678901234567890",
-    serverData: {
-      permutation: '{"example": "permutation data", "values": [1, 2, 3, 4, 5]}',
-      placementInstance:
-        '{"instance": "placement instance", "data": {"key": "value"}}',
-    },
+  const [data, setData] = useState<SynthesizerResultData>({
+    storageLoad: [],
+    placementLogs: [],
+    storageStore: [],
+    evmContractAddress: "",
+    serverData: null,
     isLoading: false,
     error: null,
-  };
-
-  const [data, setData] = useState<SynthesizerResultData>(mockData);
-
-  // Helper function to safely convert BigInts to strings (same as server)
-  const convertBigIntsToStrings = (obj: unknown) => {
-    try {
-      return JSON.parse(
-        JSON.stringify(obj, (_, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
-      );
-    } catch (error) {
-      console.error("Error converting BigInts to strings:", error);
-      return [];
-    }
-  };
+  });
 
   const fetchSynthesizerResult = useCallback(async () => {
-    if (!currentDockerContainer?.ID) {
-      setData((prev) => ({
-        ...prev,
-        error: "Docker container not found. Please start the container first.",
-        isLoading: false,
-      }));
-      return;
-    }
-
     if (!transactionHash) {
       setData((prev) => ({
         ...prev,
@@ -156,116 +90,133 @@ export const useSynthesizerResult = (): SynthesizerResultData => {
         transactionHash
       );
 
-      const RPC_URL =
-        "https://eth-mainnet.g.alchemy.com/v2/PbqCcGx1oHN7yNaFdUJUYqPEN0QSp23S";
-
-      // Execute the synthesizer command in Docker container
-      const result = await executeCommand(currentDockerContainer.ID, [
-        "bash",
-        "-c",
-        `cd packages/frontend/synthesizer/examples/transaction && 
-        tsx index.ts ${RPC_URL} ${transactionHash}`,
-      ]);
-
-      console.log("Docker synthesizer result:", result);
-
-      // Parse the result - assuming Docker returns { executionResult, permutation, placementInstance }
-      let dockerResult;
-      try {
-        dockerResult = JSON.parse(result);
-      } catch (parseError) {
-        console.error("Failed to parse synthesizer result:", parseError);
-        throw new Error("Invalid response format from synthesizer");
-      }
-
-      const { executionResult, permutation, placementInstance } = dockerResult;
-
-      // Validate that we have the required data structure (same as server validation)
-      if (!executionResult?.runState?.synthesizer?.placements) {
-        throw new Error("No placements generated by the synthesizer.");
-      }
-
-      // Extract logs/storage from the synthesizer placements (same logic as server)
-      const placementsMap = executionResult.runState.synthesizer.placements;
-      console.log("Placements map size:", placementsMap.size);
-
-      // We need to get placement indices - assuming they're available in the result
-      // or we use hardcoded values like the server originally did
-      // For now, let's assume we get them from the Docker result or use default values
-      const placementIndices = dockerResult.placementIndices || {
-        storageIn: 0, // Default values - should be replaced with actual indices
-        return: 1,
-        storageOut: 2,
-      };
-
-      const storageLoadPlacement = placementsMap.get(
-        placementIndices.storageIn
-      );
-      const logsPlacement = placementsMap.get(placementIndices.return);
-      const storageStorePlacement = placementsMap.get(
-        placementIndices.storageOut
+      // Call synthesizer playground API to get analysis results
+      console.log(
+        "Calling synthesizer playground API for transaction:",
+        transactionHash
       );
 
-      console.log("logsPlacement", logsPlacement);
-
-      const storageLoad = storageLoadPlacement?.inPts || [];
-      const storageStore = storageStorePlacement?.outPts || [];
-      const _logsData = logsPlacement?.outPts || [];
-
-      // Parse logs with more detailed error handling (same as server)
-      const logs: Array<{
-        topics: string[];
-        valueDec: string;
-        valueHex: string;
-      }> = [];
-      let prevIdx = -1;
-      for (const _logData of _logsData) {
-        try {
-          const idx = _logData.pairedInputWireIndices?.[0] ?? -1;
-          if (idx !== prevIdx) {
-            logs.push({
-              topics: [],
-              valueDec: _logData.value?.toString() || "0",
-              valueHex: _logData.valueHex || "0x0",
-            });
-          } else if (idx >= 0 && logs[idx]) {
-            logs[idx].topics.push(_logData.valueHex || "0x0");
-          }
-          prevIdx = idx;
-        } catch (error) {
-          console.error("Error processing log data:", error, _logData);
-        }
-      }
-
-      // Transform the data exactly like the server does
-      const transformedData = {
-        from: dockerResult.from || "",
-        to: dockerResult.to || "",
-        logs,
-        storageLoad: convertBigIntsToStrings(storageLoad),
-        storageStore: convertBigIntsToStrings(storageStore),
-        permutation: convertBigIntsToStrings(permutation),
-        placementInstance: convertBigIntsToStrings(placementInstance),
-      };
-
-      console.log("Transformed data counts:", {
-        logsCount: transformedData.logs.length,
-        storageLoadCount: transformedData.storageLoad.length,
-        storageStoreCount: transformedData.storageStore.length,
+      const API_URL = "http://localhost:3002"; // synthesizer playground server
+      const response = await fetch(`${API_URL}/api/parseTransaction`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ txId: transactionHash }),
       });
 
-      // Convert to our expected format
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `Server returned status ${response.status}`
+        );
+      }
+
+      const apiResult = await response.json();
+      console.log("API response:", apiResult);
+
+      if (!apiResult.ok) {
+        throw new Error(apiResult.error || "Unknown server error.");
+      }
+
+      console.log("Synthesizer playground API call completed successfully");
+
+      // Use the data directly from the API response
+      const {
+        to,
+        logs,
+        storageLoad,
+        storageStore,
+        permutation,
+        placementInstance,
+      } = apiResult.data;
+
+      console.log("API returned data:", {
+        logsCount: logs?.length || 0,
+        storageLoadCount: storageLoad?.length || 0,
+        storageStoreCount: storageStore?.length || 0,
+      });
+
+      // The API already returns converted data, so we just need to apply our transformation logic
+      const rawStorageLoad = storageLoad || [];
+      const rawStorageStore = storageStore || [];
+      const rawLogs = logs || [];
+
+      // Apply the exact same transformation logic as PlaygroundClient.tsx
+      // Transform logs data
+      const transformedLogs =
+        (rawLogs as RawLogItem[])?.map((log: RawLogItem) => {
+          const topics = Array.isArray(log.topics) ? log.topics : [];
+          return {
+            topics: topics.map((topic: string) =>
+              topic.startsWith("0x") ? topic : `0x${topic}`
+            ),
+            valueDec:
+              typeof log.valueDec === "string"
+                ? log.valueDec
+                : String(log.valueDec || "0"),
+            valueHex: log.valueHex?.startsWith("0x")
+              ? log.valueHex
+              : `0x${log.valueHex || "0"}`,
+          };
+        }) || [];
+
+      // Transform storage load data
+      const transformedStorageLoad =
+        (rawStorageLoad as RawStorageItem[])?.map((item: RawStorageItem) => {
+          const contractAddr = item.contractAddress || to || "";
+          const key = item.key || "";
+          const valueDecimal =
+            typeof item.valueDecimal === "string"
+              ? item.valueDecimal
+              : String(item.valueDecimal || "0");
+          const valueHex = item.valueHex || "";
+
+          return {
+            contractAddress: contractAddr.startsWith("0x")
+              ? contractAddr
+              : `0x${contractAddr}`,
+            key: key.startsWith("0x") ? key : `0x${key}`,
+            valueDecimal,
+            valueHex: valueHex.startsWith("0x") ? valueHex : `0x${valueHex}`,
+          };
+        }) || [];
+
+      // Transform storage store data
+      const transformedStorageStore =
+        (rawStorageStore as RawStorageStoreItem[])?.map(
+          (item: RawStorageStoreItem) => {
+            const contractAddr = item.contractAddress || to || "";
+            const key = item.key || "";
+            const value =
+              typeof item.value === "string"
+                ? item.value
+                : String(item.value || "0");
+            const valueHex = item.valueHex || "";
+
+            return {
+              contractAddress: contractAddr.startsWith("0x")
+                ? contractAddr
+                : `0x${contractAddr}`,
+              key: key.startsWith("0x") ? key : `0x${key}`,
+              value,
+              valueHex: valueHex.startsWith("0x") ? valueHex : `0x${valueHex}`,
+            };
+          }
+        ) || [];
+
+      console.log("Transformed storageLoad:", transformedStorageLoad);
+      console.log("Transformed logs:", transformedLogs);
+      console.log("Transformed storageStore:", transformedStorageStore);
+
+      // Set the transformed data to state exactly like PlaygroundClient.tsx
       const finalData: Omit<SynthesizerResultData, "isLoading" | "error"> = {
-        storageLoad: transformedData.storageLoad,
-        placementLogs: transformedData.logs,
-        storageStore: transformedData.storageStore,
-        evmContractAddress: transformedData.to,
+        storageLoad: transformedStorageLoad,
+        placementLogs: transformedLogs,
+        storageStore: transformedStorageStore,
+        evmContractAddress: to ? (to.startsWith("0x") ? to : `0x${to}`) : "",
         serverData: {
-          permutation: transformedData.permutation
-            ? JSON.stringify(transformedData.permutation, null, 2)
-            : null,
-          placementInstance: transformedData.placementInstance
-            ? JSON.stringify(transformedData.placementInstance, null, 2)
+          permutation: permutation ? JSON.stringify(permutation) : null,
+          placementInstance: placementInstance
+            ? JSON.stringify(placementInstance)
             : null,
         },
       };
@@ -284,15 +235,14 @@ export const useSynthesizerResult = (): SynthesizerResultData => {
           error instanceof Error ? error.message : "Unknown error occurred",
       }));
     }
-  }, [currentDockerContainer, transactionHash, executeCommand]);
+  }, [transactionHash]);
 
-  // Auto-fetch when container and transaction hash are available
-  // Commented out for mock data testing
-  // useEffect(() => {
-  //   if (currentDockerContainer?.ID && transactionHash) {
-  //     fetchSynthesizerResult();
-  //   }
-  // }, [currentDockerContainer?.ID, transactionHash, fetchSynthesizerResult]);
+  // Auto-fetch when transaction hash is available
+  useEffect(() => {
+    if (transactionHash) {
+      fetchSynthesizerResult();
+    }
+  }, [transactionHash, fetchSynthesizerResult]);
 
   return {
     ...data,
