@@ -3,11 +3,118 @@ import { useAtom } from "jotai";
 import { activeModalAtom } from "../../atoms/modals";
 import SynthesizerResultModalImage from "../../assets/modals/synthesizer/synthesizer-result.svg";
 import { useSynthesizerResult } from "../../hooks/useSynthesizerResult";
+import {
+  useDockerFileDownload,
+  SynthesizerFiles,
+} from "../../hooks/useDockerFileDownload";
+import JsonIcon from "../../assets/modals/json.svg";
+import DownloadIcon from "../../assets/modals/docker/download-button.svg";
+import PauseIcon from "../../assets/modals/docker/pause.svg";
+import DownloadedIcon from "../../assets/modals/docker/downloaded-button.svg";
 
 // Helper function - you can move this to utils later
 const add0xPrefix = (value: string): string => {
   if (!value) return "";
   return value.startsWith("0x") ? value : `0x${value}`;
+};
+
+// Download File Component
+const DownloadFileItem: React.FC<{
+  fileName: string;
+  fileKey: keyof SynthesizerFiles;
+  isDownloading: boolean;
+  files: SynthesizerFiles;
+  onDownload: (filename: string, content: string) => void;
+  onFetchFiles: () => Promise<SynthesizerFiles | null>;
+}> = ({
+  fileName,
+  fileKey,
+  isDownloading,
+  files,
+  onDownload,
+  onFetchFiles,
+}) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDownloaded, setIsDownloaded] = useState(false);
+  const fileContent = files[fileKey];
+  const hasFile = !!fileContent;
+
+  const handleClick = async () => {
+    if (hasFile && fileContent) {
+      setIsDialogOpen(true);
+      const result = await onDownload(`${fileName}.json`, fileContent);
+      setIsDialogOpen(false);
+      // 실제로 파일이 저장되었을 때만 완료 상태로 설정
+      if (result && result.success) {
+        setIsDownloaded(true);
+      }
+    } else {
+      setIsDialogOpen(true);
+      const downloadedFiles = await onFetchFiles();
+      // 다운로드한 파일 내용을 바로 사용
+      if (downloadedFiles && downloadedFiles[fileKey]) {
+        const result = await onDownload(
+          `${fileName}.json`,
+          downloadedFiles[fileKey]!
+        );
+        // 실제로 파일이 저장되었을 때만 완료 상태로 설정
+        if (result && result.success) {
+          setIsDownloaded(true);
+        }
+      }
+      setIsDialogOpen(false);
+    }
+  };
+
+  const isDownloadingState = isDownloading || isDialogOpen;
+
+  const getIcon = () => {
+    if (isDownloadingState) {
+      return <img src={PauseIcon} alt="Downloading" className="w-6 h-6" />;
+    } else if (isDownloaded) {
+      return <img src={DownloadedIcon} alt="Downloaded" className="w-6 h-6" />;
+    } else {
+      return <img src={DownloadIcon} alt="Download" className="w-6 h-6" />;
+    }
+  };
+
+  return (
+    <div
+      className="flex padding-[8px] items-center gap-[12px] flex-1 cursor-pointer hover:bg-gray-50 rounded"
+      style={{
+        display: "flex",
+        padding: "8px",
+        alignItems: "center",
+        gap: "12px",
+        flex: "1 0 0",
+      }}
+      onClick={handleClick}
+    >
+      <img src={JsonIcon} alt="JSON" className="w-6 h-6" />
+      <span
+        style={{
+          color: "#333",
+          fontFamily: "IBM Plex Mono",
+          fontSize: "16px",
+          fontStyle: "normal",
+          fontWeight: 600,
+          lineHeight: "20px",
+          letterSpacing: "-0.32px",
+          width: "105px",
+          height: "40px",
+          display: "flex",
+          alignItems: "center",
+          wordBreak: "break-word",
+          overflow: "hidden",
+        }}
+      >
+        {fileName}
+      </span>
+      <div className="ml-auto" style={{ flexShrink: 0 }}>
+        {getIcon()}
+      </div>
+    </div>
+  );
 };
 
 // LogCard component - simplified version
@@ -65,7 +172,7 @@ const LogCard: React.FC<{
 // Tab Switcher component
 const CustomTabSwitcher: React.FC<{
   activeTab: string;
-  setActiveTab: (tabId: string) => void;
+  setActiveTab: (id: string) => void;
 }> = ({ activeTab, setActiveTab }) => {
   const tabs = [
     { id: "logs", label: "Logs" },
@@ -92,7 +199,7 @@ const CustomTabSwitcher: React.FC<{
               activeTab === tabItem.id
                 ? "1px solid #365969"
                 : "1px solid #E5E5E5",
-            backgroundColor: activeTab === tabItem.id ? "#00CCEC" : "#F5F5F5",
+            backgroundColor: activeTab === tabItem.id ? "#00CCEC" : "#ffffff",
             padding: "4px 8px",
           }}
         >
@@ -116,19 +223,14 @@ const CustomTabSwitcher: React.FC<{
 const SynthesizerResultModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
   const [activeTab, setActiveTab] = useState("storageLoad");
-  const [permutationHovered, setPermutationHovered] = useState(false);
-  const [placementHovered, setPlacementHovered] = useState(false);
 
   // Use the custom hook to get synthesizer result data
-  const {
-    storageLoad,
-    placementLogs,
-    storageStore,
-    evmContractAddress,
-    serverData,
-    isLoading,
-    error,
-  } = useSynthesizerResult();
+  const { storageLoad, placementLogs, storageStore, evmContractAddress } =
+    useSynthesizerResult();
+
+  // Use the custom hook for file downloads
+  const { isDownloading, files, downloadSynthesizerFiles, downloadToLocal } =
+    useDockerFileDownload();
 
   const isOpen = useMemo(
     () => activeModal === "synthesizer-result",
@@ -137,18 +239,6 @@ const SynthesizerResultModal: React.FC = () => {
 
   const onClose = () => {
     setActiveModal("none");
-  };
-
-  const handleDownload = (fileContent: string | null, fileName: string) => {
-    if (!fileContent) return;
-
-    const blob = new Blob([fileContent], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   //   handleDownload(serverData.permutation, "permutation.json");
@@ -372,9 +462,46 @@ const SynthesizerResultModal: React.FC = () => {
           onClick={onClose}
         ></div>
 
+        <div className="z-[999] absolute w-full h-[64px] top-[110px] px-[24px] flex">
+          <div
+            style={{
+              display: "flex",
+              width: "747px",
+              alignItems: "flex-start",
+              gap: "16px",
+              background: "#fff",
+            }}
+          >
+            <DownloadFileItem
+              fileName="Instance"
+              fileKey="instance"
+              isDownloading={isDownloading}
+              files={files}
+              onDownload={downloadToLocal}
+              onFetchFiles={downloadSynthesizerFiles}
+            />
+            <DownloadFileItem
+              fileName="Wiring of subcircuits"
+              fileKey="placementVariables"
+              isDownloading={isDownloading}
+              files={files}
+              onDownload={downloadToLocal}
+              onFetchFiles={downloadSynthesizerFiles}
+            />
+            <DownloadFileItem
+              fileName="Witness"
+              fileKey="permutation"
+              isDownloading={isDownloading}
+              files={files}
+              onDownload={downloadToLocal}
+              onFetchFiles={downloadSynthesizerFiles}
+            />
+          </div>
+        </div>
+
         {/* Modal Content */}
         <div
-          className="p-6 z-[999] absolute top-[253px] left-[30px]"
+          className="p-6 z-[999] absolute top-[200px] left-[30px]"
           style={{}}
         >
           <div
