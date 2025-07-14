@@ -111,3 +111,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
 contextBridge.exposeInMainWorld("env", {
   getEnvVars: () => ipcRenderer.invoke("get-env-vars"),
 });
+
+contextBridge.exposeInMainWorld("dockerFileDownloaderAPI", {
+  saveFile: async (defaultFileName: string, content: string) => {
+    const result = await ipcRenderer.invoke(
+      "show-save-dialog",
+      defaultFileName,
+      content
+    );
+    return result;
+  },
+});

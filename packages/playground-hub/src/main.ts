@@ -456,6 +456,42 @@ function setupIpcHandlers() {
     }
   });
 
+  ipcMain.handle(
+    "show-save-dialog",
+    async (event, defaultFileName, content) => {
+      console.log("show-save-dialog called with:", {
+        defaultFileName,
+        contentLength: content?.length,
+      });
+
+      try {
+        const { filePath } = await dialog.showSaveDialog({
+          defaultPath: defaultFileName,
+          filters: [{ name: "JSON", extensions: ["json"] }],
+        });
+
+        console.log("Dialog result:", { filePath });
+
+        if (filePath) {
+          try {
+            fs.writeFileSync(filePath, content, "utf8");
+            console.log("File saved successfully to:", filePath);
+            return { filePath, success: true };
+          } catch (writeError) {
+            console.error("Failed to write file:", writeError);
+            return { filePath, success: false, error: writeError.message };
+          }
+        }
+
+        console.log("User cancelled save dialog");
+        return { filePath: null, success: false, error: "User cancelled" };
+      } catch (dialogError) {
+        console.error("Failed to show save dialog:", dialogError);
+        return { filePath: null, success: false, error: dialogError.message };
+      }
+    }
+  );
+
   // --- 파일 다운로드 및 Docker 이미지 로드 핸들러 끝 ---
 
   ipcMain.on("request-exit-modal", () => {
