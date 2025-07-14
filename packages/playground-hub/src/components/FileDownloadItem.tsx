@@ -27,8 +27,15 @@ const FileDownloadItem: React.FC<FileDownloadItemProps> = ({
   const [isDownloaded, setIsDownloaded] = useState(false);
 
   const handleClick = async () => {
+    console.log("FileDownloadItem handleClick called:", {
+      fileName,
+      hasFile,
+      onFetchFile: !!onFetchFile,
+    });
+
     if (hasFile) {
       // 파일이 이미 있는 경우 바로 다운로드
+      console.log("File exists, downloading directly...");
       setIsDialogOpen(true);
       const result = await onDownload(`${fileName}.json`);
       setIsDialogOpen(false);
@@ -37,6 +44,7 @@ const FileDownloadItem: React.FC<FileDownloadItemProps> = ({
       }
     } else if (onFetchFile) {
       // 파일을 먼저 가져와야 하는 경우
+      console.log("File doesn't exist, fetching first...");
       setIsDialogOpen(true);
       const fileContent = await onFetchFile();
       if (fileContent) {
@@ -46,6 +54,15 @@ const FileDownloadItem: React.FC<FileDownloadItemProps> = ({
         }
       }
       setIsDialogOpen(false);
+    } else {
+      // onFetchFile이 없으면 바로 onDownload 호출 (다운로드 핸들러에서 처리)
+      console.log("No onFetchFile, calling onDownload directly...");
+      setIsDialogOpen(true);
+      const result = await onDownload(`${fileName}.json`);
+      setIsDialogOpen(false);
+      if (result && result.success) {
+        setIsDownloaded(true);
+      }
     }
   };
 

@@ -4,7 +4,7 @@ import {
   DockerContainer,
   currentDockerContainerAtom,
 } from "../atoms/docker";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { DOCKER_NAME } from "../constants";
 
 // Define the expected shape of the status from window.docker.checkDockerStatus
@@ -31,6 +31,15 @@ declare global {
         containerId: string,
         command: string[]
       ) => Promise<string>;
+      downloadLargeFile: (
+        containerId: string,
+        filePath: string
+      ) => Promise<string>;
+      streamLargeFile: (
+        containerId: string,
+        containerFilePath: string,
+        localFilePath: string
+      ) => Promise<boolean>;
       checkDockerStatus: (
         imageNameToCheck?: string
       ) => Promise<DockerStatusCheckResult>;
@@ -95,20 +104,6 @@ export const useDocker = () => {
     return () => clearInterval(checkInterval);
     // Add imageNameForPolling to the dependency array
   }, [verifyDockerStatus, imageNameForPolling]);
-
-  // Docker 관련 작업 전 상태 체크
-  const ensureDockerReady = useCallback(async () => {
-    // Use the same logic for determining imageName as in the polling useEffect
-    const imageName = imageNameForPolling;
-    const status = await verifyDockerStatus(imageName);
-    if (!status.isInstalled || !status.isRunning) {
-      throw new Error("Docker is not installed or not running.");
-    }
-    // Optionally, add checks based on the specific imageName if it's relevant for readiness
-    // if (imageName && (!status.imageExists || !status.isContainerFromImageRunning)) {
-    //   throw new Error(`Required Docker image ${imageName} is not running or does not exist.`);
-    // }
-  }, [verifyDockerStatus, imageNameForPolling]); // Added imageNameForPolling
 
   const loadImages = useCallback(async () => {
     setLoading(true);
@@ -247,6 +242,59 @@ export const useDocker = () => {
     []
   );
 
+  // Download large file from container
+  const downloadLargeFile = useCallback(
+    async (containerId: string, filePath: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const content = await window.docker.downloadLargeFile(
+          containerId,
+          filePath
+        );
+        return content;
+      } catch (err) {
+        const errorMessage =
+          "Failed to download large file from container: " +
+          (err instanceof Error ? err.message : String(err));
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  // Stream large file directly to local file
+  const streamLargeFile = useCallback(
+    async (
+      containerId: string,
+      containerFilePath: string,
+      localFilePath: string
+    ) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const success = await window.docker.streamLargeFile(
+          containerId,
+          containerFilePath,
+          localFilePath
+        );
+        return success;
+      } catch (err) {
+        const errorMessage =
+          "Failed to stream large file from container: " +
+          (err instanceof Error ? err.message : String(err));
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
   // Initial data loading
   useEffect(() => {
     const initialLoad = async () => {
@@ -279,6 +327,8 @@ export const useDocker = () => {
     runContainer,
     stopContainer,
     executeCommand,
+    downloadLargeFile,
+    streamLargeFile,
     verifyDockerStatus,
     // State reset
     clearError: () => setError(null),
