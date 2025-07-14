@@ -14,11 +14,21 @@ export type SetupFiles = {
   sigmaVerify: string | null;
 };
 
+export type PreprocessFiles = {
+  preprocess: string | null;
+};
+
+export type ProveFiles = {
+  proof: string | null;
+};
+
 export type FileDownloadState = {
   isDownloading: boolean;
   error: string | null;
   files: SynthesizerFiles;
   setupFiles: SetupFiles;
+  preprocessFiles: PreprocessFiles;
+  proveFiles: ProveFiles;
 };
 
 export const useDockerFileDownload = () => {
@@ -41,6 +51,12 @@ export const useDockerFileDownload = () => {
       combinedSigna: null,
       sigmaPreprocess: null,
       sigmaVerify: null,
+    },
+    preprocessFiles: {
+      preprocess: null,
+    },
+    proveFiles: {
+      proof: null,
     },
   });
 
@@ -237,6 +253,124 @@ export const useDockerFileDownload = () => {
     }
   }, [currentDockerContainer, downloadLargeFile]);
 
+  const downloadPreprocessFiles = useCallback(async () => {
+    if (!currentDockerContainer?.ID) {
+      console.error("No Docker container available");
+      setState((prev) => ({
+        ...prev,
+        error: "No Docker container available",
+      }));
+      return null;
+    }
+
+    setState((prev) => ({ ...prev, isDownloading: true, error: null }));
+
+    try {
+      console.log("Starting preprocess file download...");
+
+      const filePath = "backend/verify/preprocess/output/preprocess.json";
+
+      console.log(`Downloading preprocess file from: ${filePath}`);
+
+      const content = await downloadLargeFile(
+        currentDockerContainer.ID,
+        filePath
+      );
+
+      if (!content) {
+        console.error(`Failed to download preprocess file`);
+        setState((prev) => ({
+          ...prev,
+          isDownloading: false,
+          error: "Failed to download preprocess file",
+        }));
+        return null;
+      }
+
+      console.log("Preprocess file downloaded successfully");
+
+      const preprocessFiles: PreprocessFiles = {
+        preprocess: content,
+      };
+
+      setState((prev) => ({
+        ...prev,
+        isDownloading: false,
+        preprocessFiles,
+      }));
+
+      return preprocessFiles;
+    } catch (error) {
+      console.error("Error downloading preprocess files:", error);
+      setState((prev) => ({
+        ...prev,
+        isDownloading: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      }));
+      return null;
+    }
+  }, [currentDockerContainer, downloadLargeFile]);
+
+  const downloadProveFiles = useCallback(async () => {
+    if (!currentDockerContainer?.ID) {
+      console.error("No Docker container available");
+      setState((prev) => ({
+        ...prev,
+        error: "No Docker container available",
+      }));
+      return null;
+    }
+
+    setState((prev) => ({ ...prev, isDownloading: true, error: null }));
+
+    try {
+      console.log("Starting prove file download...");
+
+      const filePath = "backend/prove/output/proof.json";
+
+      console.log(`Downloading prove file from: ${filePath}`);
+
+      const content = await downloadLargeFile(
+        currentDockerContainer.ID,
+        filePath
+      );
+
+      if (!content) {
+        console.error(`Failed to download prove file`);
+        setState((prev) => ({
+          ...prev,
+          isDownloading: false,
+          error: "Failed to download prove file",
+        }));
+        return null;
+      }
+
+      console.log("Prove file downloaded successfully");
+
+      const proveFiles: ProveFiles = {
+        proof: content,
+      };
+
+      setState((prev) => ({
+        ...prev,
+        isDownloading: false,
+        proveFiles,
+      }));
+
+      return proveFiles;
+    } catch (error) {
+      console.error("Error downloading prove files:", error);
+      setState((prev) => ({
+        ...prev,
+        isDownloading: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      }));
+      return null;
+    }
+  }, [currentDockerContainer, downloadLargeFile]);
+
   const downloadToLocal = useCallback(
     async (
       filename: string,
@@ -289,6 +423,12 @@ export const useDockerFileDownload = () => {
         sigmaPreprocess: null,
         sigmaVerify: null,
       },
+      preprocessFiles: {
+        preprocess: null,
+      },
+      proveFiles: {
+        proof: null,
+      },
       error: null,
     }));
   }, []);
@@ -297,6 +437,8 @@ export const useDockerFileDownload = () => {
     ...state,
     downloadSynthesizerFiles,
     downloadSetupFiles,
+    downloadPreprocessFiles,
+    downloadProveFiles,
     downloadToLocal,
     downloadVeryLargeFile,
     downloadAllFiles,
