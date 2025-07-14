@@ -19,6 +19,8 @@ import {
   getDockerContainers,
   stopDockerContainer,
   executeCommandInContainer,
+  downloadLargeFileFromContainer,
+  streamLargeFileFromContainer,
   checkDockerStatus,
 } from "./api/docker-service";
 
@@ -225,6 +227,29 @@ function setupIpcHandlers() {
     "execute-command-in-container",
     async (event, containerId: string, command: string[]) => {
       return await executeCommandInContainer(containerId, command);
+    }
+  );
+
+  ipcMain.handle(
+    "download-large-file-from-container",
+    async (event, containerId: string, filePath: string) => {
+      return await downloadLargeFileFromContainer(containerId, filePath);
+    }
+  );
+
+  ipcMain.handle(
+    "stream-large-file-from-container",
+    async (
+      event,
+      containerId: string,
+      containerFilePath: string,
+      localFilePath: string
+    ) => {
+      return await streamLargeFileFromContainer(
+        containerId,
+        containerFilePath,
+        localFilePath
+      );
     }
   );
 

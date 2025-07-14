@@ -8,14 +8,26 @@ export type SynthesizerFiles = {
   placementVariables: string | null;
 };
 
+export type SetupFiles = {
+  combinedSigna: string | null;
+  sigmaPreprocess: string | null;
+  sigmaVerify: string | null;
+};
+
 export type FileDownloadState = {
   isDownloading: boolean;
   error: string | null;
   files: SynthesizerFiles;
+  setupFiles: SetupFiles;
 };
 
 export const useDockerFileDownload = () => {
-  const { executeCommand, currentDockerContainer } = useDocker();
+  const {
+    executeCommand,
+    downloadLargeFile,
+    streamLargeFile,
+    currentDockerContainer,
+  } = useDocker();
 
   const [state, setState] = useState<FileDownloadState>({
     isDownloading: false,
@@ -25,7 +37,42 @@ export const useDockerFileDownload = () => {
       permutation: null,
       placementVariables: null,
     },
+    setupFiles: {
+      combinedSigna: null,
+      sigmaPreprocess: null,
+      sigmaVerify: null,
+    },
   });
+
+  // 매우 큰 파일을 직접 로컬 파일로 다운로드하는 함수
+  const downloadVeryLargeFile = useCallback(
+    async (
+      containerId: string,
+      containerFilePath: string,
+      filename: string
+    ) => {
+      try {
+        const result = await window.dockerFileDownloaderAPI.saveFile(
+          filename,
+          ""
+        );
+        if (result.filePath) {
+          console.log(`Streaming large file to: ${result.filePath}`);
+          const success = await streamLargeFile(
+            containerId,
+            containerFilePath,
+            result.filePath
+          );
+          return { success, filePath: result.filePath };
+        }
+        return { success: false, error: "User cancelled" };
+      } catch (error) {
+        console.error("Failed to download very large file:", error);
+        return { success: false, error: error.message || "Unknown error" };
+      }
+    },
+    [streamLargeFile]
+  );
 
   const downloadSynthesizerFiles = useCallback(async () => {
     if (!currentDockerContainer?.ID) {
@@ -105,6 +152,91 @@ export const useDockerFileDownload = () => {
     }
   }, [currentDockerContainer, executeCommand]);
 
+  const downloadSetupFiles = useCallback(async () => {
+    if (!currentDockerContainer?.ID) {
+      setState((prev) => ({
+        ...prev,
+        error: "Docker container not found. Please start the container first.",
+      }));
+      return null;
+    }
+
+    try {
+      setState((prev) => ({ ...prev, isDownloading: true, error: null }));
+
+      console.log("Downloading setup files from Docker container...");
+
+      // Define file paths in the container
+      const filePaths = {
+        combinedSigna: "backend/setup/trusted-setup/output/combined_sigma.json",
+        sigmaPreprocess:
+          "backend/setup/trusted-setup/output/sigma_preprocess.json",
+        sigmaVerify: "backend/setup/trusted-setup/output/sigma_verify.json",
+      };
+
+      // Download each file using the new downloadLargeFile function
+      const downloadPromises = Object.entries(filePaths).map(
+        async ([key, path]) => {
+          try {
+            console.log(`Downloading ${key} file from ${path}...`);
+            const fileContent = await downloadLargeFile(
+              currentDockerContainer.ID,
+              path
+            );
+            console.log(
+              `Successfully downloaded ${key} file (${fileContent.length} characters)`
+            );
+            return { key, content: fileContent };
+          } catch (error) {
+            console.warn(`Failed to download ${key} file from ${path}:`, error);
+            return { key, content: null };
+          }
+        }
+      );
+
+      console.log("Waiting for all downloads to complete...");
+      const results = await Promise.all(downloadPromises);
+      console.log("All downloads completed, processing results...");
+
+      // Build the setupFiles object
+      const setupFiles: SetupFiles = {
+        combinedSigna: null,
+        sigmaPreprocess: null,
+        sigmaVerify: null,
+      };
+
+      results.forEach(({ key, content }) => {
+        console.log(`Processing result for ${key}:`, !!content);
+        if (content) {
+          setupFiles[key as keyof SetupFiles] = content;
+        }
+      });
+
+      console.log("Downloaded setup files:", {
+        hasCombinedSigna: !!setupFiles.combinedSigna,
+        hasSigmaPreprocess: !!setupFiles.sigmaPreprocess,
+        hasSigmaVerify: !!setupFiles.sigmaVerify,
+      });
+
+      setState((prev) => ({
+        ...prev,
+        isDownloading: false,
+        setupFiles,
+      }));
+
+      return setupFiles;
+    } catch (error) {
+      console.error("Error downloading setup files:", error);
+      setState((prev) => ({
+        ...prev,
+        isDownloading: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      }));
+      return null;
+    }
+  }, [currentDockerContainer, downloadLargeFile]);
+
   const downloadToLocal = useCallback(
     async (
       filename: string,
@@ -152,6 +284,11 @@ export const useDockerFileDownload = () => {
         permutation: null,
         placementVariables: null,
       },
+      setupFiles: {
+        combinedSigna: null,
+        sigmaPreprocess: null,
+        sigmaVerify: null,
+      },
       error: null,
     }));
   }, []);
@@ -159,7 +296,9 @@ export const useDockerFileDownload = () => {
   return {
     ...state,
     downloadSynthesizerFiles,
+    downloadSetupFiles,
     downloadToLocal,
+    downloadVeryLargeFile,
     downloadAllFiles,
     clearFiles,
   };

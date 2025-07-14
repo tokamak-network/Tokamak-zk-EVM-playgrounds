@@ -1,6 +1,7 @@
 // src/docker-service.ts
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
+import fs from "fs";
 
 const execAsync = promisify(exec);
 
@@ -39,7 +40,7 @@ export async function checkDockerStatus(
   let isContainerFromImageRunning = false;
 
   try {
-    const { stdout: dockerPath } = await execAsync("which docker");
+    await execAsync("which docker");
     await execAsync("docker info");
     isInstalled = true;
     isDaemonRunning = true;
@@ -282,7 +283,7 @@ export async function stopDockerContainer(
   }
 }
 
-// Docker 컨테이너 내에서 명령어 실행
+// Docker 컨테이너에서 명령어 실행
 export async function executeCommandInContainer(
   containerId: string,
   command: string[]
@@ -308,6 +309,84 @@ export async function executeCommandInContainer(
       } else {
         reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
       }
+    });
+  });
+}
+
+// Docker 컨테이너에서 대용량 파일 다운로드 (스트리밍)
+export async function downloadLargeFileFromContainer(
+  containerId: string,
+  filePath: string
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const args = ["exec", containerId, "cat", filePath];
+
+    const process = spawn("docker", args);
+    const chunks: Buffer[] = [];
+    let stderr = "";
+
+    process.stdout.on("data", (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+
+    process.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    process.on("close", (code) => {
+      if (code === 0) {
+        try {
+          const content = Buffer.concat(chunks).toString("utf8");
+          resolve(content);
+        } catch (error) {
+          reject(new Error(`Failed to process file content: ${error.message}`));
+        }
+      } else {
+        reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
+      }
+    });
+
+    process.on("error", (error) => {
+      reject(new Error(`Process error: ${error.message}`));
+    });
+  });
+}
+
+// Docker 컨테이너에서 매우 큰 파일을 직접 로컬 파일로 스트리밍 다운로드
+export async function streamLargeFileFromContainer(
+  containerId: string,
+  containerFilePath: string,
+  localFilePath: string
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const args = ["exec", containerId, "cat", containerFilePath];
+
+    const process = spawn("docker", args);
+    const writeStream = fs.createWriteStream(localFilePath);
+    let stderr = "";
+
+    process.stdout.pipe(writeStream);
+
+    process.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    process.on("close", (code) => {
+      writeStream.end();
+      if (code === 0) {
+        resolve(true);
+      } else {
+        reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
+      }
+    });
+
+    process.on("error", (error) => {
+      writeStream.destroy();
+      reject(new Error(`Process error: ${error.message}`));
+    });
+
+    writeStream.on("error", (error: Error) => {
+      reject(new Error(`Write stream error: ${error.message}`));
     });
   });
 }
