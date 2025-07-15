@@ -45,8 +45,8 @@ contract AirdropTest is Test {
     Airdrop.Proof validProof;
     Airdrop.Preprocessed validPreprocessed;
 
-    event UserRewarded(address indexed user, bytes32 snsId, uint256 amount);
-    event WrongProofProvided(address indexed user, bytes32 snsId, uint256 amount);
+    event UserRewarded(address indexed user, bytes32 snsId, bytes32 proofHash, uint256 amount);
+    event WrongProofProvided(address indexed user, bytes32 snsId, bytes32 proofHash, uint256 amount);
     event VerifierUpdated(address indexed newVerifier);
     event WinnerListUpdated(uint256 numberOfWinners);
     event BatchRewardCompleted(uint256 successfulRewards, uint256 totalRewardAmount);
@@ -163,9 +163,9 @@ contract AirdropTest is Test {
         _setupMultipleUsers();
 
         vm.expectEmit(true, true, true, true);
-        emit UserRewarded(alice, aliceSnsId, 100 * 10 ** 27);
+        emit UserRewarded(alice, aliceSnsId, dummyProofHash, 100 * 10 ** 27);
         vm.expectEmit(true, true, true, true);
-        emit UserRewarded(bob, bobSnsId, 100 * 10 ** 27);
+        emit UserRewarded(bob, bobSnsId, dummyProofHash, 100 * 10 ** 27);
         vm.expectEmit(true, true, true, true);
         emit BatchRewardCompleted(2, 200 * 10 ** 27);
 
