@@ -14,7 +14,7 @@ The Airdrop contract enables administrators to distribute tokens to a whitelist 
 - **Security Features**:
   - Reentrancy protection
   - Owner-only administrative functions
-  - Maximum participant limit (100 users)
+  - Maximum participant limit (30 users)
   - Proof verification before token transfer
 - **Administrative Controls**:
   - Add/remove eligible users
@@ -86,14 +86,13 @@ Airdrop airdrop = new Airdrop(wtonAddress, verifierAddress);
 ### Adding Eligible Users
 
 The owner can add eligible users with their proofs and reward amounts:
+- Make sure you have the JSON files in the inputs/ directory (user1.json through user10.json).
+- Ensure the contract address in the script matches your deployed contract.
+- Make sure the account has enough ETH for gas fees.
+- The account must be the owner of the Airdrop contract
 
-```solidity
-address[] memory users = [user1, user2, user3];
-bytes32[] memory snsIds = [snsId1, snsId2, snsId3];
-Proof[] memory proofs = [proof1, proof2, proof3];
-uint256[] memory amounts = [amount1, amount2, amount3];
-
-airdrop.inputWinnerList(users, snsIds, proofs, amounts);
+```bash
+forge script script/InputWinnersListWithValidProof.s.sol:InputWinnersListWithValidProof --rpc-url $RPC_URL --broadcast
 ```
 
 ### Claiming Rewards

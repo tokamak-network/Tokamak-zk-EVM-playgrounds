@@ -9,5 +9,6 @@ remappings = [
 viaIr = true
 optimizer = true
 optimizer_runs = 200
+fs_permissions = [{ access = "read", path = "./script/inputs" }]
 
 evm_version = "prague"
