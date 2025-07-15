@@ -9,7 +9,6 @@ const ProveResult: React.FC = () => {
   const { proveFiles, downloadProveFiles, downloadToLocal, isDownloading } =
     useDockerFileDownload();
   const { currentDockerContainer } = useDocker();
-
   const { activeModal, closeModal } = useModals();
   const isOpen = useMemo(() => activeModal === "prove-result", [activeModal]);
 

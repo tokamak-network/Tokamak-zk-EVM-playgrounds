@@ -40,11 +40,16 @@ const TransactionInputModal: React.FC = () => {
 
   const inputClose = async () => {
     if (!isActive) return;
+
+    // 먼저 상태를 초기화
     initializeWithNewTransaction();
+
     try {
-      // const { bytecode, from, to } =
-      //   await fetchTransactionBytecode(transactionHash);
-      updateActiveSection("transaction-to-synthesizer");
+      // 상태 초기화가 완료된 후 애니메이션 시작
+      setTimeout(() => {
+        updateActiveSection("transaction-to-synthesizer");
+      }, 200); // 200ms 지연으로 상태 초기화 완료 대기
+
       onClose();
     } catch (error) {
       console.error("Transaction input modal input close error:", error);

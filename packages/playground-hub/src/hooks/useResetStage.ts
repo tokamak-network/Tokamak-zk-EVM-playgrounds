@@ -26,7 +26,7 @@ export const useResetStage = () => {
   const { openModal } = useModals();
 
   const initializeWhenCatchError = useCallback(() => {
-    setPendingAnimation(true);
+    setPendingAnimation(false);
     updateActiveSection("none");
     resetAllAnimationHandler();
     setProvingIsDone(false);
@@ -39,18 +39,24 @@ export const useResetStage = () => {
     resetAllAnimationHandler,
     setProvingIsDone,
     setProvingResult,
+    openModal,
     resetAllStartStage,
   ]);
 
   const initializeWithNewTransaction = useCallback(() => {
     updateActiveSection("none");
+    setPendingAnimation(false);
     resetAnimationWithNewTransactionHandler();
     setProvingIsDone(false);
     setProvingResult(false);
     resetStartStageWithNewTransaction();
     resetPlaygroundStageWithNewTransaction();
   }, [
+    updateActiveSection,
+    setPendingAnimation,
     resetAnimationWithNewTransactionHandler,
+    setProvingIsDone,
+    setProvingResult,
     resetStartStageWithNewTransaction,
     resetPlaygroundStageWithNewTransaction,
   ]);
