@@ -4,9 +4,9 @@ pragma solidity 0.8.23;
 import {Script, console2} from "forge-std/Script.sol";
 import {Airdrop} from "../src/Airdrop.sol";
 
-contract InputWinnersListWithValidProof is Script {
+contract InputWinnersList is Script {
     // Deployed Airdrop contract address
-    address constant AIRDROP_CONTRACT = 0x5c0892AD2BDF1E9F52e5f6173B0Bb5A1df226D41;
+    address constant AIRDROP_CONTRACT = 0x4443f15b38382d97522bcE191709f2359f19A4D6;
 
     // WTON has 27 decimals
     uint256 constant WTON_DECIMALS = 27;
@@ -28,16 +28,16 @@ contract InputWinnersListWithValidProof is Script {
 
         // Array of JSON file paths for each participant
         string[] memory participantFiles = new string[](10);
-        participantFiles[0] = "inputs/user1.json";
-        participantFiles[1] = "inputs/user2.json";
-        participantFiles[2] = "inputs/user3.json";
-        participantFiles[3] = "inputs/user4.json";
-        participantFiles[4] = "inputs/user5.json";
-        participantFiles[5] = "inputs/user6.json";
-        participantFiles[6] = "inputs/user7.json";
-        participantFiles[7] = "inputs/user8.json";
-        participantFiles[8] = "inputs/user9.json";
-        participantFiles[9] = "inputs/user10.json";
+        participantFiles[0] = "script/inputs/user1.json";
+        participantFiles[1] = "script/inputs/user2.json";
+        participantFiles[2] = "script/inputs/user3.json";
+        participantFiles[3] = "script/inputs/user4.json";
+        participantFiles[4] = "script/inputs/user5.json";
+        participantFiles[5] = "script/inputs/user6.json";
+        participantFiles[6] = "script/inputs/user7.json";
+        participantFiles[7] = "script/inputs/user8.json";
+        participantFiles[8] = "script/inputs/user9.json";
+        participantFiles[9] = "script/inputs/user10.json";
 
         // Load all participants data
         ParticipantData[] memory participants = new ParticipantData[](participantFiles.length);
@@ -120,8 +120,14 @@ contract InputWinnersListWithValidProof is Script {
         // Parse user address (assuming single user in array)
         data.user = vm.parseJsonAddress(json, ".user[0]");
         
-        // Parse SNS ID
-        data.snsId = vm.parseJsonBytes32(json, ".snsId[0]");
+        // Parse SNS ID - try as bytes32 first, if fails, parse as string and convert
+        try vm.parseJsonBytes32(json, ".snsId[0]") returns (bytes32 snsIdBytes) {
+            data.snsId = snsIdBytes;
+        } catch {
+            // If parsing as bytes32 fails, parse as string and convert
+            string memory snsIdStr = vm.parseJsonString(json, ".snsId[0]");
+            data.snsId = stringToBytes32(snsIdStr);
+        }
         
         // Parse amount granted
         data.amountGranted = vm.parseJsonUint(json, ".amountGranted[0]");
@@ -171,12 +177,23 @@ contract InputWinnersListWithValidProof is Script {
         
         // Parse public inputs array (128 elements)
         data.publicInputsArray = new uint256[](128);
-        for (uint256 i = 0; i < 128; i++) {
+        for (uint256 i = 0; i < 127; i++) {
             string memory key = string.concat(".public_inputs[", vm.toString(i), "]");
             data.publicInputsArray[i] = vm.parseJsonUint(json, key);
         }
         
         return data;
+    }
+
+    function stringToBytes32(string memory source) private pure returns (bytes32 result) {
+        bytes memory tempEmptyStringTest = bytes(source);
+        if (tempEmptyStringTest.length == 0) {
+            return 0x0;
+        }
+
+        assembly {
+            result := mload(add(source, 32))
+        }
     }
 
     function _calculateTotalWTON(uint256[] memory amounts) private pure returns (uint256) {
