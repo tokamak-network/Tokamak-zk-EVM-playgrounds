@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useMemo, act } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import tankTrue from "../../assets/images/tank-true.png";
 import tankFalse from "../../assets/images/tank-false.png";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
+import { useModals } from "../../hooks/useModals";
 
 interface FillingTankProps {
   animationDuration?: number; // ms
@@ -23,6 +24,7 @@ export default function FillingTank({
   const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { provingIsDone, provingResult } = useTokamakZkEVMActions();
+  const { openModal } = useModals();
 
   const active = useMemo(() => {
     return provingIsDone;
@@ -45,6 +47,11 @@ export default function FillingTank({
             animationRef.current = requestAnimationFrame(animate);
           } else {
             if (onFillComplete) onFillComplete();
+
+            // 애니메이션 완료 후 provingResult가 true인 경우에만 submit 모달 열기
+            if (provingResult === true) {
+              openModal("submit");
+            }
           }
         };
 

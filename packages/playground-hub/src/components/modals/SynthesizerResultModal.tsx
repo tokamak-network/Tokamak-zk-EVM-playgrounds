@@ -222,7 +222,7 @@ const CustomTabSwitcher: React.FC<{
 
 const SynthesizerResultModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
-  const [activeTab, setActiveTab] = useState("storageLoad");
+  const [activeTab, setActiveTab] = useState("logs");
 
   // Use the custom hook to get synthesizer result data
   const { storageLoad, placementLogs, storageStore, evmContractAddress } =

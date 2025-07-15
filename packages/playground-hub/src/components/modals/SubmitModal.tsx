@@ -11,7 +11,7 @@ const SubmitModal: React.FC = () => {
   const isOpen = useMemo(() => activeModal === "submit", [activeModal]);
   const { initializeWithNewTransaction } = useResetStage();
 
-  const { proveFiles, downloadProveFiles, downloadToLocal, isDownloading } =
+  const { proveFiles, downloadProveFiles, downloadToLocal } =
     useDockerFileDownload();
   const { currentDockerContainer } = useDocker();
 
@@ -49,7 +49,7 @@ const SubmitModal: React.FC = () => {
     return { success: false, error: "Failed to download proof file" };
   };
 
-  // if (!isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
