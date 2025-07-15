@@ -47,8 +47,8 @@ contract Airdrop is Ownable, ReentrancyGuard {
     bool public airdropCompleted;
 
     // Events
-    event UserRewarded(address indexed user, bytes32 snsId, uint256 amount);
-    event WrongProofProvided(address indexed user, bytes32 snsId, uint256 amount);
+    event UserRewarded(address indexed user, bytes32 snsId, bytes32 proofHash, uint256 amount);
+    event WrongProofProvided(address indexed user, bytes32 snsId, bytes32 proofHash, uint256 amount);
     event VerifierUpdated(address indexed newVerifier);
     event WinnerListUpdated(uint256 numberOfWinners);
     event BatchRewardCompleted(uint256 successfulRewards, uint256 totalRewardAmount);
@@ -154,7 +154,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
 
             // Skip users associated with a wrong proof
             if (!eligibleUser[user].isProofValid) {
-                emit WrongProofProvided(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
+                emit WrongProofProvided(user, eligibleUser[user].snsId, eligibleUser[user].proofHash, eligibleUser[user].amountGranted);
                 continue;
             }
 
@@ -174,7 +174,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
                 );
             }
 
-            emit UserRewarded(user, eligibleUser[user].snsId, eligibleUser[user].amountGranted);
+            emit UserRewarded(user, eligibleUser[user].snsId, eligibleUser[user].proofHash, eligibleUser[user].amountGranted);
         }
 
         airdropCompleted = true;

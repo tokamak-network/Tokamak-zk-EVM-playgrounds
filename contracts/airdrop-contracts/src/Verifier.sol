@@ -727,7 +727,12 @@ contract Verifier is IVerifier {
                 let offset3 := calldataload(0x44)
                 let offset4 := calldataload(0x64)
                 let part1LengthInWords := calldataload(add(offset, 0x04))
-                let isValid := eq(part1LengthInWords, 38)
+                let part2LengthInWords := calldataload(add(offset2, 0x04))
+                let isValid := and(eq(part1LengthInWords, 38), eq(part2LengthInWords, 42))
+
+                // revert if the length of the proof is not valid
+                if iszero(isValid) { revertWithMessage(27, "loadProof: Proof is invalid") }
+
                 // S PERMUTATION POLYNOMIALS
                 {
                     let x0 := calldataload(add(offset3, 0x024))
@@ -938,8 +943,7 @@ contract Verifier is IVerifier {
                     mstore(PARAM_SMAX, smax)
                 }
 
-                // Revert if the length of the proof is not valid
-                if iszero(isValid) { revertWithMessage(27, "loadProof: Proof is invalid") }
+                // Revert if smax is not valid
                 if iszero(isValidSmax) { revertWithMessage(27, "loadProof: smax is invalid") }
             }
 
