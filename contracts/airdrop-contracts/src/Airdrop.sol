@@ -27,6 +27,10 @@ contract Airdrop is Ownable, ReentrancyGuard {
         uint256[] preprocessedPart2;
     }
 
+    struct PublicInputs {
+        uint256[] publicInputs;
+    }
+
     // wton token
     IERC20 public immutable wton;
     // The proof verification contract
@@ -42,7 +46,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
 
     uint256 public smax;
 
-    uint256 public constant MAXIMUM_PARTICIPANTS = 50;
+    uint256 public constant MAXIMUM_PARTICIPANTS = 30;
 
     bool public airdropCompleted;
 
@@ -63,7 +67,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
         wton = IERC20(_wton);
         verifier = IVerifier(_verifier);
         depositManagerProxy = IDepositManager(_depositManagerProxy);
-        wton.approve(_depositManagerProxy, 5000 * 10 ** 27);
+        wton.approve(_depositManagerProxy, 3000 * 10 ** 27);
         layer2 = _layer2;
         airdropCompleted = false;
         smax = 64;
@@ -73,14 +77,15 @@ contract Airdrop is Ownable, ReentrancyGuard {
         address[] calldata users,
         bytes32[] calldata snsIds,
         Proof[] calldata proofs,
-        Preprocessed calldata preprocessed,
-        uint256[] calldata publicInputs,
+        Preprocessed[] calldata preprocessed,
+        PublicInputs[] calldata publicInputs,
         uint256[] calldata amountsGranted,
         bytes32[] calldata proofHashes,
         bool[] calldata stakes
     ) external onlyOwner {
         require(users.length == snsIds.length, "Users and SNS IDs length mismatch");
         require(users.length == proofs.length, "Users and proofs length mismatch");
+        require(users.length == preprocessed.length, "Users and preprocessed length mismatch");
         require(users.length == amountsGranted.length, "Users and amounts length mismatch");
         require(users.length == proofHashes.length, "Users and proof hashes lengh mismatch");
         require(users.length == stakes.length, "Users and stakes lengh mismatch");
@@ -97,36 +102,24 @@ contract Airdrop is Ownable, ReentrancyGuard {
             // Check if user is already in the list
             require(eligibleUser[users[i]].snsId == bytes32(0), "User already exists");
 
-            // Store user information
+            // Use safeVerify instead of direct call
+            bool isValid = safeVerify(
+                proofs[i].proof_part1,
+                proofs[i].proof_part2,
+                preprocessed[i].preprocessedPart1,
+                preprocessed[i].preprocessedPart2,
+                publicInputs[i].publicInputs,
+                smax
+            );
 
-            if (
-                verifier.verify(
-                    proofs[i].proof_part1,
-                    proofs[i].proof_part2,
-                    preprocessed.preprocessedPart1,
-                    preprocessed.preprocessedPart2,
-                    publicInputs,
-                    smax
-                )
-            ) {
-                eligibleUser[users[i]] = UserInfo({
-                    snsId: snsIds[i],
-                    proofHash: proofHashes[i],
-                    hasBeenRewarded: false,
-                    amountGranted: amountsGranted[i],
-                    isProofValid: true,
-                    stake: stakes[i]
-                });
-            } else {
-                eligibleUser[users[i]] = UserInfo({
-                    snsId: snsIds[i],
-                    proofHash: proofHashes[i],
-                    hasBeenRewarded: false,
-                    amountGranted: amountsGranted[i],
-                    isProofValid: false,
-                    stake: stakes[i]
-                });
-            }
+            eligibleUser[users[i]] = UserInfo({
+                snsId: snsIds[i],
+                proofHash: proofHashes[i],
+                hasBeenRewarded: false,
+                amountGranted: amountsGranted[i],
+                isProofValid: isValid,
+                stake: stakes[i]
+            });
 
             // array for iteration
             eligibleUsers.push(users[i]);
@@ -135,6 +128,46 @@ contract Airdrop is Ownable, ReentrancyGuard {
         }
         require(wton.balanceOf(address(this)) >= totalAmountGranted, "Not enough wton available");
         emit WinnerListUpdated(users.length);
+    }
+
+
+    /**
+     * @dev Safe verification that returns false if the external call reverts
+     */
+    function safeVerify(
+        uint128[] memory proof_part1,
+        uint256[] memory proof_part2,
+        uint128[] memory preprocessedPart1,
+        uint256[] memory preprocessedPart2,
+        uint256[] memory publicInputs,
+        uint256 _smax
+    ) private view returns (bool) {
+        // Encode the function call
+        bytes memory data = abi.encodeWithSelector(
+            IVerifier.verify.selector,
+            proof_part1,
+            proof_part2,
+            preprocessedPart1,
+            preprocessedPart2,
+            publicInputs,
+            _smax
+        );
+        
+        // Make the low-level call
+        (bool success, bytes memory returnData) = address(verifier).staticcall(data);
+        
+        // If call failed, return false
+        if (!success) {
+            return false;
+        }
+        
+        // If call succeeded but returned empty data, return false
+        if (returnData.length == 0) {
+            return false;
+        }
+        
+        // Decode the boolean result
+        return abi.decode(returnData, (bool));
     }
 
     /**
@@ -155,7 +188,6 @@ contract Airdrop is Ownable, ReentrancyGuard {
             // Skip users associated with a wrong proof
             if (!eligibleUser[user].isProofValid) {
                 emit WrongProofProvided(user, eligibleUser[user].snsId, eligibleUser[user].proofHash, eligibleUser[user].amountGranted);
-                continue;
             }
 
             // Mark as rewarded
