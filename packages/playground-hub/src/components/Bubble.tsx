@@ -152,6 +152,9 @@ export default function Bubbles() {
         className="absolute top-[578px] left-[339px]"
         isActive={proveStage.isReady}
         isDone={proveStage.isDone}
+        onClick={() => {
+          return openModal("prove-result");
+        }}
       />
       <Bubble
         type="verify"
@@ -173,6 +176,9 @@ export default function Bubbles() {
         className="absolute top-[452px] left-[795px]"
         isActive={bikzgStage.isReady}
         isDone={bikzgStage.isDone}
+        onClick={() => {
+          return openModal("preprocess-result");
+        }}
       />
     </div>
   );
