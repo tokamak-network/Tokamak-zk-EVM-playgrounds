@@ -184,10 +184,12 @@ export const useDockerFileDownload = () => {
 
       // Define file paths in the container
       const filePaths = {
-        combinedSigna: "backend/setup/trusted-setup/output/combined_sigma.json",
+        combinedSigna:
+          "packages/backend/setup/trusted-setup/output/combined_sigma.json",
         sigmaPreprocess:
-          "backend/setup/trusted-setup/output/sigma_preprocess.json",
-        sigmaVerify: "backend/setup/trusted-setup/output/sigma_verify.json",
+          "packages/backend/setup/trusted-setup/output/sigma_preprocess.json",
+        sigmaVerify:
+          "packages/backend/setup/trusted-setup/output/sigma_verify.json",
       };
 
       // Download each file using the new downloadLargeFile function
@@ -268,7 +270,8 @@ export const useDockerFileDownload = () => {
     try {
       console.log("Starting preprocess file download...");
 
-      const filePath = "backend/verify/preprocess/output/preprocess.json";
+      const filePath =
+        "packages/backend/verify/preprocess/output/preprocess.json";
 
       console.log(`Downloading preprocess file from: ${filePath}`);
 
@@ -327,7 +330,7 @@ export const useDockerFileDownload = () => {
     try {
       console.log("Starting prove file download...");
 
-      const filePath = "backend/prove/output/proof.json";
+      const filePath = "packages/backend/prove/output/proof.json";
 
       console.log(`Downloading prove file from: ${filePath}`);
 
