@@ -23,6 +23,8 @@ import {
   streamLargeFileFromContainer,
   checkDockerStatus,
 } from "./api/docker-service";
+import { promisify } from "node:util";
+const execAsync = promisify(exec);
 
 let downloadItem: DownloadItem | null = null;
 
@@ -198,6 +200,279 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+
+// CUDA 체크 함수들
+async function checkNvidiaGPU(): Promise<{
+  isAvailable: boolean;
+  gpuInfo?: string;
+  error?: string;
+}> {
+  try {
+    console.log("🔍 Checking NVIDIA GPU with nvidia-smi...");
+    
+    // Windows에서는 nvidia-smi가 System32에 있을 수도 있음
+    const isWindows = process.platform === 'win32';
+    const nvidiaCommand = isWindows 
+      ? "nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits"
+      : "nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader,nounits";
+    
+    const { stdout } = await execAsync(nvidiaCommand, {
+      timeout: 10000,
+      // Windows에서 PATH 확장
+      env: isWindows ? {
+        ...process.env,
+        PATH: `${process.env.PATH};C:\\Program Files\\NVIDIA Corporation\\NVSMI;C:\\Windows\\System32`
+      } : process.env
+    });
+    
+    console.log("✅ NVIDIA GPU detected:", stdout.trim());
+    return {
+      isAvailable: true,
+      gpuInfo: stdout.trim(),
+    };
+  } catch (error) {
+    console.log("❌ NVIDIA GPU check failed:", error.message);
+    
+    // Windows에서 추가 체크 - wmic을 사용한 GPU 정보 확인
+    if (process.platform === 'win32') {
+      try {
+        console.log("🔍 Trying alternative GPU detection with wmic...");
+        const { stdout: wmicOutput } = await execAsync('wmic path win32_VideoController get name', {
+          timeout: 5000
+        });
+        
+        if (wmicOutput.toLowerCase().includes('nvidia') || wmicOutput.toLowerCase().includes('geforce') || wmicOutput.toLowerCase().includes('rtx')) {
+          console.log("✅ NVIDIA GPU found via wmic:", wmicOutput.trim());
+          return {
+            isAvailable: true,
+            gpuInfo: wmicOutput.trim().replace(/\s+/g, ' '),
+            error: "nvidia-smi not accessible, but NVIDIA GPU detected"
+          };
+        }
+      } catch (wmicError) {
+        console.log("❌ wmic GPU check also failed:", wmicError.message);
+      }
+    }
+    
+    return {
+      isAvailable: false,
+      error: error.message || "NVIDIA GPU not found or nvidia-smi not available",
+    };
+  }
+}
+
+async function checkCudaCompiler(): Promise<{
+  isAvailable: boolean;
+  version?: string;
+  error?: string;
+}> {
+  try {
+    console.log("🔍 Checking CUDA compiler (nvcc)...");
+    
+    const isWindows = process.platform === 'win32';
+    const { stdout } = await execAsync("nvcc --version", {
+      timeout: 10000,
+      // Windows에서 CUDA PATH 확장
+      env: isWindows ? {
+        ...process.env,
+        PATH: `${process.env.PATH};C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v11.8\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.0\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.1\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.2\\bin`
+      } : process.env
+    });
+    
+    const versionMatch = stdout.match(/release (\d+\.\d+)/);
+    const version = versionMatch ? versionMatch[1] : "Unknown";
+    console.log(`✅ CUDA compiler found: ${version}`);
+    
+    return {
+      isAvailable: true,
+      version,
+    };
+  } catch (error) {
+    console.log("❌ CUDA compiler check failed:", error.message);
+    
+    // Windows에서 추가 체크 - CUDA가 설치되어 있는지 레지스트리나 파일시스템으로 확인
+    if (process.platform === 'win32') {
+      try {
+        console.log("🔍 Checking for CUDA installation in Program Files...");
+        const { stdout: dirOutput } = await execAsync('dir "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA" /b', {
+          timeout: 5000
+        });
+        
+        if (dirOutput.trim()) {
+          console.log("ℹ️ CUDA toolkit found in Program Files but nvcc not in PATH:", dirOutput.trim());
+          return {
+            isAvailable: false,
+            error: "CUDA toolkit installed but nvcc not in PATH. Please add CUDA bin directory to PATH.",
+          };
+        }
+      } catch (dirError) {
+        console.log("ℹ️ No CUDA installation found in Program Files");
+      }
+    }
+    
+    return {
+      isAvailable: false,
+      error: error.message || "CUDA compiler (nvcc) not found",
+    };
+  }
+}
+
+async function checkDockerCudaSupport(): Promise<{
+  isSupported: boolean;
+  error?: string;
+}> {
+  try {
+    // 먼저 Docker가 실행 중인지 확인
+    const dockerStatus = await checkDockerStatus();
+    if (!dockerStatus.isInstalled || !dockerStatus.isRunning) {
+      return {
+        isSupported: false,
+        error: "Docker is not installed or not running",
+      };
+    }
+
+    // Step 1: Docker가 --gpus 옵션을 지원하는지 체크
+    try {
+      const { stdout } = await execAsync("docker run --help", {
+        timeout: 5000,
+      });
+      
+      if (!stdout.includes("--gpus")) {
+        return {
+          isSupported: false,
+          error: "Docker does not support --gpus option (Docker version too old)",
+        };
+      }
+    } catch (helpError) {
+      return {
+        isSupported: false,
+        error: "Could not check Docker --gpus support",
+      };
+    }
+
+    // Step 2: Docker info로 GPU 런타임 지원 확인
+    try {
+      console.log("🔍 Checking Docker info for GPU runtime support...");
+      const { stdout } = await execAsync("docker info", {
+        timeout: 10000,
+      });
+      
+      // nvidia 런타임이나 GPU 관련 정보가 있는지 체크
+      const hasNvidiaRuntime = stdout.toLowerCase().includes('nvidia') || 
+                              stdout.toLowerCase().includes('gpu') ||
+                              stdout.toLowerCase().includes('runtimes');
+      
+      if (hasNvidiaRuntime) {
+        console.log("✅ Docker info shows GPU/NVIDIA runtime support");
+      } else {
+        console.log("⚠️ Docker info does not show obvious GPU support, but continuing...");
+      }
+      
+             // Windows 백엔드 정보 체크
+       if (process.platform === 'win32') {
+         if (stdout.toLowerCase().includes('wsl')) {
+           console.log("✅ Docker is using WSL2 backend");
+         } else if (stdout.toLowerCase().includes('hyper-v')) {
+           console.log("✅ Docker is using Hyper-V backend");
+         } else {
+           console.log("ℹ️ Docker backend type not clearly identified");
+         }
+         
+         // Windows Container Runtime 체크
+         if (stdout.toLowerCase().includes('windowsfilter') || stdout.toLowerCase().includes('windows')) {
+           console.log("ℹ️ Windows containers detected");
+         }
+       }
+    } catch (infoError) {
+      console.warn("❌ Could not get docker info:", infoError.message);
+    }
+
+    // Step 3: 가벼운 GPU 액세스 테스트 (실제 CUDA 이미지 없이)
+    try {
+      console.log("🔍 Testing GPU access with hello-world image...");
+      // hello-world 이미지로 --gpus 옵션이 동작하는지만 테스트
+      await execAsync("docker run --rm --gpus all hello-world", {
+        timeout: 15000,
+      });
+      console.log("✅ Docker GPU access test passed with hello-world image");
+      return { isSupported: true };
+    } catch (helloWorldError) {
+      console.log("❌ hello-world GPU test failed:", helloWorldError.message);
+      
+      // Step 4: nvidia/cuda 이미지가 이미 있는지 체크
+      try {
+        console.log("🔍 Looking for existing CUDA images...");
+        const { stdout: imageList } = await execAsync("docker images nvidia/cuda --format '{{.Repository}}:{{.Tag}}'", {
+          timeout: 5000,
+        });
+        
+        if (imageList.trim()) {
+          console.log("✅ Found existing CUDA images:", imageList.trim());
+          // 기존 CUDA 이미지로 간단한 테스트
+          const lines = imageList.trim().split('\n');
+          const firstImage = lines[0];
+          console.log(`🔍 Testing GPU access with existing image: ${firstImage}`);
+          await execAsync(`docker run --rm --gpus all ${firstImage} nvidia-smi`, {
+            timeout: 10000,
+          });
+          console.log("✅ Docker CUDA test passed with existing image");
+          return { isSupported: true };
+        } else {
+          console.log("ℹ️ No existing CUDA images found");
+        }
+      } catch (existingImageError) {
+        console.log("❌ Existing CUDA image test failed:", existingImageError.message);
+      }
+    }
+
+    // 모든 테스트가 실패하면 GPU 지원 없음으로 판단
+    const isWindows = process.platform === 'win32';
+    let errorMessage = "Docker GPU access not available.";
+    
+    if (isWindows) {
+      errorMessage += "\n\n🔧 Windows Docker Desktop GPU 설정 방법:\n" +
+                     "1. Docker Desktop 설정 열기\n" +
+                     "2. Settings → General → '✅ Use the WSL 2 based engine' 활성화\n" +
+                     "3. Settings → Resources → WSL Integration → '✅ Enable integration with my default WSL distro' 활성화\n" +
+                     "4. Docker Desktop 재시작\n" +
+                     "5. 최신 NVIDIA 드라이버 설치 확인\n\n" +
+                     "📝 참고: Docker Desktop 4.15+ 버전 권장";
+    } else {
+      errorMessage += " Please install nvidia-docker or enable GPU support.";
+    }
+    
+    return {
+      isSupported: false,
+      error: errorMessage,
+    };
+
+  } catch (error) {
+    return {
+      isSupported: false,
+      error: `Docker CUDA support check failed: ${error.message}`,
+    };
+  }
+}
+
+async function checkCudaSupport(): Promise<{
+  isFullySupported: boolean;
+  gpu: { isAvailable: boolean; gpuInfo?: string; error?: string };
+  compiler: { isAvailable: boolean; version?: string; error?: string };
+  dockerCuda: { isSupported: boolean; error?: string };
+}> {
+  const [gpu, compiler, dockerCuda] = await Promise.all([
+    checkNvidiaGPU(),
+    checkCudaCompiler(),
+    checkDockerCudaSupport(),
+  ]);
+
+  return {
+    isFullySupported: gpu.isAvailable && compiler.isAvailable && dockerCuda.isSupported,
+    gpu,
+    compiler,
+    dockerCuda,
+  };
+}
 
 // IPC 핸들러 등록
 function setupIpcHandlers() {
@@ -531,6 +806,23 @@ function setupIpcHandlers() {
     return {
       RPC_URL: process.env.RPC_URL,
     };
+  });
+
+  // CUDA 체크 핸들러들
+  ipcMain.handle("check-cuda-support", async () => {
+    return await checkCudaSupport();
+  });
+
+  ipcMain.handle("check-nvidia-gpu", async () => {
+    return await checkNvidiaGPU();
+  });
+
+  ipcMain.handle("check-cuda-compiler", async () => {
+    return await checkCudaCompiler();
+  });
+
+  ipcMain.handle("check-docker-cuda-support", async () => {
+    return await checkDockerCudaSupport();
   });
 }
 

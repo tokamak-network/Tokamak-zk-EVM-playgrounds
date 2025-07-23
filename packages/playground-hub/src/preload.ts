@@ -139,3 +139,11 @@ contextBridge.exposeInMainWorld("dockerFileDownloaderAPI", {
     return result;
   },
 });
+
+// CUDA API
+contextBridge.exposeInMainWorld("cudaAPI", {
+  checkCudaSupport: () => ipcRenderer.invoke("check-cuda-support"),
+  checkNvidiaGPU: () => ipcRenderer.invoke("check-nvidia-gpu"),
+  checkCudaCompiler: () => ipcRenderer.invoke("check-cuda-compiler"),
+  checkDockerCudaSupport: () => ipcRenderer.invoke("check-docker-cuda-support"),
+});

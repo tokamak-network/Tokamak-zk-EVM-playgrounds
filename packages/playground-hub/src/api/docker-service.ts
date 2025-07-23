@@ -39,33 +39,45 @@ export async function checkDockerStatus(
   let imageExists = false;
   let isContainerFromImageRunning = false;
 
+  // Step 1: Check if Docker is installed (cross-platform)
   try {
-    await execAsync("which docker");
-    await execAsync("docker info");
+    const isWindows = process.platform === 'win32';
+    const whichCommand = isWindows ? 'where docker' : 'which docker';
+    await execAsync(whichCommand);
     isInstalled = true;
-    isDaemonRunning = true;
   } catch (error) {
-    // Check if it's a "command not found" type of error for isInstalled
-    // This is a basic check; more robust checks might be needed for different OS/shells
-    if (
-      error.message &&
-      (error.message.includes("command not found") ||
-        error.message.includes("not recognized"))
-    ) {
-      isInstalled = false;
-    } else {
-      // Assume installed, but daemon not running or other error
-      isInstalled = true; // Or false if 'docker info' failing always means not installed in your context
-    }
-    isDaemonRunning = false;
-
-    // If daemon isn't running or Docker isn't installed, no need to check image/container
+    console.log('Docker not found in PATH:', error.message);
     return {
-      isInstalled,
-      isRunning: isDaemonRunning,
+      isInstalled: false,
+      isRunning: false,
       imageExists,
       isContainerFromImageRunning,
     };
+  }
+
+  // Step 2: Check if Docker daemon is running (more reliable approach)
+  try {
+    // Try docker version first (lighter than docker info)
+    await execAsync("docker version --format json", { timeout: 5000 });
+    isDaemonRunning = true;
+  } catch (error) {
+    console.log('Docker daemon not running (docker version failed):', error.message);
+    
+    // Fallback: try docker ps (even lighter command)
+    try {
+      await execAsync("docker ps", { timeout: 5000 });
+      isDaemonRunning = true;
+    } catch (psError) {
+      console.log('Docker daemon not running (docker ps failed):', psError.message);
+      isDaemonRunning = false;
+      
+      return {
+        isInstalled,
+        isRunning: false,
+        imageExists,
+        isContainerFromImageRunning,
+      };
+    }
   }
 
   if (isDaemonRunning && imageNameToCheck) {

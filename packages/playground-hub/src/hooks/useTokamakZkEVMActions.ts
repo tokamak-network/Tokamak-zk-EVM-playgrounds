@@ -13,6 +13,18 @@ import { usePlaygroundStage } from "./usePlaygroundStage";
 import { useModals } from "./useModals";
 import { DOCKER_NAME } from "../constants";
 
+// CUDA API 타입 정의
+declare global {
+  interface Window {
+    cudaAPI: {
+      checkDockerCudaSupport: () => Promise<{
+        isSupported: boolean;
+        error?: string;
+      }>;
+    };
+  }
+}
+
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
   RunSynthesizer = "RUN_SYNTHESIZER",
@@ -25,7 +37,7 @@ export enum TokamakActionType {
 export function useTokamakZkEVMActions() {
   const [provingIsDone, setProvingIsDone] = useAtom(provingIsDoneAtom);
   const [provingResult, setProvingResult] = useAtom(provingResultAtom);
-  const { runContainer, currentDockerContainer } = useDocker();
+  const { runContainer, currentDockerContainer, executeCommand } = useDocker();
   const { parseTONTransfer } = useSynthesizer();
   const { setup, preProcess, prove, verify } = useBackendCommand();
   const { setPendingAnimation } = usePipelineAnimation();
@@ -40,7 +52,115 @@ export function useTokamakZkEVMActions() {
         setPlaygroundStageInProcess(true);
         switch (actionType) {
           case TokamakActionType.SetupEvmSpec:
-            return await runContainer(DOCKER_NAME);
+            try {
+              // Docker 컨테이너 실행
+              const container = await runContainer(DOCKER_NAME);
+
+              if (!container?.ID) {
+                throw new Error("Failed to get container ID after running");
+              }
+
+              // CUDA 지원 여부 확인
+              console.log("🔍 Checking CUDA support for setup optimization...");
+              const cudaStatus = await window.cudaAPI.checkDockerCudaSupport();
+
+              if (cudaStatus.isSupported) {
+                setTimeout(() => {
+                  setPendingAnimation(true);
+                }, 500);
+                openModal("loading");
+                console.log(
+                  "✅ CUDA supported! Installing ICICLE for GPU acceleration..."
+                );
+
+                try {
+                  // 🔍 컨테이너 내부 디렉토리 구조 디버깅
+                  console.log("🔍 Debugging container directory structure...");
+
+                  const pwdResult = await executeCommand(container.ID, ["pwd"]);
+                  console.log(
+                    "📍 Current working directory:",
+                    pwdResult.trim()
+                  );
+
+                  const lsResult = await executeCommand(container.ID, [
+                    "ls",
+                    "-la",
+                  ]);
+                  console.log("📂 Current directory contents:\n", lsResult);
+
+                  const findBackendResult = await executeCommand(container.ID, [
+                    "find",
+                    ".",
+                    "-name",
+                    "backend",
+                    "-type",
+                    "d",
+                  ]);
+                  console.log(
+                    "🔍 Found 'backend' directories:",
+                    findBackendResult.trim() || "None found"
+                  );
+
+                  const findScriptResult = await executeCommand(container.ID, [
+                    "find",
+                    ".",
+                    "-name",
+                    "icicle_auto_install.sh",
+                  ]);
+                  console.log(
+                    "🔍 Found 'icicle_auto_install.sh' files:",
+                    findScriptResult.trim() || "None found"
+                  );
+
+                  // backend 디렉토리가 존재하는지 확인
+                  let backendPath = "";
+                  if (findBackendResult.trim()) {
+                    backendPath = findBackendResult.trim().split("\n")[0]; // 첫 번째 결과 사용
+                    console.log("✅ Using backend path:", backendPath);
+                  } else {
+                    console.log(
+                      "❌ No backend directory found, trying root directory"
+                    );
+                    backendPath = "."; // 현재 디렉토리에서 시도
+                  }
+
+                  // ICICLE 설치 스크립트 실행
+                  const sedCommand = `cd ${backendPath} && sed -i 's/\\r$//' ./icicle_auto_install.sh`;
+                  console.log("🔧 Running sed command:", sedCommand);
+                  await executeCommand(container.ID, [
+                    "bash",
+                    "-c",
+                    sedCommand,
+                  ]);
+
+                  console.log("📦 Running ICICLE auto installation...");
+                  const installCommand = `cd ${backendPath} && ./icicle_auto_install.sh`;
+                  console.log("🔧 Running install command:", installCommand);
+                  const installResult = await executeCommand(container.ID, [
+                    "bash",
+                    "-c",
+                    installCommand,
+                  ]);
+                  console.log("📦 ICICLE installation output:", installResult);
+
+                  console.log("✅ ICICLE installation completed!");
+                } catch (icicleError) {
+                  console.error("❌ ICICLE installation failed:", icicleError);
+                  console.log("⚠️ Continuing with setup without ICICLE...");
+                }
+              } else {
+                console.log(
+                  "ℹ️ CUDA not supported, skipping ICICLE installation:",
+                  cudaStatus.error
+                );
+              }
+
+              return container;
+            } catch (error) {
+              console.error("❌ SetupEvmSpec process failed:", error);
+              throw error;
+            }
 
           case TokamakActionType.RunSynthesizer:
             console.log("currentDockerContainer", currentDockerContainer);
@@ -55,8 +175,11 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.SetupTrustedSetup:
             if (currentDockerContainer?.ID) {
-              return Promise.resolve(true);
-              // return await setup(currentDockerContainer.ID);
+              setTimeout(() => {
+                setPendingAnimation(true);
+              }, 500);
+            openModal("loading");
+              return await setup(currentDockerContainer.ID);
             }
             throw new Error("currentDockerContainer is not found");
 

@@ -5,6 +5,7 @@ import PipelineBG from "./components/PipelineBG";
 import Logo from "./components/Logo";
 import Settings from "./pages/Settings";
 import PlaygroundModals from "./components/modals";
+import CudaStatus from "./components/CudaStatus";
 
 const MainContent = () => {
   return (
@@ -13,6 +14,7 @@ const MainContent = () => {
       <Logo />
       <PipelineBG />
       <PlaygroundModals />
+      <CudaStatus />
     </div>
   );
 };

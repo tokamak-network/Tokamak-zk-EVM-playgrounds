@@ -29,7 +29,7 @@ export const useBackendCommand = () => {
         const result = await executeCommand(containerId, [
           "bash",
           "-c",
-          `cd backend && 
+          `cd packages/backend && 
         cargo run -p preprocess`,
         ]);
         console.log("result", result);
@@ -49,7 +49,7 @@ export const useBackendCommand = () => {
         const result = await executeCommand(containerId, [
           "bash",
           "-c",
-          `cd backend && 
+          `cd packages/backend && 
         cargo run -p prove`,
         ]);
         console.log("result", result);
@@ -68,7 +68,7 @@ export const useBackendCommand = () => {
         const result = await executeCommand(containerId, [
           "bash",
           "-c",
-          `cd backend && 
+          `cd packages/backend && 
         cargo run -p verify`,
         ]);
         console.log("result", result);
