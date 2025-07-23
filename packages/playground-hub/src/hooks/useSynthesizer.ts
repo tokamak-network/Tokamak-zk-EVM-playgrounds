@@ -19,7 +19,7 @@ export const useSynthesizer = () => {
         const result = await executeCommand(containerId, [
           "bash",
           "-c",
-          `cd frontend/synthesizer/examples/docker && 
+          `cd packages/frontend/synthesizer/examples/docker && 
         tsx index.ts ${RPC_URL} ${transactionHash}`,
         ]);
         console.log("result", result);

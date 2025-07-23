@@ -44,6 +44,12 @@ declare global {
         imageNameToCheck?: string
       ) => Promise<DockerStatusCheckResult>;
     };
+    cudaAPI: {
+      checkDockerCudaSupport: () => Promise<{
+        isSupported: boolean;
+        error?: string;
+      }>;
+    };
   }
 }
 
@@ -167,7 +173,27 @@ export const useDocker = () => {
         throw new Error(errorMessage);
       }
 
-      const options = ["-it", "--rm", "-p", "8080:8080"];
+      // Check CUDA support and configure Docker options accordingly
+      let options = ["-it", "--rm", "-p", "8080:8080"];
+      
+      try {
+        console.log("Checking CUDA support for Docker container...");
+        const cudaStatus = await window.cudaAPI.checkDockerCudaSupport();
+        
+        if (cudaStatus.isSupported) {
+          console.log("CUDA support detected. Adding --gpus all option.");
+          options = ["--gpus", "all", ...options];
+        } else {
+          console.log("CUDA not supported or not available:", cudaStatus.error);
+          console.log("Running container without GPU acceleration.");
+        }
+      } catch (cudaError) {
+        console.warn("Failed to check CUDA support, proceeding without GPU:", cudaError);
+        // Continue without GPU acceleration if CUDA check fails
+      }
+
+      console.log("Docker run options:", options);
+      
       setLoading(true);
       setError(null);
       try {
