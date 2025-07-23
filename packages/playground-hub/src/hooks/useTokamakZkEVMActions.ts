@@ -53,6 +53,11 @@ export function useTokamakZkEVMActions() {
         switch (actionType) {
           case TokamakActionType.SetupEvmSpec:
             try {
+              setTimeout(() => {
+                setPendingAnimation(true);
+                openModal("loading");
+              }, 500);
+
               // Docker 컨테이너 실행
               const container = await runContainer(DOCKER_NAME);
 
@@ -65,10 +70,6 @@ export function useTokamakZkEVMActions() {
               const cudaStatus = await window.cudaAPI.checkDockerCudaSupport();
 
               if (cudaStatus.isSupported) {
-                setTimeout(() => {
-                  setPendingAnimation(true);
-                }, 500);
-                openModal("loading");
                 console.log(
                   "✅ CUDA supported! Installing ICICLE for GPU acceleration..."
                 );
