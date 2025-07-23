@@ -178,7 +178,7 @@ export function useTokamakZkEVMActions() {
               setTimeout(() => {
                 setPendingAnimation(true);
               }, 500);
-            openModal("loading");
+              openModal("loading");
               return await setup(currentDockerContainer.ID);
             }
             throw new Error("currentDockerContainer is not found");
@@ -214,7 +214,21 @@ export function useTokamakZkEVMActions() {
                 if (lastLine.startsWith("Verification result:")) {
                   setProvingIsDone(true);
                   const provingResultValue = lastLine.split(":")[1].trim();
-                  const isTrue = provingResultValue === "true, true";
+
+                  // 대소문자 구분 없이 true 체크 (true, True, TRUE 등 모두 허용)
+                  const normalizedResult = provingResultValue.toLowerCase();
+                  const isTrue =
+                    normalizedResult.includes("true") &&
+                    normalizedResult
+                      .split(",")
+                      .every((part) => part.trim().toLowerCase() === "true");
+
+                  console.log(`🔍 Verification result parsing:`, {
+                    raw: provingResultValue,
+                    normalized: normalizedResult,
+                    isTrue: isTrue,
+                  });
+
                   setProvingResult(isTrue);
                   return {
                     success: isTrue,
