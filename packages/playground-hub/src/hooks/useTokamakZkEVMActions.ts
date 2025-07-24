@@ -12,6 +12,7 @@ import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
 import { useModals } from "./useModals";
 import { DOCKER_NAME } from "../constants";
+import { useCuda } from "./useCuda";
 
 // CUDA API 타입 정의
 declare global {
@@ -44,6 +45,8 @@ export function useTokamakZkEVMActions() {
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
   const { openModal, closeModal } = useModals();
+  const { cudaStatus } = useCuda();
+  const isCudaSupported = cudaStatus.isFullySupported;
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
@@ -53,10 +56,12 @@ export function useTokamakZkEVMActions() {
         switch (actionType) {
           case TokamakActionType.SetupEvmSpec:
             try {
-              setTimeout(() => {
-                setPendingAnimation(true);
-                openModal("loading");
-              }, 500);
+              if (isCudaSupported) {
+                setTimeout(() => {
+                  setPendingAnimation(true);
+                  openModal("loading");
+                }, 500);
+              }
 
               // Docker 컨테이너 실행
               const container = await runContainer(DOCKER_NAME);
@@ -65,11 +70,7 @@ export function useTokamakZkEVMActions() {
                 throw new Error("Failed to get container ID after running");
               }
 
-              // CUDA 지원 여부 확인
-              console.log("🔍 Checking CUDA support for setup optimization...");
-              const cudaStatus = await window.cudaAPI.checkDockerCudaSupport();
-
-              if (cudaStatus.isSupported) {
+              if (isCudaSupported) {
                 console.log(
                   "✅ CUDA supported! Installing ICICLE for GPU acceleration..."
                 );
@@ -176,10 +177,13 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.SetupTrustedSetup:
             if (currentDockerContainer?.ID) {
-              setTimeout(() => {
-                setPendingAnimation(true);
-              }, 500);
-              openModal("loading");
+              if (isCudaSupported) {
+                setTimeout(() => {
+                  setPendingAnimation(true);
+                }, 500);
+                openModal("loading");
+              }
+
               return await setup(currentDockerContainer.ID);
             }
             throw new Error("currentDockerContainer is not found");
@@ -293,6 +297,7 @@ export function useTokamakZkEVMActions() {
       prove,
       setPendingAnimation,
       initializeWhenCatchError,
+      isCudaSupported,
     ]
   );
 
