@@ -49,7 +49,6 @@ export async function checkDockerStatus(
         // 방법 1: 표준 PATH에서 찾기
         await execAsync("where docker", { timeout: 10000 });
         isInstalled = true;
-        console.log("Docker found in PATH via where command");
       } catch (pathError) {
         console.log(
           "Docker not found in PATH, trying alternative locations..."
@@ -82,7 +81,6 @@ export async function checkDockerStatus(
             // 파일 존재 여부만 확인 (데몬 실행 상태와 무관)
             if (fs.existsSync(expandedPath)) {
               isInstalled = true;
-              console.log(`Docker executable found at: ${expandedPath}`);
               break;
             }
           } catch (pathCheckError) {
@@ -101,7 +99,6 @@ export async function checkDockerStatus(
               );
               if (fs.existsSync(expandedPath)) {
                 isInstalled = true;
-                console.log(`Docker Desktop found at: ${expandedPath}`);
                 break;
               }
             } catch (pathCheckError) {
@@ -121,7 +118,6 @@ export async function checkDockerStatus(
               stdout.toLowerCase().includes("running") ||
               stdout.toLowerCase().includes("stopped")
             ) {
-              console.log("Docker Desktop service detected via sc query");
               isInstalled = true;
             }
           } catch (serviceError) {
@@ -136,7 +132,6 @@ export async function checkDockerStatus(
               'reg query "HKEY_LOCAL_MACHINE\\SOFTWARE\\Docker Inc." /s',
               { timeout: 5000 }
             );
-            console.log("Docker installation detected via registry");
             isInstalled = true;
           } catch (regError) {
             console.log("Docker not found in registry");
@@ -153,7 +148,7 @@ export async function checkDockerStatus(
       isInstalled = true;
     }
   } catch (error) {
-    console.log("Docker installation check failed:", error.message);
+    // Only log on first check or when status changes
     return {
       isInstalled: false,
       isRunning: false,
@@ -164,38 +159,27 @@ export async function checkDockerStatus(
 
   // Step 2: Check if Docker daemon is running (enhanced with longer timeout and better error handling)
   try {
-    console.log("Checking Docker daemon status...");
-
     // 윈도우에서 더 긴 타임아웃 적용
     const timeout = process.platform === "win32" ? 15000 : 10000;
 
     // 방법 1: docker version (가장 가벼운 명령어)
     await execAsync("docker version --format json", { timeout });
     isDaemonRunning = true;
-    console.log("Docker daemon running (verified via docker version)");
   } catch (versionError) {
-    console.log("Docker version command failed:", versionError.message);
-
     // 방법 2: docker info 시도 (더 상세한 정보)
     try {
       await execAsync("docker info", {
         timeout: process.platform === "win32" ? 20000 : 15000,
       });
       isDaemonRunning = true;
-      console.log("Docker daemon running (verified via docker info)");
     } catch (infoError) {
-      console.log("Docker info command failed:", infoError.message);
-
       // 방법 3: docker ps 시도 (가장 기본적인 명령어)
       try {
         await execAsync("docker ps", {
           timeout: process.platform === "win32" ? 15000 : 10000,
         });
         isDaemonRunning = true;
-        console.log("Docker daemon running (verified via docker ps)");
       } catch (psError) {
-        console.log("Docker ps command failed:", psError.message);
-
         // 윈도우에서 추가 진단 정보 제공
         if (process.platform === "win32") {
           try {

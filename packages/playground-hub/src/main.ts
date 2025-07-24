@@ -568,11 +568,30 @@ function setupIpcHandlers() {
 
   let isShowingDialog = false;
 
+  // Docker 상태 캐시 변수 추가
+  let lastDockerStatus: { isInstalled: boolean; isRunning: boolean } | null =
+    null;
+
   ipcMain.handle(
     "check-docker-status",
     async (event, imageNameToCheck?: string) => {
       const status = await checkDockerStatus(imageNameToCheck);
-      console.log("Docker status check result:", status);
+
+      // 상태가 변경되었을 때만 로그 출력
+      if (
+        !lastDockerStatus ||
+        lastDockerStatus.isInstalled !== status.isInstalled ||
+        lastDockerStatus.isRunning !== status.isRunning
+      ) {
+        console.log("Docker status changed:", {
+          installed: status.isInstalled,
+          running: status.isRunning,
+        });
+        lastDockerStatus = {
+          isInstalled: status.isInstalled,
+          isRunning: status.isRunning,
+        };
+      }
 
       if (!status.isInstalled && !isShowingDialog) {
         isShowingDialog = true;
@@ -626,40 +645,12 @@ function setupIpcHandlers() {
         const checkDockerRunning = async () => {
           const currentStatus = await checkDockerStatus();
           if (currentStatus.isInstalled && !currentStatus.isRunning) {
-            const isWindows = process.platform === "win32";
-            let message = "Docker is not running.";
-            let detail = "Please start Docker Desktop to use this application.";
-
-            if (isWindows) {
-              message = "Docker Desktop이 실행되지 않았습니다.";
-              detail = `Docker Desktop을 시작해주세요.
-
-🚀 해결 방법:
-
-1. Docker Desktop 실행:
-   - 시작 메뉴에서 "Docker Desktop" 검색 후 실행
-   - 또는 바탕화면의 Docker Desktop 아이콘 클릭
-
-2. 시스템 트레이 확인:
-   - 오른쪽 하단 시스템 트레이에서 Docker 아이콘 확인
-   - 아이콘이 회색이면 시작 중, 초록색이면 실행 중
-
-3. Docker Desktop이 시작되지 않는 경우:
-   - Windows 재시작 후 다시 시도
-   - WSL2가 활성화되어 있는지 확인
-   - Hyper-V 기능이 활성화되어 있는지 확인
-
-⏰ Docker Desktop 시작에는 1-2분 정도 소요될 수 있습니다.`;
-            }
-
             dialog
               .showMessageBox({
                 type: "warning",
-                title: isWindows
-                  ? "Docker Desktop 실행 필요"
-                  : "Docker Not Running",
-                message,
-                detail,
+                title: "Docker Not Running",
+                message: "Docker Desktop is not running.",
+                detail: "Please start Docker Desktop to use this application.",
                 buttons: ["OK"],
                 noLink: true,
                 defaultId: 0,
