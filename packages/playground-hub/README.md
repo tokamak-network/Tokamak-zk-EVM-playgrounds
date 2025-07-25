@@ -7,12 +7,23 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 - Tokamak-zk-evm-playground is a program that helps you understand and experience the overall flow of Tokamak zk-EVM easily and enjoyably without requiring difficult technical knowledge.
 - It's like looking inside and tinkering with a complex machine, allowing you to simulate the key processes of Tokamak zk-EVM step by step.
 
-## 2. Before you start: You need "Docker"! 🐳
+## 2. Before you start: You need "Docker" and optionally "CUDA"! 🐳⚡
 
 - **What is Docker?**
   - Docker is like a magic box that helps our program (Tokamak-zk-EVM) run smoothly on any computer without complex settings. Thanks to this box, you can have all the necessary preparations at once, greatly reducing the "It doesn't work on my computer" problem.
 - **Why is it needed?**
+
   - Tokamak-zk-EVM requires various development tools and a special execution environment. Docker neatly packages all of this, allowing you to focus on using the program instead of going through a complex installation process.
+
+- **What about CUDA? (Optional but Recommended for NVIDIA GPU users) ⚡**
+  - **What is CUDA?**
+    - CUDA is NVIDIA's technology that allows the GPU (graphics card) to help with computational work, making processes much faster.
+  - **Why is it helpful?**
+    - If you have an NVIDIA GPU and CUDA installed, Tokamak-zk-EVM can use GPU acceleration to run significantly faster, especially during the setup and proving phases.
+    - Don't worry if you don't have NVIDIA GPU or CUDA - the program works perfectly fine with just CPU processing, it will just take a bit longer.
+  - **Do I need it?**
+    - **Required:** Docker (essential for all users)
+    - **Optional but recommended:** CUDA (only if you have an NVIDIA GPU and want faster performance)
 
 ## 3. Installation Process (Step-by-Step Guide) 🛠️
 
@@ -25,7 +36,7 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 
   1. **Access the Docker download page:**
      - **Windows users:** [Download Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/) (Click to go to the download page)
-     - **Mac users (Check Intel chip / Apple Silicon chip before downloading):** [Download Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) (Click to go to the download page)
+     - **Mac users (Check Apple Silicon chip before downloading):** [Download Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) (Click to go to the download page)
   2. **Proceed with download and installation:**
      - Run the downloaded installation file (`Docker Desktop Installer.exe` or `Docker.dmg`) and follow the on-screen instructions to complete the installation.
      - (For Windows, you may need to install or configure WSL 2. Follow the on-screen instructions carefully.)
@@ -34,28 +45,67 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 
      - Launch **Docker Desktop** from the desktop or application list.
      - Check if the **whale icon** 🐳 appears in the taskbar (Windows) or the menu bar at the top of the screen (Mac).
-       ![Docker Installation Success - MacOS](./assets/images/4-1.png)
+       **Windows:**
+       ![Docker Installation Success - Windows](./assets/images/4-1-windows.png)
+       **MacOS:**![Docker Installation Success - MacOS](./assets/images/4-1.png)
      - You can check the running status from the menu that appears when you click the whale icon. Look for a message like "Docker Desktop is running" or a green "Running" indicator.
 
-       ![Docker Running Success - MacOS](./assets/images/4-2.png)
+      **Windows:**
+  ![Docker Running Success - Windows](./assets/images/4-2-windows.png)
+       ![Docker Running Success - Windows](./assets/images/4-3-windows.png)
 
+       **MacOS:**
+       ![Docker Running Success - MacOS](./assets/images/4-2.png)
        ![Docker Running Success - MacOS](./assets/images/4-3.png)
 
        - If Docker doesn't run correctly or you see an error, try restarting your computer. A reboot is sometimes required after installation.
+
+### 3.1.1. Installing CUDA (Optional but Very Recommended - for NVIDIA GPU users) ⚡
+
+**Note:** This step is completely optional. Skip this section if you don't have an NVIDIA GPU or prefer to use CPU-only processing.
+
+- **Check if you have an NVIDIA GPU:**
+  - **Windows:** Right-click on desktop → "Display settings" → "Advanced display settings" → Check if NVIDIA GPU is listed
+  - **Alternative:** Open Device Manager → "Display adapters" → Look for NVIDIA graphics card
+- **CUDA Installation:**
+
+  1. **Download CUDA Toolkit:**
+     - Visit [NVIDIA CUDA Downloads](https://developer.nvidia.com/cuda-downloads)
+     - Select your operating system (Windows -> x86_64 -> version 11 -> exe local)
+     - Download the CUDA Toolkit installer (recommended: latest stable version)
+  2. **Install CUDA:**
+     - Run the downloaded installer (`cuda_X.X.X_windows.exe`)
+     - Follow the installation wizard (keep default settings)
+     - The installer will automatically install necessary drivers if needed
+  3. **Verify CUDA Installation:**
+     - Open Command Prompt (cmd) or PowerShell
+     - Type: `nvcc --version`
+     - If CUDA is installed correctly, you'll see version information
+     - You may need to restart your computer after installation
+
+- **Benefits of CUDA:**
+
+  - ⚡ **Faster Processing:** GPU-accelerated computations can be 5-10x faster than CPU-only
+  - 🚀 **Better Experience:** Shorter waiting times during backend phases
+  - 🔧 **Automatic Detection:** The playground automatically detects and uses CUDA if available
+
+- **What if CUDA installation fails?**
+  - Don't worry! The playground works perfectly without CUDA
+  - You can always install CUDA later if you want to try GPU acceleration
+  - Make sure your NVIDIA drivers are up to date before installing CUDA
 
 ### 3.2. Downloading and Preparing Tokamak-zk-evm-playground
 
 - **Download:**
   - [Download the latest version](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/releases/tag/0.0.1-alpha)
   - From the download page, download only one file that matches your operating system and CPU.
+  - **Windows users:** Download the `playground-hub-windows-x64-vX.X.X-portable.zip` file. (`X.X.X` is the version)
   - **Mac users (Apple Silicon):** Download the `playground-hub-macOS-arm64-vX.X.X-portable.zip` file. (`X.X.X` is the version)
-  - **Mac users (Intel Chip):** Download the `playground-hub-macOS-x64-vX.X.X-portable.zip` file.
-  - **Windows users:** Support is planned.
   - **Note:** You do not need to download the files marked as `Source code`, as they are for developers.
 - **Extract and File Location:**
   - Extract the downloaded compressed file.
+  - **Windows:** After extracting, you will get a folder containing `tokamak-zk-evm-playground.exe` file. Move this folder to a convenient location, such as `My Documents`, `Program Files`, or your Desktop.
   - **Mac:** After extracting, you will get a `tokamak-zk-evm-playground.app` file. Move this file to a convenient location, such as the `Applications` folder or your Desktop.
-  - **Windows:** Place the folder created after extraction in a convenient location, such as `My Documents` or your Desktop.
 
 ## 4. Running Tokamak-zk-evm-playground 🚀
 
@@ -118,6 +168,12 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
   - Try completely closing Docker Desktop and running it again.
   - Reboot your computer, run Docker Desktop first, and then run Tokamak-zk-evm-playground.
 
+- **Performance is slower than expected:**
+
+  - **With NVIDIA GPU:** Make sure CUDA is properly installed and GPU acceleration is working
+  - **Without NVIDIA GPU:** This is normal - CPU processing takes longer but works perfectly fine
+  - Close other resource-intensive applications during proving/setup phases
+
 - **If you need more help, leave an issue on the [GitHub Issues page](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/issues):**
 
 ## 7. Uninstalling the Program 🗑️
@@ -130,3 +186,8 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
   - **Mac:** Drag `Docker.app` from the `Applications` folder to the trash.
   - (Be cautious when deleting Docker, as you won't be able to use other Docker-based programs!)
   - (For more details, refer to the uninstallation guide on the official Docker website.)
+- **Uninstalling CUDA (optional - if you no longer need GPU acceleration):**
+  - **Windows:** Go to `Settings` > `Apps` > `Installed Apps` list, find entries starting with "NVIDIA CUDA" and remove them.
+  - **Alternative:** Use the NVIDIA Control Panel to uninstall CUDA components.
+  - (Be cautious when removing CUDA, as other GPU-accelerated applications may need it!)
+  - (You can always reinstall CUDA later if needed for other applications or future use.)
