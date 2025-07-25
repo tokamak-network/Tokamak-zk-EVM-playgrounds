@@ -1,51 +1,43 @@
-import { useState, useEffect, useCallback } from "react";
-
-interface CudaStatus {
-  isLoading: boolean;
-  isFullySupported: boolean;
-  gpu: {
-    isAvailable: boolean;
-    gpuInfo?: string;
-    error?: string;
-  };
-  compiler: {
-    isAvailable: boolean;
-    version?: string;
-    error?: string;
-  };
-  dockerCuda: {
-    isSupported: boolean;
-    error?: string;
-  };
-  error?: string;
-}
+import { useCallback } from "react";
+import { useAtom } from "jotai";
+import { cudaStatusAtom, cudaInitializedAtom, CudaStatus } from "../atoms/cuda";
 
 interface CudaHook {
   cudaStatus: CudaStatus;
   checkCudaSupport: () => Promise<void>;
-  checkNvidiaGPU: () => Promise<{ isAvailable: boolean; gpuInfo?: string; error?: string }>;
-  checkCudaCompiler: () => Promise<{ isAvailable: boolean; version?: string; error?: string }>;
-  checkDockerCudaSupport: () => Promise<{ isSupported: boolean; error?: string }>;
+  checkNvidiaGPU: () => Promise<{
+    isAvailable: boolean;
+    gpuInfo?: string;
+    error?: string;
+  }>;
+  checkCudaCompiler: () => Promise<{
+    isAvailable: boolean;
+    version?: string;
+    error?: string;
+  }>;
+  checkDockerCudaSupport: () => Promise<{
+    isSupported: boolean;
+    error?: string;
+  }>;
   refreshCudaStatus: () => Promise<void>;
 }
 
-const initialCudaStatus: CudaStatus = {
-  isLoading: true,
-  isFullySupported: false,
-  gpu: { isAvailable: false },
-  compiler: { isAvailable: false },
-  dockerCuda: { isSupported: false },
-};
-
 export const useCuda = (): CudaHook => {
-  const [cudaStatus, setCudaStatus] = useState<CudaStatus>(initialCudaStatus);
+  const [cudaStatus, setCudaStatus] = useAtom(cudaStatusAtom);
+  const [isInitialized, setIsInitialized] = useAtom(cudaInitializedAtom);
 
   const checkCudaSupport = useCallback(async (): Promise<void> => {
     try {
-      setCudaStatus(prev => ({ ...prev, isLoading: true, error: undefined }));
-      
+      console.log("🔄 Manual CUDA status refresh...");
+      setCudaStatus((prev: CudaStatus) => ({
+        ...prev,
+        isLoading: true,
+        error: undefined,
+      }));
+
       const result = await window.cudaAPI.checkCudaSupport();
-      
+      console.log("✅ Manual CUDA status refresh completed:", result);
+
       setCudaStatus({
         isLoading: false,
         isFullySupported: result.isFullySupported,
@@ -53,20 +45,27 @@ export const useCuda = (): CudaHook => {
         compiler: result.compiler,
         dockerCuda: result.dockerCuda,
       });
+      setIsInitialized(true); // 수동 새로고침도 초기화 완료로 표시
     } catch (error) {
-      setCudaStatus(prev => ({
+      console.error("❌ Manual CUDA status refresh failed:", error);
+      setCudaStatus((prev: CudaStatus) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : "Failed to check CUDA support",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to check CUDA support",
       }));
+      setIsInitialized(true); // 에러가 나도 초기화 완료로 표시
     }
-  }, []);
+  }, [setCudaStatus, setIsInitialized]);
 
   const checkNvidiaGPU = useCallback(async () => {
     try {
       return await window.cudaAPI.checkNvidiaGPU();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to check NVIDIA GPU";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to check NVIDIA GPU";
       return {
         isAvailable: false,
         error: errorMessage,
@@ -78,7 +77,10 @@ export const useCuda = (): CudaHook => {
     try {
       return await window.cudaAPI.checkCudaCompiler();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to check CUDA compiler";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to check CUDA compiler";
       return {
         isAvailable: false,
         error: errorMessage,
@@ -90,7 +92,10 @@ export const useCuda = (): CudaHook => {
     try {
       return await window.cudaAPI.checkDockerCudaSupport();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to check Docker CUDA support";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to check Docker CUDA support";
       return {
         isSupported: false,
         error: errorMessage,
@@ -99,13 +104,12 @@ export const useCuda = (): CudaHook => {
   }, []);
 
   const refreshCudaStatus = useCallback(async (): Promise<void> => {
+    console.log("🔄 Refreshing CUDA status (user initiated)...");
     await checkCudaSupport();
   }, [checkCudaSupport]);
 
-  // 컴포넌트 마운트 시 CUDA 상태 체크
-  useEffect(() => {
-    checkCudaSupport();
-  }, [checkCudaSupport]);
+  // CUDA 상태는 App.tsx에서 한 번만 초기화 - 개별 컴포넌트에서는 체크하지 않음
+  // 이 훅은 전역 상태만 읽어서 반환
 
   return {
     cudaStatus,
@@ -117,4 +121,4 @@ export const useCuda = (): CudaHook => {
   };
 };
 
-export default useCuda; 
+export default useCuda;

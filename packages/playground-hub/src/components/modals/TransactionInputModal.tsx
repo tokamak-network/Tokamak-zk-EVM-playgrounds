@@ -18,7 +18,7 @@ import { useResetStage } from "../../hooks/useResetStage";
 
 const TransactionInputModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
-  const apiKey = useAtomValue(etherscanApiKeyAtom);
+  // const apiKey = useAtomValue(etherscanApiKeyAtom);
   const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
   const setTransactionBytecode = useSetAtom(transactionBytecodeAtom);
   const { updateActiveSection } = usePipelineAnimation();
@@ -28,7 +28,7 @@ const TransactionInputModal: React.FC = () => {
     setTransactionHash(value);
   };
 
-  const { isValid: isValidApiKey } = useDebouncedEtherscanValidation(apiKey);
+  // const { isValid: isValidApiKey } = useDebouncedEtherscanValidation(apiKey);
   const { isValid: isValidTxHash } =
     useDebouncedTxHashValidation(transactionHash);
   const { allStagesAreDone } = usePlaygroundStage();
@@ -63,15 +63,15 @@ const TransactionInputModal: React.FC = () => {
   );
 
   const isActive = useMemo(() => {
-    return isValidApiKey && isValidTxHash && transactionHash.length > 0;
-  }, [isValidApiKey, isValidTxHash, transactionHash]);
+    return isValidTxHash && transactionHash.length > 0;
+  }, [isValidTxHash, transactionHash]);
 
   const errorMessage = useMemo(() => {
-    if (!isValidApiKey) return "Invalid API key. Update in settings.";
+    // if (!isValidApiKey) return "Invalid API key. Update in settings.";
     if (!isValidTxHash && transactionHash.length > 0)
       return "Invalid transaction ID. Please verify.";
     return null;
-  }, [isValidApiKey, isValidTxHash]);
+  }, [isValidTxHash]);
 
   if (!isOpen) return null;
 

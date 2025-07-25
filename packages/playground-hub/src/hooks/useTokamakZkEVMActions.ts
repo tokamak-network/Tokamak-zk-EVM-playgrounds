@@ -14,17 +14,7 @@ import { useModals } from "./useModals";
 import { DOCKER_NAME } from "../constants";
 import { useCuda } from "./useCuda";
 
-// CUDA API 타입 정의
-declare global {
-  interface Window {
-    cudaAPI: {
-      checkDockerCudaSupport: () => Promise<{
-        isSupported: boolean;
-        error?: string;
-      }>;
-    };
-  }
-}
+// CUDA API types are defined in render.d.ts
 
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
@@ -211,6 +201,10 @@ export function useTokamakZkEVMActions() {
           case TokamakActionType.Verify:
             if (currentDockerContainer?.ID) {
               try {
+                setTimeout(() => {
+                  setPendingAnimation(true);
+                }, 1250);
+                openModal("loading");
                 const result = await verify(currentDockerContainer.ID);
 
                 const lines = result.trim().split("\n");
