@@ -6,6 +6,7 @@ import {
 } from "../atoms/docker";
 import { useAtom } from "jotai";
 import { DOCKER_NAME } from "../constants";
+import useCuda from "./useCuda";
 
 // Define the expected shape of the status from window.docker.checkDockerStatus
 // This should match DockerStatusResult from your docker-service.ts
@@ -44,12 +45,7 @@ declare global {
         imageNameToCheck?: string
       ) => Promise<DockerStatusCheckResult>;
     };
-    cudaAPI: {
-      checkDockerCudaSupport: () => Promise<{
-        isSupported: boolean;
-        error?: string;
-      }>;
-    };
+    // cudaAPI types are defined in render.d.ts
   }
 }
 
@@ -71,6 +67,7 @@ export const useDocker = () => {
     imageExists: false,
     isContainerFromImageRunning: false,
   });
+  const { cudaStatus } = useCuda();
 
   // Docker 상태 체크 (now accepts imageNameToCheck)
   const verifyDockerStatus = useCallback(async (imageNameToCheck?: string) => {
@@ -81,7 +78,7 @@ export const useDocker = () => {
     } catch (err) {
       console.error("Failed to check Docker status:", err);
       const errorStatus = {
-        isInstalled: dockerStatus.isInstalled,
+        isInstalled: false, // Don't reference previous state to avoid dependency loops
         isRunning: false,
         imageExists: false,
         isContainerFromImageRunning: false,
@@ -91,25 +88,79 @@ export const useDocker = () => {
     }
   }, []);
 
-  // 초기 로딩 시 Docker 상태 체크 및 3초마다 반복 체크
+  // 초기 로딩 시 Docker 상태 체크 및 스마트 주기적 체크
   useEffect(() => {
-    // Determine the image name to check.
-    // Prioritize the explicitly passed imageNameForPolling.
-    // Fallback to currentDockerContainer's image if imageNameForPolling is not provided.
-    const imageName = imageNameForPolling;
+    let checkInterval: NodeJS.Timeout | null = null;
+    let isComponentMounted = true;
+    let consecutiveSuccessCount = 0;
+    let lastStatus: DockerStatusCheckResult | null = null;
 
-    const performCheck = async () => {
-      // verifyDockerStatus will handle an undefined imageName gracefully
-      // (i.e., check general Docker status without image-specifics)
-      await verifyDockerStatus(imageName);
+    const performCheck = async (imageName?: string) => {
+      if (!isComponentMounted) return;
+      try {
+        const status = await window.docker.checkDockerStatus(imageName);
+        if (isComponentMounted) {
+          // 상태가 변경되었을 때만 업데이트
+          const hasStatusChanged =
+            !lastStatus ||
+            lastStatus.isInstalled !== status.isInstalled ||
+            lastStatus.isRunning !== status.isRunning ||
+            lastStatus.imageExists !== status.imageExists ||
+            lastStatus.isContainerFromImageRunning !==
+              status.isContainerFromImageRunning;
+
+          if (hasStatusChanged) {
+            setDockerStatus(status);
+            lastStatus = status;
+            consecutiveSuccessCount = 0; // 상태 변화 시 카운트 리셋
+          } else {
+            consecutiveSuccessCount++;
+          }
+
+          // 상태가 안정적이면 체크 간격을 늘림
+          if (consecutiveSuccessCount >= 3 && checkInterval) {
+            clearInterval(checkInterval);
+            checkInterval = setInterval(() => {
+              performCheck(imageNameForPolling);
+            }, 30000); // 30초로 간격 증가
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check Docker status:", err);
+        consecutiveSuccessCount = 0;
+        if (isComponentMounted) {
+          const errorStatus = {
+            isInstalled: false,
+            isRunning: false,
+            imageExists: false,
+            isContainerFromImageRunning: false,
+          };
+          if (
+            !lastStatus ||
+            JSON.stringify(lastStatus) !== JSON.stringify(errorStatus)
+          ) {
+            setDockerStatus(errorStatus);
+            lastStatus = errorStatus;
+          }
+        }
+      }
     };
 
-    performCheck(); // 초기 로딩 시 바로 체크
-    const checkInterval = setInterval(performCheck, 3000); // 3초마다 체크
+    // 초기 체크
+    performCheck(imageNameForPolling);
 
-    return () => clearInterval(checkInterval);
-    // Add imageNameForPolling to the dependency array
-  }, [verifyDockerStatus, imageNameForPolling]);
+    // 초기에는 10초마다 체크
+    checkInterval = setInterval(() => {
+      performCheck(imageNameForPolling);
+    }, 10000);
+
+    return () => {
+      isComponentMounted = false;
+      if (checkInterval) {
+        clearInterval(checkInterval);
+      }
+    };
+  }, [imageNameForPolling]);
 
   const loadImages = useCallback(async () => {
     setLoading(true);
@@ -175,12 +226,11 @@ export const useDocker = () => {
 
       // Check CUDA support and configure Docker options accordingly
       let options = ["-it", "--rm", "-p", "8080:8080"];
-      
+
       try {
         console.log("Checking CUDA support for Docker container...");
-        const cudaStatus = await window.cudaAPI.checkDockerCudaSupport();
-        
-        if (cudaStatus.isSupported) {
+
+        if (cudaStatus.isFullySupported) {
           console.log("CUDA support detected. Adding --gpus all option.");
           options = ["--gpus", "all", ...options];
         } else {
@@ -188,12 +238,15 @@ export const useDocker = () => {
           console.log("Running container without GPU acceleration.");
         }
       } catch (cudaError) {
-        console.warn("Failed to check CUDA support, proceeding without GPU:", cudaError);
+        console.warn(
+          "Failed to check CUDA support, proceeding without GPU:",
+          cudaError
+        );
         // Continue without GPU acceleration if CUDA check fails
       }
 
       console.log("Docker run options:", options);
-      
+
       setLoading(true);
       setError(null);
       try {
@@ -215,7 +268,7 @@ export const useDocker = () => {
         setLoading(false);
       }
     },
-    [verifyDockerStatus, setCurrentDockerContainer, loadContainers]
+    [verifyDockerStatus, setCurrentDockerContainer, loadContainers, cudaStatus]
   );
 
   // Stop container

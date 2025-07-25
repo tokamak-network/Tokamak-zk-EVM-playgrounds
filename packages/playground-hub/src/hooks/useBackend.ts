@@ -57,12 +57,6 @@ export const useBackendCommand = () => {
       try {
         console.log("prove", containerId);
 
-        // CUDA를 지원하지 않는 환경이면 성공으로 처리
-        if (!cudaStatus.isFullySupported) {
-          console.log("CUDA not available, skipping CUDA-dependent prove");
-          return Promise.resolve(true);
-        }
-
         const result = await executeCommand(containerId, [
           "bash",
           "-c",

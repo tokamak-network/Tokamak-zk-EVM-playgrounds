@@ -24,7 +24,11 @@ const DownloadFileItem: React.FC<{
   fileKey: keyof SynthesizerFiles;
   isDownloading: boolean;
   files: SynthesizerFiles;
-  onDownload: (filename: string, content: string) => void;
+  onDownload: (filename: string, content: string) => Promise<{
+    filePath: string | null;
+    success: boolean;
+    error?: string;
+  }>;
   onFetchFiles: () => Promise<SynthesizerFiles | null>;
 }> = ({
   fileName,
