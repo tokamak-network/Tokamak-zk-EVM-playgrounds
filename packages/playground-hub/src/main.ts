@@ -112,20 +112,20 @@ function createMenu(): void {
         { role: "togglefullscreen" },
       ],
     },
-    {
-      label: "Settings",
-      submenu: [
-        {
-          label: "Etherscan API Key",
-          click: openSettingsWindow,
-        },
-        { type: "separator" },
-        {
-          label: "Reset Paths",
-          click: resetSettings,
-        },
-      ],
-    },
+    // {
+    //   label: "Settings",
+    //   submenu: [
+    //     {
+    //       label: "Etherscan API Key",
+    //       click: openSettingsWindow,
+    //     },
+    //     { type: "separator" },
+    //     {
+    //       label: "Reset Paths",
+    //       click: resetSettings,
+    //     },
+    //   ],
+    // },
   ];
 
   const menu = Menu.buildFromTemplate(template);
