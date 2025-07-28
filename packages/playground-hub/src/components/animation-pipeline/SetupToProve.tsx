@@ -86,7 +86,7 @@ const SETUP_TO_VERIFY_SECTION = {
       endY: 350,
       direction: "vertical" as const,
       animationDuration: 1000,
-      delay: -200,
+      delay: 100,
     },
     {
       id: "segment9",
