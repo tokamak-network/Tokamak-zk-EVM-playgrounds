@@ -37,7 +37,7 @@ export default function PeipelineHandles() {
         className="top-[308px] left-[650px]"
         onClick={() => {
           runSynthesizer();
-          updateActiveSection("synthesizer-to-prove-bikzg");
+          // updateActiveSection("synthesizer-to-prove-bikzg");
         }}
         isActive={synthesizerStage.isReady}
         // isActive={true}
@@ -47,7 +47,7 @@ export default function PeipelineHandles() {
         className="top-[417px] left-[325px]"
         onClick={() => {
           runSetupTrustedSetup();
-          updateActiveSection("setup-to-prove");
+          // updateActiveSection("setup-to-prove");
         }}
         isActive={setupStage.isReady}
         // isActive={true}
@@ -57,7 +57,7 @@ export default function PeipelineHandles() {
         className="top-[630px] left-[325px]"
         onClick={() => {
           runProve();
-          updateActiveSection("prove-to-verify");
+          // updateActiveSection("prove-to-verify");
         }}
         isActive={proveStage.isReady}
         // isActive={true}
@@ -67,7 +67,7 @@ export default function PeipelineHandles() {
         className="top-[740px] left-[628px]"
         onClick={() => {
           runVerify();
-          updateActiveSection("verify-to-result");
+          // updateActiveSection("verify-to-result");
         }}
         isActive={verifyStage.isReady}
         // isActive={true}
@@ -77,7 +77,7 @@ export default function PeipelineHandles() {
         className="top-[503px] left-[780px]"
         onClick={() => {
           runPreProcess();
-          updateActiveSection("bikzg-to-verify");
+          // updateActiveSection("bikzg-to-verify");
         }}
         isActive={bikzgStage.isReady}
         // isActive={true}

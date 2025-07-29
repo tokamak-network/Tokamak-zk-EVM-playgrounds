@@ -36,7 +36,6 @@ const DockerModal: React.FC = () => {
   const startProcess = () => {
     try {
       setupEvmSpec();
-      updateActiveSection("evm-to-qap");
     } catch (error) {
       console.error(error);
       // setActiveSection("none");

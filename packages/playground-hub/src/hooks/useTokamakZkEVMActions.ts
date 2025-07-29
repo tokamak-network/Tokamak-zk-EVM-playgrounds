@@ -31,7 +31,7 @@ export function useTokamakZkEVMActions() {
   const { runContainer, currentDockerContainer, executeCommand } = useDocker();
   const { parseTONTransfer } = useSynthesizer();
   const { setup, preProcess, prove, verify } = useBackendCommand();
-  const { setPendingAnimation } = usePipelineAnimation();
+  const { updateActiveSection } = usePipelineAnimation();
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
   const { openModal, closeModal } = useModals();
@@ -47,10 +47,7 @@ export function useTokamakZkEVMActions() {
           case TokamakActionType.SetupEvmSpec:
             try {
               if (isCudaSupported) {
-                setTimeout(() => {
-                  setPendingAnimation(true);
-                  openModal("loading");
-                }, 500);
+                openModal("loading");
               }
 
               // Docker 컨테이너 실행
@@ -148,6 +145,8 @@ export function useTokamakZkEVMActions() {
                 );
               }
 
+              updateActiveSection("evm-to-qap");
+
               return container;
             } catch (error) {
               console.error("❌ SetupEvmSpec process failed:", error);
@@ -157,53 +156,45 @@ export function useTokamakZkEVMActions() {
           case TokamakActionType.RunSynthesizer:
             console.log("currentDockerContainer", currentDockerContainer);
             if (currentDockerContainer?.ID) {
-              setTimeout(() => {
-                setPendingAnimation(true);
-              }, 900);
               openModal("loading");
-              return await parseTONTransfer(currentDockerContainer.ID);
+              await parseTONTransfer(currentDockerContainer.ID);
+              return updateActiveSection("synthesizer-to-prove-bikzg");
             }
             throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.SetupTrustedSetup:
             if (currentDockerContainer?.ID) {
               if (isCudaSupported) {
-                setTimeout(() => {
-                  setPendingAnimation(true);
-                }, 500);
                 openModal("loading");
               }
 
-              return await setup(currentDockerContainer.ID);
+              await setup(currentDockerContainer.ID);
+              updateActiveSection("setup-to-prove");
             }
             throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.PreProcess:
             if (currentDockerContainer?.ID) {
-              setTimeout(() => {
-                setPendingAnimation(true);
-              }, 500);
+              // setPendingAnimation(true);
               openModal("loading");
-              return await preProcess(currentDockerContainer.ID);
+              await preProcess(currentDockerContainer.ID);
+              updateActiveSection("bikzg-to-verify");
             }
             throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.ProveTransaction:
             if (currentDockerContainer?.ID) {
-              setTimeout(() => {
-                setPendingAnimation(true);
-              }, 500);
+              // setPendingAnimation(true);
               openModal("loading");
-              return await prove(currentDockerContainer.ID);
+              await prove(currentDockerContainer.ID);
+              return updateActiveSection("prove-to-verify");
             }
             throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.Verify:
             if (currentDockerContainer?.ID) {
               try {
-                setTimeout(() => {
-                  setPendingAnimation(true);
-                }, 1250);
+                // setPendingAnimation(true);
                 openModal("loading");
                 const result = await verify(currentDockerContainer.ID);
 
@@ -252,7 +243,8 @@ export function useTokamakZkEVMActions() {
                   rawResult: null,
                 };
               } finally {
-                setPendingAnimation(false);
+                updateActiveSection("verify-to-result");
+                // setPendingAnimation(false);
               }
             }
             throw new Error("currentDockerContainer is not found");
@@ -278,7 +270,7 @@ export function useTokamakZkEVMActions() {
             resolve();
             if (!hasError) {
               closeModal();
-              setPendingAnimation(false);
+              // setPendingAnimation(false);
             }
           }, 0);
         });
@@ -289,7 +281,7 @@ export function useTokamakZkEVMActions() {
       currentDockerContainer,
       parseTONTransfer,
       prove,
-      setPendingAnimation,
+      // setPendingAnimation,
       initializeWhenCatchError,
       isCudaSupported,
     ]
