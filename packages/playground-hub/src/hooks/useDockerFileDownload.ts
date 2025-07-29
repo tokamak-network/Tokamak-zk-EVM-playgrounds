@@ -106,10 +106,12 @@ export const useDockerFileDownload = () => {
 
       // Define file paths in the container
       const filePaths = {
-        instance: "frontend/synthesizer/examples/outputs/instance.json",
-        permutation: "frontend/synthesizer/examples/outputs/permutation.json",
+        instance:
+          "packages/frontend/synthesizer/examples/outputs/instance.json",
+        permutation:
+          "packages/frontend/synthesizer/examples/outputs/permutation.json",
         placementVariables:
-          "frontend/synthesizer/examples/outputs/placementVariables.json",
+          "packages/frontend/synthesizer/examples/outputs/placementVariables.json",
       };
 
       // Download each file

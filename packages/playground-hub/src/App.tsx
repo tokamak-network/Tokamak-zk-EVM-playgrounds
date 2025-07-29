@@ -84,7 +84,7 @@ const MainContent = () => {
       <Logo />
       <PipelineBG />
       <PlaygroundModals />
-      <CudaStatus />
+      {/* <CudaStatus /> */}
     </div>
   );
 };
