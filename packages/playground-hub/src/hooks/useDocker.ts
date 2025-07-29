@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   DockerImage,
   DockerContainer,
@@ -68,6 +68,7 @@ export const useDocker = () => {
     isContainerFromImageRunning: false,
   });
   const { cudaStatus } = useCuda();
+  const hasInitialized = useRef(false);
 
   // Docker 상태 체크 (now accepts imageNameToCheck)
   const verifyDockerStatus = useCallback(async (imageNameToCheck?: string) => {
@@ -377,15 +378,51 @@ export const useDocker = () => {
   // Initial data loading
   useEffect(() => {
     const initialLoad = async () => {
+      if (hasInitialized.current) {
+        return; // 이미 초기화됨
+      }
+
       try {
-        await Promise.all([loadImages(), loadContainers()]);
+        hasInitialized.current = true;
+
+        // 먼저 컨테이너 목록을 로드하여 실행 중인 타겟 컨테이너 확인
+        const currentContainers = await loadContainers();
+
+        console.log(`Found ${currentContainers.length} total containers`);
+
+        // 실행 중인 모든 컨테이너를 종료 (간단한 접근)
+        if (currentContainers.length > 0) {
+          console.log(
+            `Stopping all ${currentContainers.length} running container(s)...`
+          );
+
+          for (const container of currentContainers) {
+            try {
+              console.log(`Stopping container: ${container.ID}`);
+              await stopContainer(container.ID);
+              console.log(`Successfully stopped container: ${container.ID}`);
+            } catch (stopError) {
+              console.error(
+                `Failed to stop container ${container.ID}:`,
+                stopError
+              );
+            }
+          }
+
+          // console.log("All containers have been stopped.");
+        } else {
+          // console.log("No containers found to stop.");
+        }
+
+        await loadImages();
       } catch (err) {
         console.error("Initial data loading error:", err);
+        hasInitialized.current = false; // 에러 시 다시 시도할 수 있도록
       }
     };
 
     initialLoad();
-  }, [loadImages, loadContainers]);
+  }, [loadImages, loadContainers, stopContainer]);
 
   const isContainerRunning = useMemo(
     () => !!dockerStatus.isContainerFromImageRunning,
