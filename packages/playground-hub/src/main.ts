@@ -19,6 +19,7 @@ import {
   getDockerContainers,
   stopDockerContainer,
   executeCommandInContainer,
+  executeCommandInContainerWithStreaming,
   downloadLargeFileFromContainer,
   streamLargeFileFromContainer,
   checkDockerStatus,
@@ -540,6 +541,20 @@ function setupIpcHandlers() {
     "execute-command-in-container",
     async (event, containerId: string, command: string[]) => {
       return await executeCommandInContainer(containerId, command);
+    }
+  );
+
+  ipcMain.handle(
+    "execute-command-in-container-with-streaming",
+    async (event, containerId: string, command: string[]) => {
+      return await executeCommandInContainerWithStreaming(
+        containerId,
+        command,
+        (data: string, isError: boolean) => {
+          // 실시간으로 렌더러 프로세스에 데이터 전송
+          event.sender.send("docker-stream-data", { data, isError });
+        }
+      );
     }
   );
 

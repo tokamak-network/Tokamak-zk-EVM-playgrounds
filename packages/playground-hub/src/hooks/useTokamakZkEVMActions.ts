@@ -7,6 +7,7 @@ import {
   provingResultAtom,
   provingIsDoneAtom,
 } from "../atoms/pipelineAnimation";
+import { proveStepAtom } from "../atoms/modals";
 import { useAtom } from "jotai";
 import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
@@ -28,16 +29,38 @@ export enum TokamakActionType {
 export function useTokamakZkEVMActions() {
   const [provingIsDone, setProvingIsDone] = useAtom(provingIsDoneAtom);
   const [provingResult, setProvingResult] = useAtom(provingResultAtom);
+  const [, setProveStep] = useAtom(proveStepAtom);
   const { runContainer, currentDockerContainer, executeCommand, dockerConfig } =
     useDocker();
   const { parseTONTransfer } = useSynthesizer();
-  const { setup, preProcess, prove, verify } = useBackendCommand();
+  const { setup, preProcess, prove, proveWithStreaming, verify } =
+    useBackendCommand();
   const { updateActiveSection } = usePipelineAnimation();
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
   const { openModal, closeModal } = useModals();
   const { cudaStatus } = useCuda();
   const isCudaSupported = cudaStatus.isFullySupported;
+
+  // Prove 로그 분석 및 step 업데이트 함수
+  const analyzeProveLog = useCallback(
+    (logData: string) => {
+      // 실제 prove 로그를 기준으로 단계 분석
+      // Prove initialization은 1단계 유지, Running prove0부터 2단계 시작
+      if (logData.includes("Running prove0")) {
+        setProveStep(2); // "Oops, a drop!"
+      } else if (logData.includes("Running prove1")) {
+        setProveStep(3); // "Rain's starting…"
+      } else if (logData.includes("Running prove2")) {
+        setProveStep(4); // "Pouring now!"
+      } else if (logData.includes("Running prove3")) {
+        setProveStep(5); // "Catch it if you can!"
+      } else if (logData.includes("Running prove4")) {
+        setProveStep(6); // "Still raining!"
+      }
+    },
+    [setProveStep]
+  );
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
@@ -171,10 +194,10 @@ export function useTokamakZkEVMActions() {
             if (currentDockerContainer?.ID) {
               if (isCudaSupported) {
                 openModal("loading");
+                await setup(currentDockerContainer.ID);
               }
 
-              await setup(currentDockerContainer.ID);
-              updateActiveSection("setup-to-prove");
+              return updateActiveSection("setup-to-prove");
             }
             throw new Error("currentDockerContainer is not found");
 
@@ -183,15 +206,26 @@ export function useTokamakZkEVMActions() {
               // setPendingAnimation(true);
               openModal("loading");
               await preProcess(currentDockerContainer.ID);
-              updateActiveSection("bikzg-to-verify");
+              return updateActiveSection("bikzg-to-verify");
             }
             throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.ProveTransaction:
             if (currentDockerContainer?.ID) {
               // setPendingAnimation(true);
-              openModal("loading");
-              await prove(currentDockerContainer.ID);
+              openModal("prove-loading");
+              setProveStep(1); // 초기 단계 설정
+
+              await proveWithStreaming(
+                currentDockerContainer.ID,
+                (data, isError) => {
+                  if (!isError) {
+                    console.log("Prove log:", data);
+                    analyzeProveLog(data);
+                  }
+                }
+              );
+
               return updateActiveSection("prove-to-verify");
             }
             throw new Error("currentDockerContainer is not found");
@@ -286,6 +320,9 @@ export function useTokamakZkEVMActions() {
       currentDockerContainer,
       parseTONTransfer,
       prove,
+      proveWithStreaming,
+      analyzeProveLog,
+      setProveStep,
       // setPendingAnimation,
       initializeWhenCatchError,
       isCudaSupported,

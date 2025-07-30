@@ -455,6 +455,45 @@ export async function executeCommandInContainer(
   });
 }
 
+// Docker 컨테이너에서 명령어 실행 (실시간 스트리밍)
+export async function executeCommandInContainerWithStreaming(
+  containerId: string,
+  command: string[],
+  onData: (data: string, isError: boolean) => void
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const args = ["exec", containerId, ...command];
+
+    const process = spawn("docker", args);
+    let stdout = "";
+    let stderr = "";
+
+    process.stdout.on("data", (data) => {
+      const dataStr = data.toString();
+      stdout += dataStr;
+      onData(dataStr, false); // 실시간으로 데이터 전송
+    });
+
+    process.stderr.on("data", (data) => {
+      const dataStr = data.toString();
+      stderr += dataStr;
+      onData(dataStr, true); // 에러 데이터도 실시간으로 전송
+    });
+
+    process.on("close", (code) => {
+      if (code === 0) {
+        resolve(stdout);
+      } else {
+        reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
+      }
+    });
+
+    process.on("error", (error) => {
+      reject(new Error(`Process error: ${error.message}`));
+    });
+  });
+}
+
 // Docker 컨테이너에서 대용량 파일 다운로드 (스트리밍)
 export async function downloadLargeFileFromContainer(
   containerId: string,
