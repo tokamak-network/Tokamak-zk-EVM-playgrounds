@@ -7,6 +7,7 @@ export type Modal =
   | "docker-select"
   | "exit"
   | "loading"
+  | "prove-loading"
   | "synthesizer-error"
   | "synthesizer-result"
   | "setup-result"

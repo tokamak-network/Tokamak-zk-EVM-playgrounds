@@ -83,7 +83,7 @@ export const useDocker = () => {
       try {
         const config = await getDockerConfigForEnvironment();
         setDockerConfig(config);
-        console.log("Loaded Docker config for environment:", config);
+        // Log removed as it's now handled in getDockerConfigForEnvironment with caching
       } catch (error) {
         console.error("Failed to load Docker config:", error);
         // Use default config as fallback
