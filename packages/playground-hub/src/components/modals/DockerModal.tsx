@@ -27,7 +27,7 @@ const DockerModal: React.FC = () => {
   const { setupEvmSpec } = useTokamakZkEVMActions();
   const { updateActiveSection } = usePipelineAnimation();
   const { activeModal, closeModal } = useModals();
-  const { dockerStatus, isContainerRunning } = useDocker();
+  const { dockerStatus, isContainerRunning, dockerConfig } = useDocker();
 
   const isDockerImageDownloaded = useMemo(() => {
     return dockerStatus.imageExists;
@@ -54,8 +54,16 @@ const DockerModal: React.FC = () => {
     if (isDockerImageDownloaded) {
       return startProcess();
     }
-    const fileUrl = DOCKER_DOWNLOAD_URL; // 실제 R2 파일 URL
-    const desiredFilename = FILE_NAME;
+
+    // Use environment-specific Docker config
+    const fileUrl = dockerConfig?.downloadUrl || DOCKER_DOWNLOAD_URL;
+    const desiredFilename = dockerConfig?.fileName || FILE_NAME;
+
+    console.log("Downloading Docker image with config:", {
+      tag: dockerConfig?.tag,
+      url: fileUrl,
+      filename: desiredFilename,
+    });
 
     startDownloadAndLoad(fileUrl, desiredFilename);
   };

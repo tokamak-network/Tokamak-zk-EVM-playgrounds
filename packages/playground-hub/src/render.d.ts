@@ -35,6 +35,14 @@ declare global {
       getEnvVars: () => Promise<{
         RPC_URL: string;
       }>;
+      getEnvironmentInfo: () => Promise<{
+        platform: string;
+        hasGpuSupport: boolean;
+        gpuInfo?: { isAvailable: boolean; gpuInfo?: string; error?: string };
+        cudaInfo?: { isAvailable: boolean; version?: string; error?: string };
+        dockerCudaInfo?: { isSupported: boolean; error?: string };
+        error?: string;
+      }>;
     };
     cudaAPI: CudaAPI;
   }

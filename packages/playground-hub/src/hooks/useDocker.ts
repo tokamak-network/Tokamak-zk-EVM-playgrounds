@@ -5,7 +5,7 @@ import {
   currentDockerContainerAtom,
 } from "../atoms/docker";
 import { useAtom } from "jotai";
-import { DOCKER_NAME } from "../constants";
+import { DOCKER_NAME, getDockerConfigForEnvironment } from "../constants";
 import useCuda from "./useCuda";
 
 // Define the expected shape of the status from window.docker.checkDockerStatus
@@ -52,7 +52,14 @@ declare global {
 // Add an optional parameter to the hook for the polling image name
 export const useDocker = () => {
   // const selectedDockerImage = useAtomValue(selectedDockerImageAtom);
-  const selectedDockerImage = DOCKER_NAME;
+  const [dockerConfig, setDockerConfig] = useState<{
+    tag: string;
+    downloadUrl: string;
+    fileName: string;
+    imageName: string;
+  } | null>(null);
+
+  const selectedDockerImage = dockerConfig?.imageName || DOCKER_NAME;
   const imageNameForPolling = selectedDockerImage ?? null;
   const [images, setImages] = useState<DockerImage[]>([]);
   const [containers, setContainers] = useState<DockerContainer[]>([]);
@@ -69,6 +76,28 @@ export const useDocker = () => {
   });
   const { cudaStatus } = useCuda();
   const hasInitialized = useRef(false);
+
+  // Load environment-specific Docker configuration
+  useEffect(() => {
+    const loadDockerConfig = async () => {
+      try {
+        const config = await getDockerConfigForEnvironment();
+        setDockerConfig(config);
+        console.log("Loaded Docker config for environment:", config);
+      } catch (error) {
+        console.error("Failed to load Docker config:", error);
+        // Use default config as fallback
+        setDockerConfig({
+          tag: "latest",
+          downloadUrl: "",
+          fileName: "",
+          imageName: DOCKER_NAME,
+        });
+      }
+    };
+
+    loadDockerConfig();
+  }, []);
 
   // Docker 상태 체크 (now accepts imageNameToCheck)
   const verifyDockerStatus = useCallback(async (imageNameToCheck?: string) => {
@@ -91,6 +120,9 @@ export const useDocker = () => {
 
   // 초기 로딩 시 Docker 상태 체크 및 스마트 주기적 체크
   useEffect(() => {
+    // Docker 설정이 로드되지 않았으면 대기
+    if (!dockerConfig) return;
+
     let checkInterval: NodeJS.Timeout | null = null;
     let isComponentMounted = true;
     let consecutiveSuccessCount = 0;
@@ -161,7 +193,7 @@ export const useDocker = () => {
         clearInterval(checkInterval);
       }
     };
-  }, [imageNameForPolling]);
+  }, [imageNameForPolling, dockerConfig]);
 
   const loadImages = useCallback(async () => {
     setLoading(true);
@@ -437,6 +469,7 @@ export const useDocker = () => {
     currentDockerContainer,
     dockerStatus,
     isContainerRunning,
+    dockerConfig,
     // Actions
     loadImages,
     loadContainers,
