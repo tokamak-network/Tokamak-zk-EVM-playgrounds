@@ -28,7 +28,8 @@ export enum TokamakActionType {
 export function useTokamakZkEVMActions() {
   const [provingIsDone, setProvingIsDone] = useAtom(provingIsDoneAtom);
   const [provingResult, setProvingResult] = useAtom(provingResultAtom);
-  const { runContainer, currentDockerContainer, executeCommand } = useDocker();
+  const { runContainer, currentDockerContainer, executeCommand, dockerConfig } =
+    useDocker();
   const { parseTONTransfer } = useSynthesizer();
   const { setup, preProcess, prove, verify } = useBackendCommand();
   const { updateActiveSection } = usePipelineAnimation();
@@ -50,8 +51,12 @@ export function useTokamakZkEVMActions() {
                 openModal("loading");
               }
 
-              // Docker 컨테이너 실행
-              const container = await runContainer(DOCKER_NAME);
+              // Docker 컨테이너 실행 - 환경별 이미지 이름 사용
+              const imageName = dockerConfig?.imageName || DOCKER_NAME;
+              console.log(
+                `🐳 Running Docker container with image: ${imageName}`
+              );
+              const container = await runContainer(imageName);
 
               if (!container?.ID) {
                 throw new Error("Failed to get container ID after running");

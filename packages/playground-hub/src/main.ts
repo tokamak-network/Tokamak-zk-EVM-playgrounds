@@ -913,6 +913,27 @@ function setupIpcHandlers() {
   ipcMain.handle("check-docker-cuda-support", async () => {
     return await checkDockerCudaSupport();
   });
+
+  // 환경 정보 제공 핸들러
+  ipcMain.handle("get-environment-info", async () => {
+    try {
+      const cudaSupport = await checkCudaSupport();
+      return {
+        platform: process.platform,
+        hasGpuSupport: cudaSupport.isFullySupported,
+        gpuInfo: cudaSupport.gpu,
+        cudaInfo: cudaSupport.compiler,
+        dockerCudaInfo: cudaSupport.dockerCuda,
+      };
+    } catch (error) {
+      console.error("Failed to get environment info:", error);
+      return {
+        platform: process.platform,
+        hasGpuSupport: false,
+        error: error.message,
+      };
+    }
+  });
 }
 
 app.whenReady().then(() => {

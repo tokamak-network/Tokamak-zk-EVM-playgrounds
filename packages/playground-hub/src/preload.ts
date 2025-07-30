@@ -127,6 +127,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
 contextBridge.exposeInMainWorld("env", {
   getEnvVars: () => ipcRenderer.invoke("get-env-vars"),
+  getEnvironmentInfo: () => ipcRenderer.invoke("get-environment-info"),
 });
 
 contextBridge.exposeInMainWorld("dockerFileDownloaderAPI", {

@@ -225,12 +225,19 @@ export async function checkDockerStatus(
         ? trimmedImageNameToCheck.split(":")
         : [trimmedImageNameToCheck, "latest"];
 
+      // 정확한 레포지토리:태그 매치 확인
       imageExists = allImages.some((img) => {
         const repoMatch = img.Repository === repo;
         const tagMatch = img.Tag === tag;
         return repoMatch && tagMatch;
       });
 
+      // 태그가 없는 이름으로 검색된 경우, 해당 레포지토리의 모든 태그 확인
+      if (!imageExists && !trimmedImageNameToCheck.includes(":")) {
+        imageExists = allImages.some((img) => img.Repository === repo);
+      }
+
+      // 이미지 ID로 검색 (백업 옵션)
       if (
         !imageExists &&
         !trimmedImageNameToCheck.includes("/") &&
