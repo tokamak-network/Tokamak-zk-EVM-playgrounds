@@ -32,6 +32,14 @@ declare global {
         containerId: string,
         command: string[]
       ) => Promise<string>;
+      executeCommandWithStreaming: (
+        containerId: string,
+        command: string[]
+      ) => Promise<string>;
+      onStreamData: (
+        callback: (data: { data: string; isError: boolean }) => void
+      ) => void;
+      removeStreamDataListener: () => void;
       downloadLargeFile: (
         containerId: string,
         filePath: string
@@ -354,6 +362,44 @@ export const useDocker = () => {
     []
   );
 
+  // Execute command in container with streaming
+  const executeCommandWithStreaming = useCallback(
+    async (
+      containerId: string,
+      command: string[],
+      onData?: (data: string, isError: boolean) => void
+    ) => {
+      setLoading(true);
+      setError(null);
+
+      if (onData) {
+        window.docker.onStreamData(({ data, isError }) => {
+          onData(data, isError);
+        });
+      }
+
+      try {
+        const output = await window.docker.executeCommandWithStreaming(
+          containerId,
+          command
+        );
+        return output;
+      } catch (err) {
+        const errorMessage =
+          "Failed to execute streaming command in container: " +
+          (err instanceof Error ? err.message : String(err));
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+        if (onData) {
+          window.docker.removeStreamDataListener();
+        }
+      }
+    },
+    []
+  );
+
   // Download large file from container
   const downloadLargeFile = useCallback(
     async (containerId: string, filePath: string) => {
@@ -476,6 +522,7 @@ export const useDocker = () => {
     runContainer,
     stopContainer,
     executeCommand,
+    executeCommandWithStreaming,
     downloadLargeFile,
     streamLargeFile,
     verifyDockerStatus,

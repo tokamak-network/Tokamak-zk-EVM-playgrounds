@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useAtom } from "jotai";
-import { activeModalAtom } from "../../atoms/modals";
+import { activeModalAtom, proveStepAtom } from "../../atoms/modals";
 import LoadingModalImage from "../../assets/modals/loading/loading-modal.svg";
 import skyblueRain from "../../assets/images/rain-skyblue.svg";
 import "../../style.css";
@@ -13,10 +13,10 @@ import proveProcess6 from "../../assets/modals/prove/prove-process-6.png";
 
 const ProveLoadingModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
-  const isOpen = useMemo(() => activeModal === "loading", [activeModal]);
+  const isOpen = useMemo(() => activeModal === "prove-loading", [activeModal]);
 
   // Prove 단계 상태 관리 (1~6)
-  const [proveStep, setProveStep] = useState(1);
+  const [proveStep] = useAtom(proveStepAtom);
 
   // 각 단계별 이미지와 텍스트 배열
   const proveImages = [
@@ -71,7 +71,7 @@ const ProveLoadingModal: React.FC = () => {
     }
   }, []);
 
-  //   if (!isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">

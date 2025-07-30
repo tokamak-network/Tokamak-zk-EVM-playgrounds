@@ -3,7 +3,7 @@ import { useDocker } from "./useDocker";
 import { useCuda } from "./useCuda";
 
 export const useBackendCommand = () => {
-  const { executeCommand } = useDocker();
+  const { executeCommand, executeCommandWithStreaming } = useDocker();
   const { cudaStatus } = useCuda();
 
   const setup = useCallback(
@@ -72,6 +72,33 @@ export const useBackendCommand = () => {
     [executeCommand, cudaStatus.isFullySupported]
   );
 
+  const proveWithStreaming = useCallback(
+    async (
+      containerId: string,
+      onData?: (data: string, isError: boolean) => void
+    ) => {
+      try {
+        console.log("proveWithStreaming", containerId);
+
+        const result = await executeCommandWithStreaming(
+          containerId,
+          [
+            "bash",
+            "-c",
+            `cd packages/backend && 
+        cargo run -p prove`,
+          ],
+          onData
+        );
+        console.log("result", result);
+        return result;
+      } catch (error) {
+        throw new Error("Failed to execute Docker command: " + error);
+      }
+    },
+    [executeCommandWithStreaming, cudaStatus.isFullySupported]
+  );
+
   const verify = useCallback(
     async (containerId: string) => {
       try {
@@ -91,5 +118,5 @@ export const useBackendCommand = () => {
     [executeCommand]
   );
 
-  return { setup, preProcess, prove, verify };
+  return { setup, preProcess, prove, proveWithStreaming, verify };
 };

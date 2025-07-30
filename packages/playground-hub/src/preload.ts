@@ -20,6 +20,20 @@ contextBridge.exposeInMainWorld("docker", {
     ipcRenderer.invoke("stop-docker-container", containerId),
   executeCommand: (containerId: string, command: string[]) =>
     ipcRenderer.invoke("execute-command-in-container", containerId, command),
+  executeCommandWithStreaming: (containerId: string, command: string[]) =>
+    ipcRenderer.invoke(
+      "execute-command-in-container-with-streaming",
+      containerId,
+      command
+    ),
+  onStreamData: (
+    callback: (data: { data: string; isError: boolean }) => void
+  ) => {
+    ipcRenderer.on("docker-stream-data", (event, data) => callback(data));
+  },
+  removeStreamDataListener: () => {
+    ipcRenderer.removeAllListeners("docker-stream-data");
+  },
   downloadLargeFile: (containerId: string, filePath: string) =>
     ipcRenderer.invoke(
       "download-large-file-from-container",

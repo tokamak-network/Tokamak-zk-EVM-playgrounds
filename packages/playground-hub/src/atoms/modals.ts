@@ -16,3 +16,6 @@ export type Modal =
   | "submit";
 
 export const activeModalAtom = atom<Modal>("none");
+
+// Prove step 관리 (1~6단계)
+export const proveStepAtom = atom<number>(1);
