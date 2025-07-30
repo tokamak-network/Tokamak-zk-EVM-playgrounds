@@ -9,6 +9,7 @@ import SetupResult from "./SetupResult";
 import PreprocessResult from "./PreprocessResult";
 import ProveResult from "./ProveResult";
 import SubmitModal from "./SubmitModal";
+import ProveLoadingModal from "./ProveLoadingModal";
 
 export default function PlaygroundModals() {
   return (
@@ -18,6 +19,7 @@ export default function PlaygroundModals() {
       <ErrorModal />
       <ExitModal />
       <LoadingModal />
+      <ProveLoadingModal />
       <SynthesizerError />
       <SynthesizerResultModal />
       <SetupResult />
