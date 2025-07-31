@@ -5,20 +5,20 @@ export const DOCKER_CONFIGS = {
   "mac-arm": {
     tag: "mac-arm",
     downloadUrl:
-      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm-mac-arm.tar.gz",
+      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm_windows-cpu-setup-completed.tar.gz",
     fileName: "tokamak-zk-evm-mac-arm.tar.gz",
   },
   "windows-cpu": {
     tag: "windows-cpu-setup-completed",
     downloadUrl:
-      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm-windows-cpu.tar.gz",
+      "https://https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm_windows-cpu-setup-completed.tar.gz",
     fileName: "tokamak-zk-evm-windows-cpu.tar.gz",
   },
   "windows-gpu": {
     tag: "windows-gpu",
     downloadUrl:
-      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm-windows-gpu.tar.gz",
-    fileName: "tokamak-zk-evm-windows-gpu.tar.gz",
+      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm_windows-cpu-setup-completed.tar.gz",
+    fileName: "windows-cpu-setup-completed.gz",
   },
 };
 
