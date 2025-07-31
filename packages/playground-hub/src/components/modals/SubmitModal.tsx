@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { useAtom } from "jotai";
 import { activeModalAtom } from "../../atoms/modals";
-import ErrorModalImage from "../../assets/modals/submit/submit-modal.png";
+import SubmitModalImage from "../../assets/modals/submit/submit-modal.png";
 import { useResetStage } from "../../hooks/useResetStage";
 import { useDockerFileDownload } from "../../hooks/useDockerFileDownload";
 import { useDocker } from "../../hooks/useDocker";
@@ -49,13 +49,13 @@ const SubmitModal: React.FC = () => {
     return { success: false, error: "Failed to download proof file" };
   };
 
-  if (!isOpen) return null;
+  // if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
       <div className="relative">
         <img
-          src={ErrorModalImage}
+          src={SubmitModalImage}
           alt={"error-modal"}
           style={{
             width: "460px",
@@ -68,6 +68,15 @@ const SubmitModal: React.FC = () => {
         ></div>
         <div
           className="absolute w-[188px] h-[48px] top-[241px] right-[30px] cursor-pointer"
+          onClick={() => {
+            window.open(
+              "https://docs.google.com/forms/d/e/1FAIpQLSdVqGLRSrO2JhR0apXe5MzrUM9WdQZLJQTpnfd0hiUoNmNESw/viewform",
+              "_blank"
+            );
+          }}
+        ></div>
+        <div
+          className="absolute w-[18px] h-[18px] top-[30px] right-[22px] cursor-pointer"
           onClick={onClose}
         ></div>
       </div>
