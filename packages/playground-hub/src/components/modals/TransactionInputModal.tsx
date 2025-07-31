@@ -13,8 +13,8 @@ import {
 import { useDebouncedEtherscanValidation } from "../../hooks/useEtherscanApi";
 import { useDebouncedTxHashValidation } from "../../hooks/useTransaction";
 import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
-import { usePlaygroundStage } from "../../hooks/usePlaygroundStage";
 import { useResetStage } from "../../hooks/useResetStage";
+import TONRecommendWarningImage from "../../assets/modals/synthesizer/TONRecommendWarningImage.svg";
 
 const TransactionInputModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
@@ -31,7 +31,6 @@ const TransactionInputModal: React.FC = () => {
   // const { isValid: isValidApiKey } = useDebouncedEtherscanValidation(apiKey);
   const { isValid: isValidTxHash } =
     useDebouncedTxHashValidation(transactionHash);
-  const { allStagesAreDone } = usePlaygroundStage();
   const { initializeWithNewTransaction } = useResetStage();
 
   const onClose = () => {
@@ -73,7 +72,7 @@ const TransactionInputModal: React.FC = () => {
     return null;
   }, [isValidTxHash]);
 
-  if (!isOpen) return null;
+  // if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
@@ -103,7 +102,7 @@ const TransactionInputModal: React.FC = () => {
           value={transactionHash}
           placeholder="Enter transaction ID"
         ></input>
-        {errorMessage && (
+        {/* {errorMessage && (
           <div className="absolute top-[126px] left-[30px] flex items-center">
             <img
               src={WarningIconImage}
@@ -114,7 +113,13 @@ const TransactionInputModal: React.FC = () => {
               {errorMessage}
             </span>
           </div>
-        )}
+        )} */}
+        <div className="absolute top-[126px] left-[30px] flex items-center">
+          <img
+            src={TONRecommendWarningImage}
+            alt={"TONRecommendWarningImage"}
+          />
+        </div>
       </div>
     </div>
   );
