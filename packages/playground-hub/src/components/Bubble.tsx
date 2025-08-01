@@ -7,6 +7,7 @@ import bubbleSynthesizer from "../assets/images/bubble-synthesizer.png";
 import bubbleTransaction from "../assets/images/bubble-transaction.png";
 import bubbleVerify from "../assets/images/bubble-verify.png";
 import bubbleSetup from "../assets/images/bubble-setup.png";
+import bubbleTransactionCompleted from "../assets/images/bubbles/bubble-transaction-completed.svg";
 
 //inactive
 import bubbleBikzgInactive from "../assets/images/bubbles/bubble-bikzg-inactive.svg";
@@ -23,6 +24,8 @@ import bubbleSetupActive from "../assets/images/bubbles/bubble-setup-active.svg"
 import bubbleSynthesizerActive from "../assets/images/bubbles/bubble-synthesizer-active.svg";
 import bubbleVerifyActive from "../assets/images/bubbles/bubble-verify-active.svg";
 import bubbleProveActive from "../assets/images/bubbles/bubble-prove-active.svg";
+
+import bubbleEvmCompleted from "../assets/images/bubbles/bubble-evm-completed.png";
 
 import {
   usePlaygroundStage,
@@ -66,7 +69,7 @@ export function Bubble({
       : isActive
         ? bubbleCompiler // isActive일 때 Done(기본) 이미지
         : bubbleQapInactive,
-    evm: isActive ? bubbleEvm : bubbleEvmInactive, // isDone 상태가 없으므로 변경 없음
+    evm: isDone ? bubbleEvmCompleted : isActive ? bubbleEvm : bubbleEvmInactive, // isDone 상태가 없으므로 변경 없음
     prove: isDone
       ? bubbleProveActive // isDone일 때 Active 이미지
       : isActive
@@ -82,7 +85,11 @@ export function Bubble({
       : isActive
         ? bubbleSetup // isActive일 때 Done(기본) 이미지
         : bubbleSetupInactive,
-    transaction: isActive ? bubbleTransaction : bubbleTransactionInactive, // isDone 상태가 없으므로 변경 없음
+    transaction: isDone
+      ? bubbleTransactionCompleted
+      : isActive
+        ? bubbleTransaction
+        : bubbleTransactionInactive, // isDone 상태가 없으므로 변경 없음
     verify: isDone
       ? bubbleVerifyActive // isDone일 때 Active 이미지
       : isActive
@@ -119,7 +126,8 @@ export default function Bubbles() {
       <Bubble
         type="evm"
         className="absolute top-[60px] left-[208px]"
-        isActive={playgroundStartStage.evmSpec}
+        isActive={true}
+        isDone={qapStage.isReady}
         onClick={() => {
           return openModal("docker-select");
         }}
@@ -127,7 +135,8 @@ export default function Bubbles() {
       <Bubble
         type="transaction"
         className="absolute top-[55px] left-[830px]"
-        isActive={playgroundStartStage.transactionHash}
+        isActive={qapStage.isReady}
+        isDone={synthesizerStage.isReady}
         onClick={() => {
           return openModal("transaction-input");
         }}

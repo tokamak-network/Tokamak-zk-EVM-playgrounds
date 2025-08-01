@@ -18,6 +18,13 @@ export function usePlaygroundStage() {
     setPlaygroundStage({ ...playgroundStage, [stage]: value });
   };
 
+  // const evmSpecStage = useMemo(() => {
+  //   return {
+  //     isReady: playgroundStage.evmSpec,
+  //     isDone: playgroundStage.qapStage,
+  //   };
+  // }, [playgroundStage]);
+
   const qapStage = useMemo(() => {
     return {
       isReady: playgroundStage.evmSpec,

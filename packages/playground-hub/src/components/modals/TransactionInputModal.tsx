@@ -72,7 +72,7 @@ const TransactionInputModal: React.FC = () => {
     return null;
   }, [isValidTxHash]);
 
-  // if (!isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
