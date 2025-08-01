@@ -118,7 +118,6 @@ export default function Bubbles() {
     bikzgStage,
     verifyStage,
   } = usePlaygroundStage();
-  const { playgroundStartStage } = usePlaygroundStartStage();
   const { openModal } = useModals();
 
   return (
