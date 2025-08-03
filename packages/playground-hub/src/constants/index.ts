@@ -1,5 +1,9 @@
 export const DOCKER_NAME = "tokamak-zk-evm";
 
+// RPC Configuration
+export const RPC_URL =
+  "https://eth-mainnet.g.alchemy.com/v2/PbqCcGx1oHN7yNaFdUJUYqPEN0QSp23S";
+
 // Environment-specific Docker image configurations
 export const DOCKER_CONFIGS = {
   "mac-arm": {

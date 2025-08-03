@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { useDocker } from "./useDocker";
 import { transactionHashAtom } from "../atoms/api";
 import { useCallback } from "react";
-import { getEnvVars } from "../constants";
+import { RPC_URL } from "../constants";
 
 export const useSynthesizer = () => {
   const transactionHash = useAtomValue(transactionHashAtom);
@@ -12,9 +12,6 @@ export const useSynthesizer = () => {
     async (containerId: string) => {
       try {
         console.log("parseTONTransfer ->", { transactionHash });
-
-        const RPC_URL =
-          "https://eth-mainnet.g.alchemy.com/v2/PbqCcGx1oHN7yNaFdUJUYqPEN0QSp23S";
 
         const result = await executeCommand(containerId, [
           "bash",
