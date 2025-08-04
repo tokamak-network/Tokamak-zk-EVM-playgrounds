@@ -85,93 +85,93 @@ export function useTokamakZkEVMActions() {
                 throw new Error("Failed to get container ID after running");
               }
 
-              if (isCudaSupported) {
-                console.log(
-                  "✅ CUDA supported! Installing ICICLE for GPU acceleration..."
-                );
+              // if (isCudaSupported) {
+              //   console.log(
+              //     "✅ CUDA supported! Installing ICICLE for GPU acceleration..."
+              //   );
 
-                try {
-                  // 🔍 컨테이너 내부 디렉토리 구조 디버깅
-                  console.log("🔍 Debugging container directory structure...");
+              //   try {
+              //     // 🔍 컨테이너 내부 디렉토리 구조 디버깅
+              //     console.log("🔍 Debugging container directory structure...");
 
-                  const pwdResult = await executeCommand(container.ID, ["pwd"]);
-                  console.log(
-                    "📍 Current working directory:",
-                    pwdResult.trim()
-                  );
+              //     const pwdResult = await executeCommand(container.ID, ["pwd"]);
+              //     console.log(
+              //       "📍 Current working directory:",
+              //       pwdResult.trim()
+              //     );
 
-                  const lsResult = await executeCommand(container.ID, [
-                    "ls",
-                    "-la",
-                  ]);
-                  console.log("📂 Current directory contents:\n", lsResult);
+              //     const lsResult = await executeCommand(container.ID, [
+              //       "ls",
+              //       "-la",
+              //     ]);
+              //     console.log("📂 Current directory contents:\n", lsResult);
 
-                  const findBackendResult = await executeCommand(container.ID, [
-                    "find",
-                    ".",
-                    "-name",
-                    "backend",
-                    "-type",
-                    "d",
-                  ]);
-                  console.log(
-                    "🔍 Found 'backend' directories:",
-                    findBackendResult.trim() || "None found"
-                  );
+              //     const findBackendResult = await executeCommand(container.ID, [
+              //       "find",
+              //       ".",
+              //       "-name",
+              //       "backend",
+              //       "-type",
+              //       "d",
+              //     ]);
+              //     console.log(
+              //       "🔍 Found 'backend' directories:",
+              //       findBackendResult.trim() || "None found"
+              //     );
 
-                  const findScriptResult = await executeCommand(container.ID, [
-                    "find",
-                    ".",
-                    "-name",
-                    "icicle_auto_install.sh",
-                  ]);
-                  console.log(
-                    "🔍 Found 'icicle_auto_install.sh' files:",
-                    findScriptResult.trim() || "None found"
-                  );
+              //     const findScriptResult = await executeCommand(container.ID, [
+              //       "find",
+              //       ".",
+              //       "-name",
+              //       "icicle_auto_install.sh",
+              //     ]);
+              //     console.log(
+              //       "🔍 Found 'icicle_auto_install.sh' files:",
+              //       findScriptResult.trim() || "None found"
+              //     );
 
-                  // backend 디렉토리가 존재하는지 확인
-                  let backendPath = "";
-                  if (findBackendResult.trim()) {
-                    backendPath = findBackendResult.trim().split("\n")[0]; // 첫 번째 결과 사용
-                    console.log("✅ Using backend path:", backendPath);
-                  } else {
-                    console.log(
-                      "❌ No backend directory found, trying root directory"
-                    );
-                    backendPath = "."; // 현재 디렉토리에서 시도
-                  }
+              //     // backend 디렉토리가 존재하는지 확인
+              //     let backendPath = "";
+              //     if (findBackendResult.trim()) {
+              //       backendPath = findBackendResult.trim().split("\n")[0]; // 첫 번째 결과 사용
+              //       console.log("✅ Using backend path:", backendPath);
+              //     } else {
+              //       console.log(
+              //         "❌ No backend directory found, trying root directory"
+              //       );
+              //       backendPath = "."; // 현재 디렉토리에서 시도
+              //     }
 
-                  // ICICLE 설치 스크립트 실행
-                  const sedCommand = `cd ${backendPath} && sed -i 's/\\r$//' ./icicle_auto_install.sh`;
-                  console.log("🔧 Running sed command:", sedCommand);
-                  await executeCommand(container.ID, [
-                    "bash",
-                    "-c",
-                    sedCommand,
-                  ]);
+              //     // ICICLE 설치 스크립트 실행
+              //     const sedCommand = `cd ${backendPath} && sed -i 's/\\r$//' ./icicle_auto_install.sh`;
+              //     console.log("🔧 Running sed command:", sedCommand);
+              //     await executeCommand(container.ID, [
+              //       "bash",
+              //       "-c",
+              //       sedCommand,
+              //     ]);
 
-                  console.log("📦 Running ICICLE auto installation...");
-                  const installCommand = `cd ${backendPath} && ./icicle_auto_install.sh`;
-                  console.log("🔧 Running install command:", installCommand);
-                  const installResult = await executeCommand(container.ID, [
-                    "bash",
-                    "-c",
-                    installCommand,
-                  ]);
-                  console.log("📦 ICICLE installation output:", installResult);
+              //     console.log("📦 Running ICICLE auto installation...");
+              //     const installCommand = `cd ${backendPath} && ./icicle_auto_install.sh`;
+              //     console.log("🔧 Running install command:", installCommand);
+              //     const installResult = await executeCommand(container.ID, [
+              //       "bash",
+              //       "-c",
+              //       installCommand,
+              //     ]);
+              //     console.log("📦 ICICLE installation output:", installResult);
 
-                  console.log("✅ ICICLE installation completed!");
-                } catch (icicleError) {
-                  console.error("❌ ICICLE installation failed:", icicleError);
-                  console.log("⚠️ Continuing with setup without ICICLE...");
-                }
-              } else {
-                console.log(
-                  "ℹ️ CUDA not supported, skipping ICICLE installation:",
-                  cudaStatus.error
-                );
-              }
+              //     console.log("✅ ICICLE installation completed!");
+              //   } catch (icicleError) {
+              //     console.error("❌ ICICLE installation failed:", icicleError);
+              //     console.log("⚠️ Continuing with setup without ICICLE...");
+              //   }
+              // } else {
+              //   console.log(
+              //     "ℹ️ CUDA not supported, skipping ICICLE installation:",
+              //     cudaStatus.error
+              //   );
+              // }
 
               updateActiveSection("evm-to-qap");
 
