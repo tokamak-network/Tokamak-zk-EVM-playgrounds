@@ -13,13 +13,13 @@ export const DOCKER_CONFIGS = {
     fileName: "tokamak-zk-evm-mac-arm.gz",
   },
   "windows-cpu": {
-    tag: "windows-cpu-setup-completed",
+    tag: "windows",
     downloadUrl:
       "https://https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm_windows-cpu-setup-completed.tar.gz",
     fileName: "tokamak-zk-evm_windows-cpu-setup-completed.tar.gz",
   },
   "windows-gpu": {
-    tag: "windows-gpu",
+    tag: "windows",
     downloadUrl:
       "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm_windows-cpu-setup-completed.tar.gz",
     fileName: "tokamak-zk-evm_windows-cpu-setup-completed.tar.gz",

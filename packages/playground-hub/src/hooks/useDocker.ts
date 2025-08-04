@@ -273,7 +273,7 @@ export const useDocker = () => {
 
         if (cudaStatus.isFullySupported) {
           console.log("CUDA support detected. Adding --gpus all option.");
-          options = ["--gpus", "all", ...options];
+          options = ["--gpus", "all", "-it"];
         } else {
           console.log("CUDA not supported or not available:", cudaStatus.error);
           console.log("Running container without GPU acceleration.");
