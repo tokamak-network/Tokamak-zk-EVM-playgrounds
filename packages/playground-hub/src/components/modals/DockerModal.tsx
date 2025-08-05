@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import TransactionInputModalImage from "../../assets/modals/docker/docker-modal.png";
 import DownloadButtonImage from "../../assets/modals/docker/download-button.png";
 import PauseIconImage from "../../assets/modals/docker/pause.png";
@@ -17,6 +17,7 @@ const DockerModal: React.FC = () => {
   const {
     startDownloadAndLoad,
     downloadProgress,
+    loadStatus,
     isPaused,
     isProcessing: isDownloading,
     pauseDownload,
@@ -30,11 +31,25 @@ const DockerModal: React.FC = () => {
     isContainerRunning,
     dockerConfig,
     isDockerStatusLoading,
+    verifyDockerStatus,
   } = useDocker();
 
   const isDockerImageDownloaded = useMemo(() => {
     return dockerStatus.imageExists;
   }, [dockerStatus]);
+
+  // Docker 이미지 로딩 완료 시 상태 재확인
+  useEffect(() => {
+    if (loadStatus.stage === "completed") {
+      console.log("Docker image loading completed, verifying status...");
+      // 잠시 후 상태 체크 (Docker 상태 반영 시간 고려)
+      const timer = setTimeout(() => {
+        verifyDockerStatus(dockerConfig?.imageName);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [loadStatus.stage, verifyDockerStatus, dockerConfig?.imageName]);
 
   const startProcess = () => {
     try {
@@ -102,6 +117,11 @@ const DockerModal: React.FC = () => {
               <span className="cursor-pointer">TOKAMAK-ZK-EVM</span>
             </div>
             {isDockerStatusLoading ? (
+              <div className="w-[24px] h-[24px] flex items-center justify-center">
+                <LoadingSpinner />
+              </div>
+            ) : isDownloading && loadStatus.stage !== "downloading" ? (
+              // 다운로드 완료 후 압축 해제 및 도커 로딩 중 - 스피너 표시
               <div className="w-[24px] h-[24px] flex items-center justify-center">
                 <LoadingSpinner />
               </div>
