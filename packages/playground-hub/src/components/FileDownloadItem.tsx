@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import JsonIcon from "../assets/modals/json.svg";
 import DownloadIcon from "../assets/modals/docker/download-button.svg";
-import PauseIcon from "../assets/modals/docker/pause.svg";
 import DownloadedIcon from "../assets/modals/docker/downloaded-button.svg";
+import LoadingSpinner from "./common/LoadingSpinner";
 
 export interface FileDownloadItemProps {
   fileName: string;
@@ -70,7 +70,12 @@ const FileDownloadItem: React.FC<FileDownloadItemProps> = ({
 
   const getIcon = () => {
     if (isDownloadingState) {
-      return <img src={PauseIcon} alt="Downloading" className="w-6 h-6" />;
+      // 다운로드 준비중 또는 컨펌창 - 스피너 표시
+      return (
+        <div className="w-6 h-6 flex items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      );
     } else if (isDownloaded) {
       return <img src={DownloadedIcon} alt="Downloaded" className="w-6 h-6" />;
     } else {
