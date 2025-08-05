@@ -6,18 +6,17 @@ import DownloadedImage from "../../assets/modals/docker/run-button.png";
 import DockerImage from "../../assets/images/docker.svg";
 import RunningImage from "../../assets/images/running.svg";
 import PauseImage from "../../assets/modals/docker/paused.svg";
-import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import useElectronFileDownloader from "../../hooks/useFileDownload";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
 import { useModals } from "../../hooks/useModals";
 import { useDocker } from "../../hooks/useDocker";
 import { DOCKER_DOWNLOAD_URL, FILE_NAME } from "../../constants";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const DockerModal: React.FC = () => {
   const {
     startDownloadAndLoad,
     downloadProgress,
-    loadStatus,
     isPaused,
     isProcessing: isDownloading,
     pauseDownload,
@@ -25,9 +24,13 @@ const DockerModal: React.FC = () => {
   } = useElectronFileDownloader();
 
   const { setupEvmSpec } = useTokamakZkEVMActions();
-  const { updateActiveSection } = usePipelineAnimation();
   const { activeModal, closeModal } = useModals();
-  const { dockerStatus, isContainerRunning, dockerConfig } = useDocker();
+  const {
+    dockerStatus,
+    isContainerRunning,
+    dockerConfig,
+    isDockerStatusLoading,
+  } = useDocker();
 
   const isDockerImageDownloaded = useMemo(() => {
     return dockerStatus.imageExists;
@@ -98,31 +101,37 @@ const DockerModal: React.FC = () => {
               <img src={DockerImage} alt="docker-image" />
               <span className="cursor-pointer">TOKAMAK-ZK-EVM</span>
             </div>
-            <img
-              className={`cursor-pointer ${
-                isPaused
-                  ? "w-[14px] h-[14px]"
-                  : isContainerRunning
-                    ? "w-[82px] h-[24px]"
-                    : isDockerImageDownloaded
-                      ? "w-[57px] h-[24px]"
-                      : isDownloading
-                        ? "w-[10px] h-[10px]"
-                        : "w-[24px] h-[24px]"
-              }`}
-              src={
-                isPaused
-                  ? PauseImage
-                  : isContainerRunning
-                    ? RunningImage
-                    : isDockerImageDownloaded
-                      ? DownloadedImage
-                      : isDownloading
-                        ? PauseIconImage
-                        : DownloadButtonImage
-              }
-              onClick={onClickStartProcess}
-            ></img>
+            {isDockerStatusLoading ? (
+              <div className="w-[24px] h-[24px] flex items-center justify-center">
+                <LoadingSpinner />
+              </div>
+            ) : (
+              <img
+                className={`cursor-pointer ${
+                  isPaused
+                    ? "w-[14px] h-[14px]"
+                    : isContainerRunning
+                      ? "w-[82px] h-[24px]"
+                      : isDockerImageDownloaded
+                        ? "w-[57px] h-[24px]"
+                        : isDownloading
+                          ? "w-[10px] h-[10px]"
+                          : "w-[24px] h-[24px]"
+                }`}
+                src={
+                  isPaused
+                    ? PauseImage
+                    : isContainerRunning
+                      ? RunningImage
+                      : isDockerImageDownloaded
+                        ? DownloadedImage
+                        : isDownloading
+                          ? PauseIconImage
+                          : DownloadButtonImage
+                }
+                onClick={onClickStartProcess}
+              />
+            )}
           </div>
           {isDownloading && (
             <div

@@ -82,6 +82,8 @@ export const useDocker = () => {
     imageExists: false,
     isContainerFromImageRunning: false,
   });
+  const [isDockerStatusLoading, setIsDockerStatusLoading] =
+    useState<boolean>(true);
   const { cudaStatus } = useCuda();
   const hasInitialized = useRef(false);
 
@@ -157,6 +159,9 @@ export const useDocker = () => {
           } else {
             consecutiveSuccessCount++;
           }
+
+          // 첫 번째 상태 확인이 완료되면 로딩 상태를 false로 설정
+          setIsDockerStatusLoading(false);
 
           // 상태가 안정적이면 체크 간격을 늘림
           if (consecutiveSuccessCount >= 3 && checkInterval) {
@@ -516,6 +521,7 @@ export const useDocker = () => {
     dockerStatus,
     isContainerRunning,
     dockerConfig,
+    isDockerStatusLoading,
     // Actions
     loadImages,
     loadContainers,

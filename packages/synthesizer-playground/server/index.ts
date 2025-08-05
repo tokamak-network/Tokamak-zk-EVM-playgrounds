@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { SynthesizerAdapter } from "@tokamak-zk-evm/synthesizer";
+import * as fs from "fs";
 
 // Remove hardcoded constants and use the adapter's placementIndices instead
 // Adjust the import path if needed—here we assume your utils are compiled from your Next.js app
@@ -46,6 +47,13 @@ app.post("/api/parseTransaction", async (req: Request, res: Response) => {
         calldata: bytecode, // The transaction input ("input" field)
         sender: from,
       });
+
+    console.log(
+      "executionResult",
+      executionResult.runState?.synthesizer?.placements
+    );
+    console.log("permutation", permutation);
+    console.log("placementInstance", placementInstance);
 
     // console.log("Transaction parsed, checking placements...");
     // console.log("ExecutionResult:", {
@@ -144,6 +152,40 @@ app.post("/api/parseTransaction", async (req: Request, res: Response) => {
         return [];
       }
     };
+
+    // Save variables to JSON file
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const fileName = `synthesizer_data_${timestamp}.json`;
+
+      const dataToSave = {
+        timestamp: new Date().toISOString(),
+        transactionId: txId,
+        executionResult: {
+          runState: {
+            synthesizer: {
+              placements: executionResult.runState?.synthesizer?.placements
+                ? Array.from(
+                    executionResult.runState.synthesizer.placements.entries()
+                  ).map(([key, value]) => [key, convertBigIntsToStrings(value)])
+                : [],
+            },
+          },
+        },
+        permutation: convertBigIntsToStrings(permutation),
+        placementInstance: convertBigIntsToStrings(placementInstance),
+        placementIndices: {
+          storageIn,
+          return: returnIndex,
+          storageOut,
+        },
+      };
+
+      fs.writeFileSync(fileName, JSON.stringify(dataToSave, null, 2));
+      console.log(`✅ Data saved to ${fileName}`);
+    } catch (error) {
+      console.error("❌ Failed to save data to JSON file:", error);
+    }
 
     const transformedData = {
       from,

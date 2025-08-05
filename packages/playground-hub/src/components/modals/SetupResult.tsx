@@ -11,7 +11,6 @@ const SetupResult: React.FC = () => {
     downloadSetupFiles,
     downloadToLocal,
     downloadVeryLargeFile,
-    isDownloading,
   } = useDockerFileDownload();
   const { currentDockerContainer } = useDocker();
 
@@ -34,6 +33,20 @@ const SetupResult: React.FC = () => {
       return result;
     }
 
+    // 파일이 없으면 먼저 다운로드 시도 (스피너 시간을 늘리기 위해)
+    console.log("File not in memory, fetching from Docker...");
+    const files = await downloadSetupFiles();
+    console.log("downloadSetupFiles completed, result:", files);
+
+    if (files && files.combinedSigna) {
+      console.log(
+        "Successfully fetched combinedSigna file from Docker, downloading..."
+      );
+      const result = await downloadToLocal(filename, files.combinedSigna);
+      console.log("downloadToLocal result:", result);
+      return result;
+    }
+
     // combinedSigna 파일은 너무 크므로 직접 스트리밍으로 다운로드
     console.log(
       "Combined sigma file is too large, using streaming download..."
@@ -44,7 +57,7 @@ const SetupResult: React.FC = () => {
 
     const result = await downloadVeryLargeFile(
       currentDockerContainer.ID,
-      "backend/setup/trusted-setup/output/combined_sigma.json",
+      "packages/backend/setup/trusted-setup/output/combined_sigma.json",
       filename
     );
     console.log("downloadVeryLargeFile result:", result);
@@ -359,7 +372,6 @@ const SetupResult: React.FC = () => {
                 fileName={item.fileName}
                 titleWidth="250px"
                 hasFile={item.hasFile}
-                isDownloading={isDownloading}
                 onDownload={item.onDownload}
               />
             ))}
