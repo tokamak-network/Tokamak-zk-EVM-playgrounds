@@ -28,9 +28,17 @@ interface CudaAPI {
   }>;
 }
 
+interface ElectronWindowAPI {
+  closeSettingsWindow: () => Promise<void>;
+  openExternalUrl: (
+    url: string
+  ) => Promise<{ success: boolean; error?: string }>;
+}
+
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
+    electron: ElectronWindowAPI;
     env: {
       getEnvVars: () => Promise<{
         RPC_URL: string;

@@ -14,6 +14,7 @@ import { usePlaygroundStage } from "./usePlaygroundStage";
 import { useModals } from "./useModals";
 import { DOCKER_NAME } from "../constants";
 import { useCuda } from "./useCuda";
+import { useBenchmark } from "./useBenchmark";
 
 // CUDA API types are defined in render.d.ts
 
@@ -41,6 +42,12 @@ export function useTokamakZkEVMActions() {
   const { openModal, closeModal } = useModals();
   const { cudaStatus } = useCuda();
   const isCudaSupported = cudaStatus.isFullySupported;
+  const {
+    startProcessTiming,
+    endProcessTiming,
+    checkAutoDownload,
+    downloadBenchmarkData,
+  } = useBenchmark();
 
   // Prove 로그 분석 및 step 업데이트 함수
   const analyzeProveLog = useCallback(
@@ -201,8 +208,31 @@ export function useTokamakZkEVMActions() {
             if (currentDockerContainer?.ID) {
               // setPendingAnimation(true);
               openModal("loading");
-              await preProcess(currentDockerContainer.ID);
-              return updateActiveSection("bikzg-to-verify");
+
+              // 벤치마킹: PreProcess 시작 시간 기록
+              const preprocessStartTime = startProcessTiming("preprocess");
+
+              try {
+                await preProcess(currentDockerContainer.ID);
+
+                // 벤치마킹: PreProcess 성공 완료 시간 기록
+                if (preprocessStartTime) {
+                  endProcessTiming("preprocess", preprocessStartTime, true);
+                }
+
+                return updateActiveSection("bikzg-to-verify");
+              } catch (error) {
+                // 벤치마킹: PreProcess 실패 시간 기록
+                if (preprocessStartTime) {
+                  endProcessTiming(
+                    "preprocess",
+                    preprocessStartTime,
+                    false,
+                    error.message
+                  );
+                }
+                throw error;
+              }
             }
             throw new Error("currentDockerContainer is not found");
 
@@ -212,17 +242,40 @@ export function useTokamakZkEVMActions() {
               openModal("prove-loading");
               setProveStep(1); // 초기 단계 설정
 
-              await proveWithStreaming(
-                currentDockerContainer.ID,
-                (data, isError) => {
-                  if (!isError) {
-                    console.log("Prove log:", data);
-                    analyzeProveLog(data);
-                  }
-                }
-              );
+              // 벤치마킹: Prove 시작 시간 기록
+              const proveStartTime = startProcessTiming("prove");
 
-              return updateActiveSection("prove-to-verify");
+              try {
+                await proveWithStreaming(
+                  currentDockerContainer.ID,
+                  (data, isError) => {
+                    if (!isError) {
+                      console.log("Prove log:", data);
+                      analyzeProveLog(data);
+                    }
+                  }
+                );
+
+                // 벤치마킹: Prove 성공 완료 시간 기록
+                if (proveStartTime) {
+                  endProcessTiming("prove", proveStartTime, true);
+                  // Prove 완료 후 자동 다운로드 체크
+                  checkAutoDownload();
+                }
+
+                return updateActiveSection("prove-to-verify");
+              } catch (error) {
+                // 벤치마킹: Prove 실패 시간 기록
+                if (proveStartTime) {
+                  endProcessTiming(
+                    "prove",
+                    proveStartTime,
+                    false,
+                    error.message
+                  );
+                }
+                throw error;
+              }
             }
             throw new Error("currentDockerContainer is not found");
 
@@ -255,6 +308,7 @@ export function useTokamakZkEVMActions() {
                   });
 
                   setProvingResult(isTrue);
+
                   return {
                     success: isTrue,
                     verificationResult: isTrue,
@@ -263,6 +317,7 @@ export function useTokamakZkEVMActions() {
                 } else {
                   setProvingIsDone(true);
                   setProvingResult(false);
+
                   return {
                     success: false,
                     error: "Verification line not found",
@@ -272,6 +327,7 @@ export function useTokamakZkEVMActions() {
               } catch (error) {
                 setProvingIsDone(true);
                 setProvingResult(false);
+
                 return {
                   success: false,
                   error: error.message || "An unknown error occurred",

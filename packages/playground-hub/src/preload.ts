@@ -58,6 +58,8 @@ contextBridge.exposeInMainWorld("docker", {
 //Settings
 contextBridge.exposeInMainWorld("electron", {
   closeSettingsWindow: () => ipcRenderer.invoke("close-settings-window"),
+  openExternalUrl: (url: string) =>
+    ipcRenderer.invoke("open-external-url", url),
 });
 
 // File Downloader and Docker Image Loader API
