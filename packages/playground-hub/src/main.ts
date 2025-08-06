@@ -8,6 +8,7 @@ import {
   session,
   DownloadItem,
   screen,
+  shell,
 } from "electron";
 import path from "node:path";
 import fs from "node:fs";
@@ -56,6 +57,22 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+
+  // 외부 링크를 기본 브라우저에서 열도록 설정
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
+
+  // will-navigate 이벤트도 처리 (추가 보안)
+  mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
+    const parsedUrl = new URL(navigationUrl);
+    // 외부 URL인 경우 기본 브라우저에서 열기
+    if (parsedUrl.origin !== new URL(mainWindow.webContents.getURL()).origin) {
+      event.preventDefault();
+      shell.openExternal(navigationUrl);
+    }
+  });
 
   // 메뉴 생성
   createMenu();
@@ -580,6 +597,19 @@ function setupIpcHandlers() {
       );
     }
   );
+
+  // Shell API 핸들러 추가
+  ipcMain.handle("open-external-url", async (event, url: string) => {
+    try {
+      console.log("🌐 Opening external URL in default browser:", url);
+      await shell.openExternal(url);
+      console.log("✅ Successfully opened external URL");
+      return { success: true };
+    } catch (error) {
+      console.error("❌ Failed to open external URL:", error);
+      return { success: false, error: error.message };
+    }
+  });
 
   let isShowingDialog = false;
 

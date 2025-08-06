@@ -49,7 +49,7 @@ const SubmitModal: React.FC = () => {
     return { success: false, error: "Failed to download proof file" };
   };
 
-  if (!isOpen) return null;
+  // if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
@@ -68,11 +68,20 @@ const SubmitModal: React.FC = () => {
         ></div>
         <div
           className="absolute w-[188px] h-[48px] top-[241px] right-[30px] cursor-pointer"
-          onClick={() => {
-            window.open(
-              "https://docs.google.com/forms/d/e/1FAIpQLSdVqGLRSrO2JhR0apXe5MzrUM9WdQZLJQTpnfd0hiUoNmNESw/viewform",
-              "_blank"
-            );
+          onClick={async () => {
+            const url =
+              "https://docs.google.com/forms/d/e/1FAIpQLSdVqGLRSrO2JhR0apXe5MzrUM9WdQZLJQTpnfd0hiUoNmNESw/viewform";
+
+            console.log("📝 Opening Google Form in external browser...");
+            try {
+              const result = await window.electron.openExternalUrl(url);
+              console.log("🌐 openExternalUrl result:", result);
+              if (!result.success) {
+                console.error("Failed to open external URL:", result.error);
+              }
+            } catch (error) {
+              console.error("Error calling openExternalUrl:", error);
+            }
           }}
         ></div>
         <div
