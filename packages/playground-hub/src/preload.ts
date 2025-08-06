@@ -16,8 +16,8 @@ contextBridge.exposeInMainWorld("docker", {
       containerName
     ),
   getContainers: () => ipcRenderer.invoke("get-docker-containers"),
-  stopContainer: (containerId: string) =>
-    ipcRenderer.invoke("stop-docker-container", containerId),
+  stopContainer: (containerId: string, force?: boolean) =>
+    ipcRenderer.invoke("stop-docker-container", containerId, force),
   executeCommand: (containerId: string, command: string[]) =>
     ipcRenderer.invoke("execute-command-in-container", containerId, command),
   executeCommandWithStreaming: (containerId: string, command: string[]) =>

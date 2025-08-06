@@ -8,6 +8,21 @@ import { useAtom } from "jotai";
 import { DOCKER_NAME, getDockerConfigForEnvironment } from "../constants";
 import useCuda from "./useCuda";
 
+// 전역 플래그로 중복 실행 방지
+let globalCleanupInProgress = false;
+let globalCleanupCompleted = false;
+
+// 개발 모드에서 새로고침 시 전역 상태 리셋
+if (typeof window !== "undefined") {
+  (
+    window as typeof window & { __resetDockerCleanup?: () => void }
+  ).__resetDockerCleanup = () => {
+    globalCleanupInProgress = false;
+    globalCleanupCompleted = false;
+    console.log("🔄 Global Docker cleanup state reset");
+  };
+}
+
 // Define the expected shape of the status from window.docker.checkDockerStatus
 // This should match DockerStatusResult from your docker-service.ts
 interface DockerStatusCheckResult {
@@ -27,7 +42,7 @@ declare global {
         options?: string[]
       ) => Promise<DockerContainer>;
       getContainers: () => Promise<DockerContainer[]>;
-      stopContainer: (containerId: string) => Promise<boolean>;
+      stopContainer: (containerId: string, force?: boolean) => Promise<boolean>;
       executeCommand: (
         containerId: string,
         command: string[]
@@ -59,6 +74,92 @@ declare global {
 
 // Add an optional parameter to the hook for the polling image name
 export const useDocker = () => {
+  // console.log("🔧 useDocker hook called at:", new Date().toISOString()); // 디버깅용 - 주석 처리
+
+  // 🚀 ULTRA-IMMEDIATE: 훅 호출 즉시 컨테이너 정지 (useEffect 대기 없음)
+  if (!globalCleanupCompleted && !globalCleanupInProgress) {
+    globalCleanupInProgress = true;
+    console.log(
+      "⚡⚡ ULTRA-IMMEDIATE cleanup starting at:",
+      new Date().toISOString()
+    );
+
+    // 즉시 실행 (await 없이 비동기 실행)
+    (async () => {
+      try {
+        if (window.docker?.getContainers && window.docker?.stopContainer) {
+          console.log(
+            "🔍 ULTRA-IMMEDIATE: Checking containers at:",
+            new Date().toISOString()
+          );
+          const currentContainers = await window.docker.getContainers();
+
+          if (currentContainers.length > 0) {
+            console.log(
+              `⚡ ULTRA-IMMEDIATE: Force killing ${currentContainers.length} containers at:`,
+              new Date().toISOString()
+            );
+
+            const stopPromises = currentContainers.map(async (container) => {
+              try {
+                // 🚀 FORCE KILL for instant shutdown (much faster than docker stop)
+                await window.docker.stopContainer(container.ID, true);
+                console.log(
+                  `✅ ULTRA-IMMEDIATE: Force killed ${container.ID} at:`,
+                  new Date().toISOString()
+                );
+                return { success: true, containerId: container.ID };
+              } catch (stopError) {
+                console.error(
+                  `❌ ULTRA-IMMEDIATE: Failed to force kill ${container.ID}:`,
+                  stopError
+                );
+                return {
+                  success: false,
+                  containerId: container.ID,
+                  error: stopError,
+                };
+              }
+            });
+
+            const results = await Promise.all(stopPromises);
+            const successful = results.filter((r) => r.success).length;
+            console.log(
+              `🎉 ULTRA-IMMEDIATE: ${successful} containers force killed at:`,
+              new Date().toISOString()
+            );
+          } else {
+            console.log(
+              "⚡ ULTRA-IMMEDIATE: No containers found at:",
+              new Date().toISOString()
+            );
+          }
+        }
+
+        globalCleanupCompleted = true;
+        console.log(
+          "🔒 ULTRA-IMMEDIATE cleanup completed at:",
+          new Date().toISOString()
+        );
+
+        // cleanup 완료 후 Docker 상태 강제 업데이트를 위한 이벤트 발생
+        // 약간의 지연을 두어 React state가 안정화된 후 이벤트 발생
+        setTimeout(() => {
+          console.log("🚀 Dispatching dockerCleanupCompleted event");
+          window.dispatchEvent(new CustomEvent("dockerCleanupCompleted"));
+        }, 100);
+      } catch (err) {
+        console.error("ULTRA-IMMEDIATE cleanup failed:", err);
+      } finally {
+        globalCleanupInProgress = false;
+      }
+    })();
+  } else if (globalCleanupCompleted) {
+    // console.log("⚡ ULTRA-IMMEDIATE: Already completed, skipping"); // 디버깅용 - 주석 처리
+  } else {
+    // console.log("⚡ ULTRA-IMMEDIATE: Already in progress, skipping"); // 디버깅용 - 주석 처리
+  }
+
   // const selectedDockerImage = useAtomValue(selectedDockerImageAtom);
   const [dockerConfig, setDockerConfig] = useState<{
     tag: string;
@@ -84,6 +185,13 @@ export const useDocker = () => {
   });
   const [isDockerStatusLoading, setIsDockerStatusLoading] =
     useState<boolean>(true);
+
+  // 디버깅을 위한 로그
+  useEffect(() => {
+    console.log(
+      `🔄 isDockerStatusLoading changed to: ${isDockerStatusLoading}`
+    );
+  }, [isDockerStatusLoading]);
   const { cudaStatus } = useCuda();
   const hasInitialized = useRef(false);
 
@@ -128,6 +236,148 @@ export const useDocker = () => {
     }
   }, []);
 
+  // Docker cleanup 완료 이벤트 리스너 (중복 실행 방지)
+  useEffect(() => {
+    let isHandlingCleanup = false;
+
+    const handleCleanupCompleted = async () => {
+      // 이미 처리 중이면 스킵
+      if (isHandlingCleanup) {
+        console.log("🔔 Cleanup event already being handled, skipping...");
+        return;
+      }
+
+      isHandlingCleanup = true;
+      console.log(
+        "🔔 Docker cleanup completed event received, updating status..."
+      );
+
+      try {
+        // cleanup 완료 후 Docker 상태를 다시 체크
+        console.log("🔍 Checking prerequisites for Docker status update:");
+        console.log(
+          "  - window.docker?.checkDockerStatus:",
+          !!window.docker?.checkDockerStatus
+        );
+        console.log("  - dockerConfig?.imageName:", dockerConfig?.imageName);
+
+        if (window.docker?.checkDockerStatus && dockerConfig?.imageName) {
+          console.log("🔄 Re-checking Docker status after cleanup...");
+          const updatedStatus = await window.docker.checkDockerStatus(
+            dockerConfig.imageName
+          );
+          setDockerStatus(updatedStatus);
+          console.log("✅ Docker status updated after cleanup:", updatedStatus);
+
+          // 상태 업데이트가 React에 반영될 시간을 충분히 주기
+          console.log("⏳ Waiting for React state to update...");
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // 컨테이너 목록도 다시 로드하여 정확한 상태 확인
+          try {
+            console.log("🔄 Re-loading container list after cleanup...");
+            if (window.docker?.getContainers) {
+              const containers = await window.docker.getContainers();
+              setContainers(containers);
+              console.log(
+                "📋 Container list reloaded after cleanup:",
+                containers.length
+              );
+            }
+
+            // 이미지 목록도 다시 로드
+            console.log("🔄 Re-loading image list after cleanup...");
+            if (window.docker?.getImages) {
+              const images = await window.docker.getImages();
+              setImages(images);
+              console.log(
+                "📋 Image list reloaded after cleanup:",
+                images.length
+              );
+            }
+          } catch (loadError) {
+            console.error("❌ Failed to reload containers/images:", loadError);
+          }
+
+          // 추가 상태 안정화 대기
+          console.log("⏳ Final stabilization wait...");
+          await new Promise((resolve) => setTimeout(resolve, 200));
+
+          console.log("🎯 Final Docker status before ending loading:", {
+            imageExists: updatedStatus.imageExists,
+            isContainerFromImageRunning:
+              updatedStatus.isContainerFromImageRunning,
+          });
+        } else {
+          console.log("❌ Docker API or config not available for status check");
+          console.log(
+            "  💡 Config will be checked in regular Docker status polling"
+          );
+          // dockerConfig가 없어도 cleanup은 완료되었으므로 계속 진행
+          // regular polling에서 config 로드 후 상태를 체크할 것임
+        }
+      } catch (err) {
+        console.error("❌ Failed to update Docker status after cleanup:", err);
+      } finally {
+        // cleanup 완료 이벤트 처리 끝 - loading 완료는 regular polling에서 처리
+        console.log("🏁 Cleanup event handling completed");
+        isHandlingCleanup = false; // 처리 완료 표시
+      }
+    };
+
+    window.addEventListener("dockerCleanupCompleted", handleCleanupCompleted);
+    return () => {
+      window.removeEventListener(
+        "dockerCleanupCompleted",
+        handleCleanupCompleted
+      );
+    };
+  }, [dockerConfig]);
+
+  // dockerConfig 로드 후 cleanup이 완료되었다면 상태 다시 체크
+  useEffect(() => {
+    if (dockerConfig && globalCleanupCompleted && isDockerStatusLoading) {
+      console.log(
+        "🔄 DockerConfig loaded after cleanup, re-checking status..."
+      );
+
+      const recheckStatus = async () => {
+        try {
+          if (window.docker?.checkDockerStatus) {
+            const updatedStatus = await window.docker.checkDockerStatus(
+              dockerConfig.imageName
+            );
+            setDockerStatus(updatedStatus);
+            console.log(
+              "✅ Docker status updated after config load:",
+              updatedStatus
+            );
+
+            // 컨테이너/이미지 목록도 다시 로드
+            if (window.docker?.getContainers) {
+              const containers = await window.docker.getContainers();
+              setContainers(containers);
+            }
+            if (window.docker?.getImages) {
+              const images = await window.docker.getImages();
+              setImages(images);
+            }
+
+            // loading 완료는 일반 Docker status polling에서 처리
+            console.log(
+              "✅ Docker status updated after config load - letting regular polling handle loading completion"
+            );
+          }
+        } catch (err) {
+          console.error("❌ Failed to recheck status after config load:", err);
+          setIsDockerStatusLoading(false);
+        }
+      };
+
+      recheckStatus();
+    }
+  }, [dockerConfig]);
+
   // 초기 로딩 시 Docker 상태 체크 및 스마트 주기적 체크
   useEffect(() => {
     // Docker 설정이 로드되지 않았으면 대기
@@ -160,8 +410,33 @@ export const useDocker = () => {
             consecutiveSuccessCount++;
           }
 
-          // 첫 번째 상태 확인이 완료되면 로딩 상태를 false로 설정
-          setIsDockerStatusLoading(false);
+          // Docker cleanup이 완료된 후에만 로딩 상태를 false로 설정
+          // cleanup이 완료되지 않았다면 절대 loading을 끝내지 않음
+          if (globalCleanupCompleted) {
+            console.log(
+              "🔄 Global cleanup completed, Docker status loading can now finish"
+            );
+            // cleanup이 완료되었고 config도 있다면 바로 loading 끝내기
+            if (dockerConfig?.imageName) {
+              setTimeout(() => {
+                setIsDockerStatusLoading(false);
+                console.log(
+                  "🎉 Docker status loading completed - all conditions met"
+                );
+              }, 100);
+            }
+          } else {
+            console.log(
+              "⏳ Global cleanup still in progress, keeping loading state"
+            );
+            // cleanup이 완료되지 않았으면 loading 상태 강제 유지
+            if (!isDockerStatusLoading) {
+              setIsDockerStatusLoading(true);
+              console.log(
+                "🔒 Forcing Docker loading state to true - cleanup not done"
+              );
+            }
+          }
 
           // 상태가 안정적이면 체크 간격을 늘림
           if (consecutiveSuccessCount >= 3 && checkInterval) {
@@ -460,52 +735,111 @@ export const useDocker = () => {
 
   // Initial data loading
   useEffect(() => {
+    // console.log("🚀 useEffect triggered at:", new Date().toISOString()); // 디버깅용 - 주석 처리
+
     const initialLoad = async () => {
+      // console.log("📅 initialLoad started at:", new Date().toISOString()); // 디버깅용 - 주석 처리
+
       if (hasInitialized.current) {
+        console.log(
+          "⏭️ Already initialized, skipping at:",
+          new Date().toISOString()
+        );
         return; // 이미 초기화됨
+      }
+
+      // 🔒 전역 중복 실행 방지
+      if (globalCleanupCompleted) {
+        console.log(
+          "⚡ Cleanup already completed globally, skipping at:",
+          new Date().toISOString()
+        );
+        hasInitialized.current = true;
+        await loadImages();
+        await loadContainers();
+        return;
+      }
+
+      if (globalCleanupInProgress) {
+        console.log(
+          "⚡ Cleanup already in progress globally, skipping at:",
+          new Date().toISOString()
+        );
+        return;
       }
 
       try {
         hasInitialized.current = true;
+        globalCleanupInProgress = true;
 
-        // 먼저 컨테이너 목록을 로드하여 실행 중인 타겟 컨테이너 확인
-        const currentContainers = await loadContainers();
+        // 🚀 즉시 실행: Docker API 직접 호출로 최대한 빠른 컨테이너 정지
+        if (window.docker?.getContainers && window.docker?.stopContainer) {
+          console.log("🔍 IMMEDIATE: Checking for running containers...");
+          const currentContainers = await window.docker.getContainers();
 
-        console.log(`Found ${currentContainers.length} total containers`);
+          console.log(`Found ${currentContainers.length} total containers`);
 
-        // 실행 중인 모든 컨테이너를 종료 (간단한 접근)
-        if (currentContainers.length > 0) {
-          console.log(
-            `Stopping all ${currentContainers.length} running container(s)...`
-          );
+          // 실행 중인 모든 컨테이너를 즉시 병렬 종료
+          if (currentContainers.length > 0) {
+            console.log(
+              `⚡ IMMEDIATE: Stopping all ${currentContainers.length} running container(s)...`
+            );
 
-          for (const container of currentContainers) {
-            try {
-              console.log(`Stopping container: ${container.ID}`);
-              await stopContainer(container.ID);
-              console.log(`Successfully stopped container: ${container.ID}`);
-            } catch (stopError) {
-              console.error(
-                `Failed to stop container ${container.ID}:`,
-                stopError
-              );
-            }
+            const stopPromises = currentContainers.map(async (container) => {
+              try {
+                console.log(
+                  `⚡ IMMEDIATE: Stopping container: ${container.ID}`
+                );
+                await window.docker.stopContainer(container.ID);
+                console.log(
+                  `✅ IMMEDIATE: Successfully stopped container: ${container.ID}`
+                );
+                return { success: true, containerId: container.ID };
+              } catch (stopError) {
+                console.error(
+                  `❌ IMMEDIATE: Failed to stop container ${container.ID}:`,
+                  stopError
+                );
+                return {
+                  success: false,
+                  containerId: container.ID,
+                  error: stopError,
+                };
+              }
+            });
+
+            // 병렬로 모든 컨테이너 정지 (더 빠름)
+            const results = await Promise.all(stopPromises);
+            const successful = results.filter((r) => r.success).length;
+            const failed = results.filter((r) => !r.success).length;
+
+            console.log(
+              `🎉 IMMEDIATE stop completed: ${successful} stopped, ${failed} failed`
+            );
+          } else {
+            console.log("⚡ IMMEDIATE: No containers found to stop.");
           }
-
-          // console.log("All containers have been stopped.");
         } else {
-          // console.log("No containers found to stop.");
+          console.log("⚠️ Docker API not available for immediate cleanup");
         }
 
         await loadImages();
+        await loadContainers(); // 상태 업데이트
+
+        // 정리 완료 표시
+        globalCleanupCompleted = true;
+        console.log("🔒 Global cleanup marked as completed");
       } catch (err) {
         console.error("Initial data loading error:", err);
         hasInitialized.current = false; // 에러 시 다시 시도할 수 있도록
+        globalCleanupInProgress = false; // 에러 시 다시 시도할 수 있도록
+      } finally {
+        globalCleanupInProgress = false;
       }
     };
 
     initialLoad();
-  }, [loadImages, loadContainers, stopContainer]);
+  }, []);
 
   const isContainerRunning = useMemo(
     () => !!dockerStatus.isContainerFromImageRunning,
