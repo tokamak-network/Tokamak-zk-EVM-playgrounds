@@ -43,18 +43,13 @@ const DockerModal: React.FC = () => {
     if (!isDockerStatusLoading) {
       const newState = dockerStatus.imageExists;
       if (lastKnownImageState.current !== newState) {
-        console.log(
-          `🔄 Docker image state changed: ${lastKnownImageState.current} → ${newState}`
-        );
         lastKnownImageState.current = newState;
       }
       return newState;
     }
 
     // 로딩 중일 때는 마지막으로 알려진 상태 유지
-    console.log(
-      `⏳ Docker loading in progress, keeping image state: ${lastKnownImageState.current} (actual: ${dockerStatus.imageExists})`
-    );
+
     return lastKnownImageState.current;
   }, [dockerStatus, isDockerStatusLoading]);
 
