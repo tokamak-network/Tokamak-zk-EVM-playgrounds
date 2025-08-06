@@ -37,6 +37,9 @@ const DockerModal: React.FC = () => {
   // 이전 상태를 기억하여 깜빡임 방지
   const lastKnownImageState = useRef<boolean>(false);
   const lastKnownContainerState = useRef<boolean>(false);
+  // 스피너 지연 표시를 위한 상태
+  const [isDelayedSpinnerActive, setIsDelayedSpinnerActive] =
+    React.useState(false);
 
   const isDockerImageDownloaded = useMemo(() => {
     // Docker 상태 로딩이 완료된 경우에만 상태 업데이트
@@ -68,14 +71,34 @@ const DockerModal: React.FC = () => {
   useEffect(() => {
     if (loadStatus.stage === "completed") {
       console.log("Docker image loading completed, verifying status...");
-      // 잠시 후 상태 체크 (Docker 상태 반영 시간 고려)
+
+      // 스피너 지연 표시 시작
+      setIsDelayedSpinnerActive(true);
+
+      // 즉시 상태 체크 시작
+      verifyDockerStatus(dockerConfig?.imageName);
+    }
+  }, [loadStatus.stage, verifyDockerStatus, dockerConfig?.imageName]);
+
+  // verifyDockerStatus 완료 후 지연 스피너 종료
+  useEffect(() => {
+    if (
+      loadStatus.stage === "completed" &&
+      !isDockerStatusLoading &&
+      isDelayedSpinnerActive
+    ) {
+      console.log(
+        "Docker status verification completed, ending delayed spinner..."
+      );
+
+      // verifyDockerStatus 완료 후 1초 지연
       const timer = setTimeout(() => {
-        verifyDockerStatus(dockerConfig?.imageName);
+        setIsDelayedSpinnerActive(false);
       }, 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [loadStatus.stage, verifyDockerStatus, dockerConfig?.imageName]);
+  }, [loadStatus.stage, isDockerStatusLoading, isDelayedSpinnerActive]);
 
   const startProcess = () => {
     try {
@@ -142,7 +165,7 @@ const DockerModal: React.FC = () => {
               <img src={DockerImage} alt="docker-image" />
               <span className="cursor-pointer">TOKAMAK-ZK-EVM</span>
             </div>
-            {isDockerStatusLoading ? (
+            {isDockerStatusLoading || isDelayedSpinnerActive ? (
               <div className="w-[24px] h-[24px] flex items-center justify-center">
                 <LoadingSpinner />
               </div>
