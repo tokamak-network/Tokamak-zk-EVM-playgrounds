@@ -15,7 +15,7 @@ export default function FillingTank({
   animationDuration = 1000,
   autoFill = true,
   onFillComplete,
-  delay = 1000, // 500ms 딜레이 후 애니메이션 시작
+  delay = 1500, // 500ms 딜레이 후 애니메이션 시작
 }: FillingTankProps) {
   const [currentFill, setCurrentFill] = useState(0); // 0~100
   const [imgLoaded, setImgLoaded] = useState(false);

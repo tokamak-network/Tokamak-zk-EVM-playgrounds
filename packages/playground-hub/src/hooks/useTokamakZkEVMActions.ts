@@ -192,11 +192,7 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.SetupTrustedSetup:
             if (currentDockerContainer?.ID) {
-              if (isCudaSupported) {
-                openModal("loading");
-                await setup(currentDockerContainer.ID);
-              }
-
+              // await setup(currentDockerContainer.ID);
               return updateActiveSection("setup-to-prove");
             }
             throw new Error("currentDockerContainer is not found");

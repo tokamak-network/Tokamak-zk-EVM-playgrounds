@@ -228,7 +228,6 @@ export const useSynthesizerResult = (): SynthesizerResultData => {
 
   // Auto-fetch when container and transaction hash are available
   useEffect(() => {
-    console.log("gogo");
     if (currentDockerContainer?.ID && transactionHash) {
       fetchSynthesizerResult();
     }
