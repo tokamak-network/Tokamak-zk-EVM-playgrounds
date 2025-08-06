@@ -412,15 +412,27 @@ export async function getDockerContainers(): Promise<DockerContainer[]> {
   }
 }
 
-// 컨테이너 중지 (Original)
+// 컨테이너 중지 (Updated with force option)
 export async function stopDockerContainer(
-  containerId: string
+  containerId: string,
+  force: boolean = false
 ): Promise<boolean> {
   try {
-    await execAsync(`docker stop ${containerId}`);
+    if (force) {
+      // docker kill: 즉시 강제 종료 (SIGKILL)
+      console.log(
+        `🚀 Force killing container ${containerId} for faster shutdown`
+      );
+      await execAsync(`docker kill ${containerId}`);
+    } else {
+      // docker stop: 정상 종료 후 10초 후 강제 종료
+      await execAsync(`docker stop ${containerId}`);
+    }
     return true;
   } catch (error) {
-    console.error(`Error stopping container ${containerId}: ${error.message}`);
+    console.error(
+      `Error ${force ? "killing" : "stopping"} container ${containerId}: ${error.message}`
+    );
     throw error;
   }
 }

@@ -532,8 +532,8 @@ function setupIpcHandlers() {
 
   ipcMain.handle(
     "stop-docker-container",
-    async (event, containerId: string) => {
-      return await stopDockerContainer(containerId);
+    async (event, containerId: string, force?: boolean) => {
+      return await stopDockerContainer(containerId, force);
     }
   );
 

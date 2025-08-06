@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import TransactionInputModalImage from "../../assets/modals/docker/docker-modal.png";
 import DownloadButtonImage from "../../assets/modals/docker/download-button.png";
 import PauseIconImage from "../../assets/modals/docker/pause.png";
@@ -34,9 +34,40 @@ const DockerModal: React.FC = () => {
     verifyDockerStatus,
   } = useDocker();
 
+  // 이전 상태를 기억하여 깜빡임 방지
+  const lastKnownImageState = useRef<boolean>(false);
+  const lastKnownContainerState = useRef<boolean>(false);
+
   const isDockerImageDownloaded = useMemo(() => {
-    return dockerStatus.imageExists;
-  }, [dockerStatus]);
+    // Docker 상태 로딩이 완료된 경우에만 상태 업데이트
+    if (!isDockerStatusLoading) {
+      const newState = dockerStatus.imageExists;
+      if (lastKnownImageState.current !== newState) {
+        console.log(
+          `🔄 Docker image state changed: ${lastKnownImageState.current} → ${newState}`
+        );
+        lastKnownImageState.current = newState;
+      }
+      return newState;
+    }
+
+    // 로딩 중일 때는 마지막으로 알려진 상태 유지
+    console.log(
+      `⏳ Docker loading in progress, keeping image state: ${lastKnownImageState.current} (actual: ${dockerStatus.imageExists})`
+    );
+    return lastKnownImageState.current;
+  }, [dockerStatus, isDockerStatusLoading]);
+
+  const stableIsContainerRunning = useMemo(() => {
+    // Docker 상태 로딩이 완료된 경우에만 상태 업데이트
+    if (!isDockerStatusLoading) {
+      lastKnownContainerState.current = isContainerRunning;
+      return isContainerRunning;
+    }
+
+    // 로딩 중일 때는 마지막으로 알려진 상태 유지
+    return lastKnownContainerState.current;
+  }, [isContainerRunning, isDockerStatusLoading]);
 
   // Docker 이미지 로딩 완료 시 상태 재확인
   useEffect(() => {
@@ -108,7 +139,7 @@ const DockerModal: React.FC = () => {
             isDownloading ? "row-gap-[7px]" : "row-gap-[0px]"
           } rounded-[10px]`}
           style={{
-            background: isContainerRunning ? "#ECFCFE" : "white",
+            background: stableIsContainerRunning ? "#ECFCFE" : "white",
           }}
         >
           <div className="w-full h-full  flex  items-center justify-between">
@@ -130,7 +161,7 @@ const DockerModal: React.FC = () => {
                 className={`cursor-pointer ${
                   isPaused
                     ? "w-[14px] h-[14px]"
-                    : isContainerRunning
+                    : stableIsContainerRunning
                       ? "w-[82px] h-[24px]"
                       : isDockerImageDownloaded
                         ? "w-[57px] h-[24px]"
@@ -141,7 +172,7 @@ const DockerModal: React.FC = () => {
                 src={
                   isPaused
                     ? PauseImage
-                    : isContainerRunning
+                    : stableIsContainerRunning
                       ? RunningImage
                       : isDockerImageDownloaded
                         ? DownloadedImage
