@@ -11,12 +11,12 @@ declare global {
 
 export async function getHardwareInfo(): Promise<HardwareInfo> {
   try {
-    // Electron API를 통한 시스템 정보 수집 시도
+    // Attempt to collect system information via Electron API
     if (window.electronAPI?.getSystemInfo) {
       const systemInfo = await window.electronAPI.getSystemInfo();
 
       if (systemInfo) {
-        // GPU 정보도 추가
+        // Add GPU information as well
         const gpuInfo = await getGPUInfo();
         return {
           ...systemInfo,
@@ -24,13 +24,13 @@ export async function getHardwareInfo(): Promise<HardwareInfo> {
         };
       }
     } else {
-      console.warn("Electron API not available or getSystemInfo not found"); // 경고 로그
+      console.warn("Electron API not available or getSystemInfo not found"); // Warning log
     }
 
-    // GPU 정보를 먼저 수집하여 CPU/Architecture 감지에 활용
+    // Collect GPU information first to help with CPU/Architecture detection
     const gpuInfo = await getGPUInfo();
 
-    // 웹 환경에서의 제한적인 정보 수집
+    // Limited information collection in web environment
     const hardwareInfo: HardwareInfo = {
       cpu: {
         model: getCPUInfo(),
@@ -49,7 +49,7 @@ export async function getHardwareInfo(): Promise<HardwareInfo> {
       },
     };
 
-    // GPU 정보 추가
+    // Add GPU information
     if (gpuInfo) {
       hardwareInfo.gpu = gpuInfo;
     }
@@ -58,7 +58,7 @@ export async function getHardwareInfo(): Promise<HardwareInfo> {
   } catch (error) {
     console.error("Failed to collect hardware info:", error);
 
-    // 기본값 반환
+    // Return default values
     return {
       cpu: {
         model: "Unknown",
@@ -80,8 +80,8 @@ export async function getHardwareInfo(): Promise<HardwareInfo> {
 }
 
 function getCPUInfo(): string {
-  // 웹에서는 CPU 모델 정보를 직접 얻기 어려움
-  // User Agent에서 일부 정보 추출 시도
+  // Difficult to get CPU model information directly in web environment
+  // Attempt to extract some information from User Agent
   const userAgent = navigator.userAgent;
 
   // Apple Silicon 감지 개선

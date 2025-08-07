@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# Post-checkout hook to set up development environment
+echo "Setting up development environment..."
+
+# Ensure .cursorrules is in place (should already be in repo)
+if [ -f ".cursorrules" ]; then
+    echo "✅ .cursorrules found and ready"
+else
+    echo "⚠️  .cursorrules not found, please check repository"
+fi
+
+# Check if PROMPT directory exists
+if [ -d "PROMPT" ]; then
+    echo "✅ PROMPT directory with coding guidelines found"
+else
+    echo "⚠️  PROMPT directory not found"
+fi
+
+# Install dependencies if package.json exists
+if [ -f "package.json" ]; then
+    echo "📦 Installing dependencies..."
+    npm install
+fi
+
+# Set up git hooks
+if [ -d ".githooks" ]; then
+    echo "🔧 Setting up git hooks..."
+    git config core.hooksPath .githooks
+    chmod +x .githooks/*
+fi
+
+echo "🚀 Development environment setup complete!"
+echo ""
+echo "📋 Coding Guidelines:"
+echo "  • ALL comments must be in English"
+echo "  • Follow TypeScript strict typing"
+echo "  • Implement proper error handling"
+echo "  • Consider cross-platform compatibility"
+echo ""
+echo "📁 Reference files:"
+echo "  • .cursorrules (auto-applied by Cursor)"
+echo "  • PROMPT/CODING_RULES.md (detailed guidelines)"
+echo "  • PROMPT/CURSOR_PROMPT.md (AI assistant instructions)"
