@@ -19,10 +19,10 @@ export const DOCKER_CONFIGS = {
     fileName: "tokamak-zk-evm_windows-cpu-setup-completed.tar.gz",
   },
   "windows-gpu": {
-    tag: "windows-gup-setup-completed",
+    tag: "windows-gpu-setup-completed",
     downloadUrl:
-      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm_windows-gup-setup-completed.tar.gz",
-    fileName: "tokamak-zk-evm_windows-gup-setup-completed.tar.gz",
+      "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm_windows-gpu-setup-completed.tar.gz",
+    fileName: "tokamak-zk-evm_windows-gpu-setup-completed.tar.gz",
   },
 };
 

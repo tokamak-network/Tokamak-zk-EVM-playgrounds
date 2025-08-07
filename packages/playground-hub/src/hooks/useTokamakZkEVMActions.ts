@@ -47,6 +47,9 @@ export function useTokamakZkEVMActions() {
     endProcessTiming,
     checkAutoDownload,
     downloadBenchmarkData,
+    initializeBenchmarkSession,
+    currentSession,
+    globalBenchmarkSession,
   } = useBenchmark();
 
   // Prove 로그 분석 및 step 업데이트 함수
@@ -209,21 +212,58 @@ export function useTokamakZkEVMActions() {
               // setPendingAnimation(true);
               openModal("loading");
 
+              console.log("🔍 PreProcess: Starting preprocess action...");
+              console.log(
+                "🔍 PreProcess: currentDockerContainer.ID:",
+                currentDockerContainer.ID
+              );
+
+              // 벤치마크 세션이 없으면 강제로 초기화
+              if (!currentSession) {
+                console.log(
+                  "🔍 PreProcess: No benchmark session found, initializing..."
+                );
+                await initializeBenchmarkSession();
+              }
+
+              // 전역 세션 확인 - 전역 세션이 있으면 사용
+              const activeSession = globalBenchmarkSession || currentSession;
+              if (!activeSession) {
+                console.warn("🔍 PreProcess: No benchmark session available");
+                return updateActiveSection("bikzg-to-verify");
+              }
+
               // 벤치마킹: PreProcess 시작 시간 기록
               const preprocessStartTime = startProcessTiming("preprocess");
+              console.log(
+                "🔍 PreProcess: startProcessTiming result:",
+                preprocessStartTime
+              );
 
               try {
+                console.log("🔍 PreProcess: Calling preProcess function...");
                 await preProcess(currentDockerContainer.ID);
+                console.log("🔍 PreProcess: preProcess completed successfully");
 
                 // 벤치마킹: PreProcess 성공 완료 시간 기록
                 if (preprocessStartTime) {
+                  console.log("🔍 PreProcess: Calling endProcessTiming...");
                   endProcessTiming("preprocess", preprocessStartTime, true);
+                  console.log("🔍 PreProcess: endProcessTiming completed");
+                } else {
+                  console.warn(
+                    "🔍 PreProcess: preprocessStartTime is null, skipping endProcessTiming"
+                  );
                 }
 
                 return updateActiveSection("bikzg-to-verify");
               } catch (error) {
+                console.error("🔍 PreProcess: Error occurred:", error);
                 // 벤치마킹: PreProcess 실패 시간 기록
                 if (preprocessStartTime) {
+                  console.log(
+                    "🔍 PreProcess: Calling endProcessTiming for error..."
+                  );
                   endProcessTiming(
                     "preprocess",
                     preprocessStartTime,
@@ -242,8 +282,28 @@ export function useTokamakZkEVMActions() {
               openModal("prove-loading");
               setProveStep(1); // 초기 단계 설정
 
+              // 벤치마크 세션이 없으면 강제로 초기화
+              if (!currentSession) {
+                console.log(
+                  "🔍 ProveTransaction: No benchmark session found, initializing..."
+                );
+                await initializeBenchmarkSession();
+              }
+
+              // 전역 세션 확인 - 전역 세션이 있으면 사용
+              const activeSession = globalBenchmarkSession || currentSession;
+              if (!activeSession) {
+                console.warn(
+                  "🔍 ProveTransaction: No benchmark session available"
+                );
+                return updateActiveSection("prove-to-verify");
+              }
+
               // 벤치마킹: Prove 시작 시간 기록
               const proveStartTime = startProcessTiming("prove");
+
+              // prove 로그 수집을 위한 변수
+              let proveLogData = "";
 
               try {
                 await proveWithStreaming(
@@ -252,13 +312,21 @@ export function useTokamakZkEVMActions() {
                     if (!isError) {
                       console.log("Prove log:", data);
                       analyzeProveLog(data);
+                      // 로그 데이터 수집
+                      proveLogData += data + "\n";
                     }
                   }
                 );
 
-                // 벤치마킹: Prove 성공 완료 시간 기록
+                // 벤치마킹: Prove 성공 완료 시간 기록 (로그 데이터 포함)
                 if (proveStartTime) {
-                  endProcessTiming("prove", proveStartTime, true);
+                  endProcessTiming(
+                    "prove",
+                    proveStartTime,
+                    true,
+                    undefined,
+                    proveLogData
+                  );
                   // Prove 완료 후 자동 다운로드 체크
                   checkAutoDownload();
                 }
@@ -271,7 +339,8 @@ export function useTokamakZkEVMActions() {
                     "prove",
                     proveStartTime,
                     false,
-                    error.message
+                    error.message,
+                    proveLogData
                   );
                 }
                 throw error;

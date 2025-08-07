@@ -63,11 +63,13 @@
     "vite": "^5.4.17"
   },
   "dependencies": {
+    "@types/jszip": "^3.4.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^10.0.1",
     "jotai": "^2.12.2",
+    "jszip": "^3.10.1",
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
