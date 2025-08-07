@@ -14,6 +14,7 @@ export async function getHardwareInfo(): Promise<HardwareInfo> {
     // Electron API를 통한 시스템 정보 수집 시도
     if (window.electronAPI?.getSystemInfo) {
       const systemInfo = await window.electronAPI.getSystemInfo();
+
       if (systemInfo) {
         // GPU 정보도 추가
         const gpuInfo = await getGPUInfo();
@@ -22,6 +23,8 @@ export async function getHardwareInfo(): Promise<HardwareInfo> {
           gpu: gpuInfo || undefined,
         };
       }
+    } else {
+      console.warn("Electron API not available or getSystemInfo not found"); // 경고 로그
     }
 
     // GPU 정보를 먼저 수집하여 CPU/Architecture 감지에 활용

@@ -533,6 +533,7 @@ async function checkCudaSupport(): Promise<{
 
 // IPC 핸들러 등록
 function setupIpcHandlers() {
+  console.log("Setting up IPC handlers..."); // 디버깅용 로그
   ipcMain.handle("get-docker-images", async () => {
     return await getDockerImages();
   });
@@ -983,6 +984,7 @@ function setupIpcHandlers() {
 
   // 시스템 하드웨어 정보 제공 핸들러
   ipcMain.handle("get-system-info", async () => {
+    console.log("get-system-info handler called"); // 디버깅용 로그 추가
     try {
       const memoryTotal = os.totalmem();
       const memoryFree = os.freemem();
@@ -990,6 +992,8 @@ function setupIpcHandlers() {
       const platform = os.platform();
       const release = os.release();
       const arch = os.arch();
+
+      console.log(`Platform detected: ${platform}`); // 플랫폼 확인용 로그
 
       // 플랫폼별 시스템 정보 명령어로 더 정확한 정보 수집
       let cpuModel = cpus[0]?.model || "Unknown CPU";
@@ -1025,61 +1029,99 @@ function setupIpcHandlers() {
           console.warn("Failed to get detailed macOS info:", error);
         }
       } else if (platform === "win32") {
-        // Windows 정보 수집
+        // Windows 정보 수집 - systeminfo 명령어 사용
         try {
-          // Windows에서 CPU 정보 수집
-          const { stdout: cpuInfo } = await execAsync(
-            'wmic cpu get name /format:value | findstr "Name="',
-            { timeout: 10000 }
-          );
-          if (cpuInfo.trim()) {
-            const match = cpuInfo.match(/Name=(.+)/);
-            if (match && match[1]) {
-              cpuModel = match[1].trim();
-            }
-          }
+          // systeminfo 명령어로 전체 시스템 정보 수집
+          const { stdout: systemInfo } = await execAsync("systeminfo /fo csv", {
+            timeout: 15000,
+          });
 
-          // Windows 버전 정보 수집 (더 상세한 정보)
-          const { stdout: versionInfo } = await execAsync(
-            'wmic os get Caption,Version,BuildNumber /format:value | findstr "="',
-            { timeout: 10000 }
-          );
-          if (versionInfo.trim()) {
-            const lines = versionInfo.split("\n");
-            let caption = "";
-            let version = "";
-            let buildNumber = "";
+          if (systemInfo.trim()) {
+            // CSV 파싱 (첫 번째 줄은 헤더, 두 번째 줄이 데이터)
+            const lines = systemInfo.trim().split("\n");
+            if (lines.length >= 2) {
+              const headers = lines[0]
+                .split('","')
+                .map((h) => h.replace(/"/g, ""));
+              const values = lines[1]
+                .split('","')
+                .map((v) => v.replace(/"/g, ""));
 
-            lines.forEach((line) => {
-              const trimmed = line.trim();
-              if (trimmed.startsWith("Caption=")) {
-                caption = trimmed.replace("Caption=", "").trim();
-              } else if (trimmed.startsWith("Version=")) {
-                version = trimmed.replace("Version=", "").trim();
-              } else if (trimmed.startsWith("BuildNumber=")) {
-                buildNumber = trimmed.replace("BuildNumber=", "").trim();
+              // CPU 정보 찾기
+              const processorIndex = headers.findIndex((h) =>
+                h.includes("Processor(s)")
+              );
+              if (processorIndex !== -1 && values[processorIndex]) {
+                // 프로세서 정보에서 첫 번째 프로세서 이름 추출
+                const processorInfo = values[processorIndex];
+                const processorMatch = processorInfo.match(
+                  /\[01\]:\s*(.+?)(?:\s*~|\s*,|\s*$)/
+                );
+                if (processorMatch && processorMatch[1]) {
+                  cpuModel = processorMatch[1].trim();
+                }
               }
-            });
 
-            if (caption) {
-              osVersion = caption;
-              if (version) osVersion += ` ${version}`;
-              if (buildNumber) osVersion += ` (Build ${buildNumber})`;
+              // OS 정보 찾기
+              const osNameIndex = headers.findIndex((h) =>
+                h.includes("OS Name")
+              );
+              const osVersionIndex = headers.findIndex((h) =>
+                h.includes("OS Version")
+              );
+              const osBuildIndex = headers.findIndex((h) =>
+                h.includes("OS Build Type")
+              );
+
+              let osName = "";
+              let osVer = "";
+              let osBuild = "";
+
+              if (osNameIndex !== -1 && values[osNameIndex]) {
+                osName = values[osNameIndex].replace("Microsoft ", "").trim();
+              }
+              if (osVersionIndex !== -1 && values[osVersionIndex]) {
+                osVer = values[osVersionIndex].trim();
+              }
+              if (osBuildIndex !== -1 && values[osBuildIndex]) {
+                osBuild = values[osBuildIndex].trim();
+              }
+
+              if (osName) {
+                osVersion = osName;
+                if (osVer) osVersion += ` ${osVer}`;
+                if (osBuild) osVersion += ` (${osBuild})`;
+              }
             }
           }
         } catch (error) {
-          console.warn("Failed to get detailed Windows info:", error);
-          // PowerShell을 fallback으로 시도
+          console.warn("Failed to get Windows info via systeminfo:", error);
+          // wmic fallback
           try {
-            const { stdout: psInfo } = await execAsync(
-              'powershell "Get-CimInstance -ClassName Win32_Processor | Select-Object -ExpandProperty Name"',
+            const { stdout: cpuInfo } = await execAsync(
+              'wmic cpu get name /format:value | findstr "Name="',
               { timeout: 10000 }
             );
-            if (psInfo.trim()) {
-              cpuModel = psInfo.trim();
+            if (cpuInfo.trim()) {
+              const match = cpuInfo.match(/Name=(.+)/);
+              if (match && match[1]) {
+                cpuModel = match[1].trim();
+              }
             }
-          } catch (psError) {
-            console.warn("PowerShell fallback also failed:", psError);
+          } catch (wmicError) {
+            console.warn("WMIC fallback also failed:", wmicError);
+            // PowerShell을 최종 fallback으로 시도
+            try {
+              const { stdout: psInfo } = await execAsync(
+                'powershell "Get-CimInstance -ClassName Win32_Processor | Select-Object -ExpandProperty Name"',
+                { timeout: 10000 }
+              );
+              if (psInfo.trim()) {
+                cpuModel = psInfo.trim();
+              }
+            } catch (psError) {
+              console.warn("PowerShell fallback also failed:", psError);
+            }
           }
         }
       } else if (platform === "linux") {
@@ -1136,6 +1178,8 @@ function setupIpcHandlers() {
       return null;
     }
   });
+
+  console.log("All IPC handlers registered successfully"); // 디버깅용 로그
 }
 
 app.whenReady().then(() => {
