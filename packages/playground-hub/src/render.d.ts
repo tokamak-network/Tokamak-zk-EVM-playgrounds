@@ -3,6 +3,23 @@ export interface ElectronAPI {
     stdout: string;
     stderr: string;
   }>;
+  getSystemInfo: () => Promise<{
+    cpu: {
+      model: string;
+      cores: number;
+      threads: number;
+      architecture: string;
+    };
+    memory: {
+      total: number;
+      available: number;
+    };
+    os: {
+      platform: string;
+      release: string;
+      version: string;
+    };
+  } | null>;
 }
 
 interface CudaAPI {

@@ -14,8 +14,18 @@ export async function getHardwareInfo(): Promise<HardwareInfo> {
     // Electron API를 통한 시스템 정보 수집 시도
     if (window.electronAPI?.getSystemInfo) {
       const systemInfo = await window.electronAPI.getSystemInfo();
-      return systemInfo;
+      if (systemInfo) {
+        // GPU 정보도 추가
+        const gpuInfo = await getGPUInfo();
+        return {
+          ...systemInfo,
+          gpu: gpuInfo || undefined,
+        };
+      }
     }
+
+    // GPU 정보를 먼저 수집하여 CPU/Architecture 감지에 활용
+    const gpuInfo = await getGPUInfo();
 
     // 웹 환경에서의 제한적인 정보 수집
     const hardwareInfo: HardwareInfo = {
@@ -36,8 +46,7 @@ export async function getHardwareInfo(): Promise<HardwareInfo> {
       },
     };
 
-    // GPU 정보 수집 시도
-    const gpuInfo = await getGPUInfo();
+    // GPU 정보 추가
     if (gpuInfo) {
       hardwareInfo.gpu = gpuInfo;
     }
@@ -72,27 +81,96 @@ function getCPUInfo(): string {
   // User Agent에서 일부 정보 추출 시도
   const userAgent = navigator.userAgent;
 
-  if (userAgent.includes("Intel")) return "Intel CPU";
+  // Apple Silicon 감지 개선
+  // GPU 정보를 통해 Apple Silicon 감지 시도
+  try {
+    const canvas = document.createElement("canvas");
+    const gl =
+      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (gl) {
+      const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+      if (debugInfo) {
+        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        if (renderer && renderer.includes("Apple M")) {
+          // Apple M1, M1 Pro, M1 Max, M2 등 감지
+          const match = renderer.match(/Apple (M\d+\s?(?:Pro|Max|Ultra)?)/i);
+          return match ? `Apple ${match[1]}` : "Apple Silicon";
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to detect GPU for CPU info:", error);
+  }
+
+  // User Agent 기반 감지 (fallback)
+  if (userAgent.includes("Mac") && !userAgent.includes("Intel Mac OS X")) {
+    return "Apple Silicon";
+  }
+
+  // Intel Mac 감지 (구형 맥)
+  if (userAgent.includes("Intel Mac OS X")) {
+    // macOS 버전으로 Apple Silicon 여부 추가 확인
+    const macMatch = userAgent.match(/Mac OS X (\d+)[._](\d+)/);
+    if (macMatch) {
+      const major = parseInt(macMatch[1]);
+      const minor = parseInt(macMatch[2]);
+      // macOS 11.0 (Big Sur) 이상에서는 Apple Silicon 가능성 높음
+      if (major >= 11 || (major === 10 && minor >= 16)) {
+        return "Apple Silicon (detected)";
+      }
+    }
+    return "Intel CPU";
+  }
+
   if (userAgent.includes("AMD")) return "AMD CPU";
-  if (userAgent.includes("Apple")) return "Apple Silicon";
 
   return "Unknown CPU";
 }
 
 function getArchitecture(): string {
   // 웹에서는 정확한 아키텍처 정보를 얻기 어려움
-  if (
-    navigator.userAgent.includes("x64") ||
-    navigator.userAgent.includes("x86_64")
-  ) {
+
+  // Apple Silicon 감지 개선
+  try {
+    const canvas = document.createElement("canvas");
+    const gl =
+      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (gl) {
+      const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+      if (debugInfo) {
+        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        if (renderer && renderer.includes("Apple M")) {
+          return "ARM64";
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to detect GPU for architecture:", error);
+  }
+
+  // User Agent 기반 감지
+  const userAgent = navigator.userAgent;
+
+  if (userAgent.includes("x64") || userAgent.includes("x86_64")) {
     return "x64";
   }
-  if (
-    navigator.userAgent.includes("ARM") ||
-    navigator.userAgent.includes("arm64")
-  ) {
+  if (userAgent.includes("ARM") || userAgent.includes("arm64")) {
     return "ARM64";
   }
+
+  // Mac에서 macOS 11+ 이면 ARM64 가능성 높음
+  if (userAgent.includes("Mac")) {
+    const macMatch = userAgent.match(/Mac OS X (\d+)[._](\d+)/);
+    if (macMatch) {
+      const major = parseInt(macMatch[1]);
+      const minor = parseInt(macMatch[2]);
+      if (major >= 11 || (major === 10 && minor >= 16)) {
+        return "ARM64";
+      }
+    }
+    return "x64"; // 구형 Intel Mac
+  }
+
   return "Unknown";
 }
 
