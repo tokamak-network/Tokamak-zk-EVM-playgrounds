@@ -60,7 +60,7 @@ export const useDockerFileDownload = () => {
     },
   });
 
-  // 매우 큰 파일을 직접 로컬 파일로 다운로드하는 함수
+  // Function to download very large files directly to local files
   const downloadVeryLargeFile = useCallback(
     async (
       containerId: string,

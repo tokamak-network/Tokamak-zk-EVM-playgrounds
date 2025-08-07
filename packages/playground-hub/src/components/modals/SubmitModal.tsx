@@ -13,68 +13,29 @@ const SubmitModal: React.FC = () => {
   const isOpen = useMemo(() => activeModal === "submit", [activeModal]);
   const { initializeWithNewTransaction } = useResetStage();
 
-  const { proveFiles, downloadProveFiles, downloadToLocal } =
-    useDockerFileDownload();
-  const { currentDockerContainer } = useDocker();
   const {
-    downloadBenchmarkData,
-    isSessionActive,
-    currentSession,
-    generateBenchmarkData,
-  } = useBenchmark();
+    proveFiles,
+    files,
+    downloadProveFiles,
+    downloadToLocal,
+    downloadSynthesizerFiles,
+  } = useDockerFileDownload();
+  const { currentDockerContainer } = useDocker();
+  const { currentSession, generateBenchmarkData } = useBenchmark();
 
   const onClose = () => {
     initializeWithNewTransaction();
     setActiveModal("none");
   };
 
-  // Proof 다운로드 핸들러
-  const handleDownloadProof = async () => {
-    console.log("handleDownloadProof called from SubmitModal");
-    console.log("proveFiles.proof exists:", !!proveFiles.proof);
-
-    if (proveFiles.proof) {
-      console.log("File exists in memory, downloading directly...");
-      const result = await downloadToLocal("proof.json", proveFiles.proof);
-      console.log("downloadToLocal result:", result);
-      return result;
-    }
-
-    // 파일이 메모리에 없으면 Docker에서 다운로드
-    console.log("File not in memory, downloading from Docker...");
-    if (!currentDockerContainer?.ID) {
-      console.error("Docker container not found");
-      return { success: false, error: "Docker container not found" };
-    }
-
-    const files = await downloadProveFiles();
-    if (files?.proof) {
-      const result = await downloadToLocal("proof.json", files.proof);
-      console.log("downloadToLocal result:", result);
-      return result;
-    }
-
-    return { success: false, error: "Failed to download proof file" };
-  };
-
-  // 벤치마크 데이터 다운로드 핸들러
-  const handleDownloadBenchmark = () => {
-    if (!isSessionActive || !currentSession) {
-      console.warn("No active benchmark session to download");
-      return;
-    }
-
-    console.log("Downloading benchmark data...");
-    downloadBenchmarkData();
-  };
-
-  // Proof와 벤치마크를 합친 압축 파일 다운로드 핸들러
+  // Combined download handler for proof and benchmark files
   const handleDownloadCombined = async () => {
     console.log("Creating combined zip file...");
 
     try {
-      // 1. Proof 파일 가져오기
+      // 1. Get proof file
       let proofData: string | null = null;
+      let instanceData: string | null = null;
 
       if (proveFiles.proof) {
         proofData = proveFiles.proof;
@@ -92,24 +53,44 @@ const SubmitModal: React.FC = () => {
         return { success: false, error: "No proof data available" };
       }
 
-      // 2. 벤치마크 데이터 가져오기
+      // 2. Get instance file
+      if (files.instance) {
+        instanceData = files.instance;
+        console.log("Using instance from memory");
+      } else if (currentDockerContainer?.ID) {
+        const files = await downloadSynthesizerFiles();
+        if (files?.instance) {
+          instanceData = files.instance;
+          console.log("Downloaded instance from Docker");
+        }
+      }
+
+      if (!instanceData) {
+        console.error("No instance data available");
+        return { success: false, error: "No instance data available" };
+      }
+
+      // 3. Get benchmark data
       const benchmarkData = generateBenchmarkData();
       if (!benchmarkData) {
         console.error("No benchmark data available");
         return { success: false, error: "No benchmark data available" };
       }
 
-      // 3. 압축 파일 생성
+      // 4. Create zip file
       const zip = new JSZip();
 
-      // Proof 파일 추가
+      // Add proof file
       zip.file("proof.json", proofData);
 
-      // 벤치마크 파일 추가
+      // Add instance file
+      zip.file("instance.json", instanceData);
+
+      // Add benchmark file
       const benchmarkJson = JSON.stringify(benchmarkData, null, 2);
       zip.file("benchmark.json", benchmarkJson);
 
-      // 4. 압축 파일 다운로드
+      // 5. Download zip file
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(zipBlob);
 
@@ -130,10 +111,10 @@ const SubmitModal: React.FC = () => {
     }
   };
 
-  // 벤치마크 데이터가 있는지 확인 (prove 프로세스가 완료되었는지)
+  // Check if benchmark data exists (prove process completed)
   const hasBenchmarkData = currentSession?.processes.prove?.success;
 
-  // if (!isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto w-full h-full flex justify-center items-center">
