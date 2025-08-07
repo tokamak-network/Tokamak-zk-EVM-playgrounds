@@ -20,6 +20,8 @@ export interface ElectronAPI {
       version: string;
     };
   } | null>;
+  on: (channel: string, func: (...args: unknown[]) => void) => void;
+  removeListener: (channel: string, func: (...args: unknown[]) => void) => void;
 }
 
 interface CudaAPI {

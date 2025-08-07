@@ -2,18 +2,6 @@ import React, { useMemo, useEffect } from "react";
 import ExitModalImage from "../../assets/modals/exit/exit-modal.svg";
 import { useModals } from "../../hooks/useModals";
 
-// types/electron.d.ts
-declare global {
-  interface ElectronAPI {
-    on(channel: string, func: (...args: any[]) => void): void;
-    removeListener(channel: string, func: (...args: any[]) => void): void;
-  }
-
-  interface Window {
-    electronAPI: ElectronAPI; // electronAPI 속성 추가
-  }
-}
-
 const ExitModal: React.FC = () => {
   const { activeModal, openModal } = useModals();
   const isOpen = useMemo(() => activeModal === "exit", [activeModal]);

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useAtom } from "jotai";
 import { activeModalAtom } from "../../atoms/modals";
 import SynthesizerResultModalImage from "../../assets/modals/synthesizer/synthesizer-result.svg";
@@ -18,13 +18,30 @@ const add0xPrefix = (value: string): string => {
   return value.startsWith("0x") ? value : `0x${value}`;
 };
 
+// Helper function to convert hex to decimal
+const hexToDecimal = (hexValue: string): string => {
+  try {
+    // Remove 0x prefix if present
+    const cleanHex = hexValue.replace("0x", "");
+    // Convert to BigInt to handle large numbers
+    const bigIntValue = BigInt(`0x${cleanHex}`);
+    return bigIntValue.toString();
+  } catch (error) {
+    console.error("Error converting hex to decimal:", error);
+    return "0";
+  }
+};
+
 // Download File Component
 const DownloadFileItem: React.FC<{
   fileName: string;
   fileKey: keyof SynthesizerFiles;
   isDownloading: boolean;
   files: SynthesizerFiles;
-  onDownload: (filename: string, content: string) => Promise<{
+  onDownload: (
+    filename: string,
+    content: string
+  ) => Promise<{
     filePath: string | null;
     success: boolean;
     error?: string;
@@ -121,68 +138,12 @@ const DownloadFileItem: React.FC<{
   );
 };
 
-// LogCard component - simplified version
-const LogCard: React.FC<{
-  contractAddress: string;
-  keyValue: string;
-  valueDecimal: string;
-  valueHex: string;
-  summarizeAddress?: boolean;
-}> = ({
-  contractAddress,
-  keyValue,
-  valueDecimal,
-  valueHex,
-  summarizeAddress,
-}) => (
-  <div className="flex flex-col" style={{ rowGap: "5px" }}>
-    <div className="flex flex-col" style={{ rowGap: "5px" }}>
-      <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
-        Contract Address:
-      </strong>
-      <span className="block p-[5px_8px] bg-[#F2F2F2] border border-[#5f5f5f] min-h-[16px] break-all font-mono text-xs">
-        {summarizeAddress && contractAddress.length > 10
-          ? `${contractAddress.slice(0, 6)}...${contractAddress.slice(-4)}`
-          : contractAddress}
-      </span>
-    </div>
-    <div className="flex flex-col" style={{ rowGap: "5px" }}>
-      <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
-        Key:
-      </strong>
-      <span className="block p-[5px_8px] bg-[#F2F2F2] border border-[#5f5f5f] min-h-[16px] break-all font-mono text-xs">
-        {keyValue}
-      </span>
-    </div>
-    <div className="flex flex-col" style={{ rowGap: "5px" }}>
-      <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
-        Value (Dec):
-      </strong>
-      <span className="block p-[5px_8px] bg-[#F2F2F2] border border-[#5f5f5f] min-h-[16px] break-all font-mono text-xs">
-        {valueDecimal}
-      </span>
-    </div>
-    <div className="flex flex-col" style={{ rowGap: "5px" }}>
-      <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
-        Value (Hex):
-      </strong>
-      <span className="block p-[5px_8px] bg-[#F2F2F2] border border-[#5f5f5f] min-h-[16px] break-all font-mono text-xs">
-        {valueHex}
-      </span>
-    </div>
-  </div>
-);
-
 // Tab Switcher component
 const CustomTabSwitcher: React.FC<{
   activeTab: string;
-  setActiveTab: (id: string) => void;
+  setActiveTab: (tabId: string) => void;
 }> = ({ activeTab, setActiveTab }) => {
-  const tabs = [
-    { id: "logs", label: "Logs" },
-    { id: "storageLoad", label: "Storage Load" },
-    { id: "storageStore", label: "Storage Store" },
-  ];
+  const tabs = [{ id: "logs", label: "Logs", disabled: false }];
 
   return (
     <div
@@ -194,7 +155,7 @@ const CustomTabSwitcher: React.FC<{
       {tabs.map((tabItem) => (
         <div
           key={tabItem.id}
-          onClick={() => setActiveTab(tabItem.id)}
+          onClick={() => !tabItem.disabled && setActiveTab(tabItem.id)}
           className="flex justify-center items-center flex-1 cursor-pointer"
           style={{
             height: "32px",
@@ -205,6 +166,8 @@ const CustomTabSwitcher: React.FC<{
                 : "1px solid #E5E5E5",
             backgroundColor: activeTab === tabItem.id ? "#00CCEC" : "#ffffff",
             padding: "4px 8px",
+            opacity: tabItem.disabled ? 0.5 : 1,
+            cursor: tabItem.disabled ? "not-allowed" : "pointer",
           }}
         >
           <span
@@ -229,8 +192,14 @@ const SynthesizerResultModal: React.FC = () => {
   const [activeTab, setActiveTab] = useState("logs");
 
   // Use the custom hook to get synthesizer result data
-  const { storageLoad, placementLogs, storageStore, evmContractAddress } =
-    useSynthesizerResult();
+  const {
+    logGroups,
+    // isLoading,
+    // error,
+    // instanceData,
+    // logEntries,
+    refetchInstance,
+  } = useSynthesizerResult();
 
   // Use the custom hook for file downloads
   const { isDownloading, files, downloadSynthesizerFiles, downloadToLocal } =
@@ -241,55 +210,24 @@ const SynthesizerResultModal: React.FC = () => {
     [activeModal]
   );
 
+  // Refetch data when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      console.log("🔄 Modal opened, refetching data...");
+      refetchInstance();
+    }
+  }, [isOpen, refetchInstance]);
+
   const onClose = () => {
     setActiveModal("none");
   };
 
-  //   handleDownload(serverData.permutation, "permutation.json");
-  // handleDownload(serverData.placementInstance, "placement_instance.json");
-
   const renderActiveTab = () => {
-    if (activeTab === "storageLoad") {
-      return storageLoad && storageLoad.length > 0 ? (
-        storageLoad.map((item, index) => (
+    if (activeTab === "logs") {
+      return logGroups && logGroups.length > 0 ? (
+        logGroups.map((group, groupIndex) => (
           <div
-            key={index}
-            className="relative mt-[30px] bg-white border border-[#5f5f5f] p-[15px] text-black text-xs"
-          >
-            <div
-              className="absolute -top-[21px] -left-[1px] inline-flex flex-col justify-end items-center"
-              style={{
-                borderRadius: "2px 2px 0px 0px",
-                border: "1px solid #365969",
-                backgroundColor: "#00CCEC",
-                color: "#1E1E1E",
-                fontFamily: '"IBM Plex Sans"',
-                fontSize: "11px",
-                fontWeight: 500,
-                letterSpacing: "0.15px",
-                padding: "4px 8px",
-              }}
-            >
-              Data #{index + 1}
-            </div>
-            <LogCard
-              contractAddress={item.contractAddress || evmContractAddress}
-              keyValue={add0xPrefix(item.key)}
-              valueDecimal={item.valueDecimal || "0"}
-              valueHex={add0xPrefix(item.valueHex)}
-            />
-          </div>
-        ))
-      ) : (
-        <p className="text-[#4A4A4A] mt-4 font-mono">
-          No storage load data available.
-        </p>
-      );
-    } else if (activeTab === "logs") {
-      return placementLogs && placementLogs.length > 0 ? (
-        placementLogs.map((log, index) => (
-          <div
-            key={index}
+            key={groupIndex}
             className="relative mt-[30px] bg-white border border-[#5f5f5f] p-[15px] text-black text-xs"
           >
             <div
@@ -307,139 +245,109 @@ const SynthesizerResultModal: React.FC = () => {
                 padding: "4px 8px",
               }}
             >
-              Data #{index + 1}
+              Data #{groupIndex + 1}
             </div>
             <div>
-              {log.topics && log.topics.length > 0 && (
-                <div className="mb-3 text-left">
-                  <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
-                    Topics:
-                  </strong>
-                  {log.topics.map((topic: string, topicIndex: number) => (
-                    <div
-                      key={topicIndex}
-                      className="mb-1"
-                      style={{ marginBottom: "5px" }}
+              {/* Topics */}
+              {Object.entries(group.categories)
+                .filter(([type]) => type.startsWith("topic"))
+                .map(([type, category]) => (
+                  <div key={type} className="mb-3 text-left">
+                    <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
+                      {type.charAt(0).toUpperCase() + type.slice(1)}:
+                    </strong>
+                    <span
+                      className="flex flex-col justify-center items-start self-stretch"
+                      style={{
+                        width: "704px",
+                        height: "32px",
+                        backgroundColor: "#F2F2F2",
+                        flex: "1 0 0",
+                        color: "#111",
+                        fontFamily: '"IBM Plex Mono"',
+                        fontSize: "13px",
+                        fontWeight: 400,
+                        lineHeight: "normal",
+                        padding: "8px",
+                        borderTop: "1px solid #5F5F5F",
+                        borderLeft: "1px solid #5F5F5F",
+                        borderBottom: "1px solid #D0D0D0",
+                        borderRight: "1px solid #D0D0D0",
+                      }}
                     >
-                      <span
-                        className="flex flex-col justify-center items-start self-stretch"
-                        style={{
-                          width: "704px",
-                          height: "32px",
-                          backgroundColor: "#F2F2F2",
-                          flex: "1 0 0",
-                          color: "#111",
-                          fontFamily: '"IBM Plex Mono"',
-                          fontSize: "13px",
-                          fontWeight: 400,
-                          lineHeight: "normal",
-                          padding: "8px",
-                          borderTop: "1px solid #5F5F5F",
-                          borderLeft: "1px solid #5F5F5F",
-                          borderBottom: "1px solid #D0D0D0",
-                          borderRight: "1px solid #D0D0D0",
-                        }}
-                      >
-                        {topicIndex}: {add0xPrefix(topic)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="mb-3 text-left" style={{ marginBottom: "5px" }}>
-                <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
-                  Value (Dec):
-                </strong>
-                <span
-                  className="flex flex-col justify-center items-start self-stretch"
-                  style={{
-                    width: "704px",
-                    height: "32px",
-                    backgroundColor: "#F2F2F2",
-                    flex: "1 0 0",
-                    color: "#111",
-                    fontFamily: '"IBM Plex Mono"',
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    lineHeight: "normal",
-                    padding: "8px",
-                    borderTop: "1px solid #5F5F5F",
-                    borderLeft: "1px solid #5F5F5F",
-                    borderBottom: "1px solid #D0D0D0",
-                    borderRight: "1px solid #D0D0D0",
-                  }}
-                >
-                  {log.valueDec || "0"}
-                </span>
-              </div>
-              <div className="mb-3 text-left" style={{ marginBottom: "5px" }}>
-                <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
-                  Value (Hex):
-                </strong>
-                <span
-                  className="flex flex-col justify-center items-start self-stretch"
-                  style={{
-                    width: "704px",
-                    height: "32px",
-                    backgroundColor: "#F2F2F2",
-                    flex: "1 0 0",
-                    color: "#111",
-                    fontFamily: '"IBM Plex Mono"',
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    lineHeight: "normal",
-                    padding: "8px",
-                    borderTop: "1px solid #5F5F5F",
-                    borderLeft: "1px solid #5F5F5F",
-                    borderBottom: "1px solid #D0D0D0",
-                    borderRight: "1px solid #D0D0D0",
-                  }}
-                >
-                  {add0xPrefix(log.valueHex)}
-                </span>
-              </div>
+                      {add0xPrefix(category.valueHex)}
+                    </span>
+                  </div>
+                ))}
+
+              {/* Value (Decimal) */}
+              {Object.entries(group.categories)
+                .filter(([type]) => type.startsWith("value"))
+                .map(([type, category]) => (
+                  <div key={type} className="mb-3 text-left">
+                    <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
+                      Value (Decimal):
+                    </strong>
+                    <span
+                      className="flex flex-col justify-center items-start self-stretch"
+                      style={{
+                        width: "704px",
+                        height: "32px",
+                        backgroundColor: "#F2F2F2",
+                        flex: "1 0 0",
+                        color: "#111",
+                        fontFamily: '"IBM Plex Mono"',
+                        fontSize: "13px",
+                        fontWeight: 400,
+                        lineHeight: "normal",
+                        padding: "8px",
+                        borderTop: "1px solid #5F5F5F",
+                        borderLeft: "1px solid #5F5F5F",
+                        borderBottom: "1px solid #D0D0D0",
+                        borderRight: "1px solid #D0D0D0",
+                      }}
+                    >
+                      {hexToDecimal(category.valueHex)}
+                    </span>
+                  </div>
+                ))}
+
+              {/* Value (Hex) */}
+              {Object.entries(group.categories)
+                .filter(([type]) => type.startsWith("value"))
+                .map(([type, category]) => (
+                  <div key={type} className="mb-3 text-left">
+                    <strong className="block mb-1 text-sm font-mono text-[#222] font-medium">
+                      Value (Hex):
+                    </strong>
+                    <span
+                      className="flex flex-col justify-center items-start self-stretch"
+                      style={{
+                        width: "704px",
+                        height: "32px",
+                        backgroundColor: "#F2F2F2",
+                        flex: "1 0 0",
+                        color: "#111",
+                        fontFamily: '"IBM Plex Mono"',
+                        fontSize: "13px",
+                        fontWeight: 400,
+                        lineHeight: "normal",
+                        padding: "8px",
+                        borderTop: "1px solid #5F5F5F",
+                        borderLeft: "1px solid #5F5F5F",
+                        borderBottom: "1px solid #D0D0D0",
+                        borderRight: "1px solid #D0D0D0",
+                      }}
+                    >
+                      {add0xPrefix(category.valueHex)}
+                    </span>
+                  </div>
+                ))}
             </div>
           </div>
         ))
       ) : (
         <p className="text-[#4A4A4A] mt-4 font-mono">No logs data available.</p>
-      );
-    } else if (activeTab === "storageStore") {
-      return storageStore && storageStore.length > 0 ? (
-        storageStore.map((item, index) => (
-          <div
-            key={index}
-            className="relative mt-[30px] bg-white border border-[#5f5f5f] p-[15px] text-black text-xs"
-          >
-            <div
-              className="absolute -top-[21px] -left-[1px] inline-flex flex-col justify-end items-center"
-              style={{
-                borderRadius: "2px 2px 0px 0px",
-                border: "1px solid #365969",
-                backgroundColor: "#00CCEC",
-                color: "#1E1E1E",
-                fontFamily: '"IBM Plex Sans"',
-                fontSize: "11px",
-                fontWeight: 500,
-                letterSpacing: "0.15px",
-                padding: "4px 8px",
-              }}
-            >
-              Data #{index + 1}
-            </div>
-            <LogCard
-              contractAddress={item.contractAddress || evmContractAddress}
-              keyValue={add0xPrefix(item.key)}
-              valueDecimal={item.value || "0"}
-              valueHex={add0xPrefix(item.valueHex)}
-              summarizeAddress={true}
-            />
-          </div>
-        ))
-      ) : (
-        <p className="text-[#4A4A4A] mt-4 font-mono">
-          No storage store data available.
-        </p>
       );
     }
     return null;

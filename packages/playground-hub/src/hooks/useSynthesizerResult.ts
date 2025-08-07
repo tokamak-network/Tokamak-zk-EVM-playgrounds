@@ -1,15 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAtomValue } from "jotai";
 import { useDocker } from "./useDocker";
-import { transactionHashAtom } from "../atoms/api";
-
-// Types matching the SynthesizerResultModal requirements
-export type StorageItem = {
-  contractAddress?: string;
-  key: string;
-  valueDecimal?: string;
-  valueHex: string;
-};
 
 export type LogItem = {
   topics?: string[];
@@ -17,58 +7,54 @@ export type LogItem = {
   valueHex: string;
 };
 
-export type StorageStoreItem = {
-  contractAddress?: string;
+export type LogEntry = {
+  extDest: string;
   key: string;
-  value?: string;
+  type: string;
+  source: string;
+  wireIndex: number;
+  sourceSize: number;
   valueHex: string;
 };
 
-export type ServerData = {
-  permutation?: string;
-  placementInstance?: string;
+export type ProcessedLogCategory = {
+  type: string;
+  valueHex: string;
+};
+
+export type LogGroup = {
+  key: string;
+  categories: {
+    [type: string]: ProcessedLogCategory;
+  };
 };
 
 export type SynthesizerResultData = {
-  storageLoad: StorageItem[];
-  placementLogs: LogItem[];
-  storageStore: StorageStoreItem[];
-  evmContractAddress: string;
-  serverData: ServerData | null;
+  logs: LogItem[];
+  instanceData: Record<string, unknown> | null;
+  logEntries: LogEntry[];
+  logGroups: LogGroup[];
   isLoading: boolean;
   error: string | null;
 };
 
-export const useSynthesizerResult = (): SynthesizerResultData => {
-  const transactionHash = useAtomValue(transactionHashAtom);
+export const useSynthesizerResult = (): SynthesizerResultData & {
+  refetchInstance: () => Promise<void>;
+} => {
   const { executeCommand, currentDockerContainer } = useDocker();
 
   const [data, setData] = useState<SynthesizerResultData>({
-    storageLoad: [],
-    placementLogs: [],
-    storageStore: [],
-    evmContractAddress: "",
-    serverData: null,
+    logs: [],
+    instanceData: null,
+    logEntries: [],
+    logGroups: [],
     isLoading: false,
     error: null,
   });
 
-  // Helper function to safely convert BigInts to strings (same as server)
-  const convertBigIntsToStrings = (obj: unknown) => {
-    try {
-      return JSON.parse(
-        JSON.stringify(obj, (_, value) =>
-          typeof value === "bigint" ? value.toString() : value
-        )
-      );
-    } catch (error) {
-      console.error("Error converting BigInts to strings:", error);
-      return [];
-    }
-  };
-
-  const fetchSynthesizerResult = useCallback(async () => {
+  const fetchInstanceData = useCallback(async () => {
     if (!currentDockerContainer?.ID) {
+      console.log("❌ Docker container not found");
       setData((prev) => ({
         ...prev,
         error: "Docker container not found. Please start the container first.",
@@ -77,146 +63,173 @@ export const useSynthesizerResult = (): SynthesizerResultData => {
       return;
     }
 
-    if (!transactionHash) {
-      setData((prev) => ({
-        ...prev,
-        error: "Transaction hash not provided.",
-        isLoading: false,
-      }));
-      return;
-    }
-
     try {
       setData((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      console.log(
-        "Fetching synthesizer result for transaction:",
-        transactionHash
-      );
+      console.log("🔍 Fetching instance.json from Docker container...");
 
-      const RPC_URL =
-        "https://eth-mainnet.g.alchemy.com/v2/PbqCcGx1oHN7yNaFdUJUYqPEN0QSp23S";
+      // First, check the file structure in the container
+      const lsResult = await executeCommand(currentDockerContainer.ID, [
+        "bash",
+        "-c",
+        `ls -la packages/frontend/synthesizer/examples/outputs/`,
+      ]);
 
-      console.log(`tsx index.ts ${RPC_URL} ${transactionHash}`);
+      console.log("📁 Directory listing:", lsResult);
 
-      // Execute the synthesizer command in Docker container
+      // Execute command to read the instance.json file
       const result = await executeCommand(currentDockerContainer.ID, [
         "bash",
         "-c",
-        `cd packages/frontend/synthesizer/examples/adaptor && 
-        tsx index.ts ${RPC_URL} ${transactionHash}`,
+        `cat packages/frontend/synthesizer/examples/outputs/instance.json`,
       ]);
 
-      console.log("Docker synthesizer result:", result);
+      console.log("📄 Instance.json content length:", result.length);
+      console.log(
+        "📄 Instance.json content preview:",
+        result.substring(0, 200)
+      );
 
-      // Parse the result - assuming Docker returns { executionResult, permutation, placementInstance }
-      let dockerResult;
+      // Parse the JSON content
+      let instanceData;
       try {
-        dockerResult = JSON.parse(result);
+        instanceData = JSON.parse(result);
+        console.log("✅ Successfully parsed instance.json");
       } catch (parseError) {
-        console.error("Failed to parse synthesizer result:", parseError);
-        throw new Error("Invalid response format from synthesizer");
+        console.error("❌ Failed to parse instance.json:", parseError);
+        throw new Error("Invalid JSON format in instance.json");
       }
 
-      const { executionResult, permutation, placementInstance } = dockerResult;
+      // Extract log entries from privateOutputBuffer.outPts
+      const logEntries: LogEntry[] = [];
 
-      // Validate that we have the required data structure (same as server validation)
-      if (!executionResult?.runState?.synthesizer?.placements) {
-        throw new Error("No placements generated by the synthesizer.");
-      }
+      console.log("🔍 Checking instanceData structure:", {
+        hasInstanceData: !!instanceData,
+        hasPrivateOutputBuffer: !!instanceData?.privateOutputBuffer,
+        hasOutPts: !!instanceData?.privateOutputBuffer?.outPts,
+        outPtsLength: instanceData?.privateOutputBuffer?.outPts?.length || 0,
+      });
 
-      // Extract logs/storage from the synthesizer placements (same logic as server)
-      const placementsMap = executionResult.runState.synthesizer.placements;
-      console.log("Placements map size:", placementsMap.size);
+      if (instanceData?.privateOutputBuffer?.outPts) {
+        const outPts = instanceData.privateOutputBuffer.outPts;
+        console.log("📊 Total outPts entries:", outPts.length);
 
-      // We need to get placement indices - assuming they're available in the result
-      // or we use hardcoded values like the server originally did
-      // For now, let's assume we get them from the Docker result or use default values
-      const placementIndices = dockerResult.placementIndices || {
-        storageIn: 0, // Default values - should be replaced with actual indices
-        return: 1,
-        storageOut: 2,
-      };
+        // Filter entries where extDest is "LOG"
+        for (const entry of outPts) {
+          console.log("🔍 Checking entry:", {
+            extDest: entry.extDest,
+            key: entry.key,
+            type: entry.type,
+            wireIndex: entry.wireIndex,
+          });
 
-      const storageLoadPlacement = placementsMap.get(
-        placementIndices.storageIn
-      );
-      const logsPlacement = placementsMap.get(placementIndices.return);
-      const storageStorePlacement = placementsMap.get(
-        placementIndices.storageOut
-      );
-
-      console.log("logsPlacement", logsPlacement);
-
-      const storageLoad = storageLoadPlacement?.inPts || [];
-      const storageStore = storageStorePlacement?.outPts || [];
-      const _logsData = logsPlacement?.outPts || [];
-
-      // Parse logs with more detailed error handling (same as server)
-      const logs: Array<{
-        topics: string[];
-        valueDec: string;
-        valueHex: string;
-      }> = [];
-      let prevIdx = -1;
-      for (const _logData of _logsData) {
-        try {
-          const idx = _logData.pairedInputWireIndices?.[0] ?? -1;
-          if (idx !== prevIdx) {
-            logs.push({
-              topics: [],
-              valueDec: _logData.value?.toString() || "0",
-              valueHex: _logData.valueHex || "0x0",
+          if (entry.extDest === "LOG") {
+            logEntries.push({
+              extDest: entry.extDest,
+              key: entry.key,
+              type: entry.type,
+              source: entry.source,
+              wireIndex: entry.wireIndex,
+              sourceSize: entry.sourceSize,
+              valueHex: entry.valueHex,
             });
-          } else if (idx >= 0 && logs[idx]) {
-            logs[idx].topics.push(_logData.valueHex || "0x0");
           }
-          prevIdx = idx;
-        } catch (error) {
-          console.error("Error processing log data:", error, _logData);
         }
       }
 
-      // Transform the data exactly like the server does
-      const transformedData = {
-        from: dockerResult.from || "",
-        to: dockerResult.to || "",
-        logs,
-        storageLoad: convertBigIntsToStrings(storageLoad),
-        storageStore: convertBigIntsToStrings(storageStore),
-        permutation: convertBigIntsToStrings(permutation),
-        placementInstance: convertBigIntsToStrings(placementInstance),
-      };
+      console.log("✅ Filtered LOG entries count:", logEntries.length);
+      console.log("📋 LOG entries:", logEntries);
 
-      console.log("Transformed data counts:", {
-        logsCount: transformedData.logs.length,
-        storageLoadCount: transformedData.storageLoad.length,
-        storageStoreCount: transformedData.storageStore.length,
-      });
+      // Group log entries by key, then by type
+      const logGroups: LogGroup[] = [];
+      const keyGroups: { [key: string]: LogEntry[] } = {};
 
-      // Convert to our expected format
-      const finalData: Omit<SynthesizerResultData, "isLoading" | "error"> = {
-        storageLoad: transformedData.storageLoad,
-        placementLogs: transformedData.logs,
-        storageStore: transformedData.storageStore,
-        evmContractAddress: transformedData.to,
-        serverData: {
-          permutation: transformedData.permutation
-            ? JSON.stringify(transformedData.permutation, null, 2)
-            : null,
-          placementInstance: transformedData.placementInstance
-            ? JSON.stringify(transformedData.placementInstance, null, 2)
-            : null,
-        },
-      };
+      // First, group by key
+      for (const entry of logEntries) {
+        if (!keyGroups[entry.key]) {
+          keyGroups[entry.key] = [];
+        }
+        keyGroups[entry.key].push(entry);
+      }
+
+      console.log("🔑 Key groups:", Object.keys(keyGroups));
+
+      // Then, group by type within each key group and process
+      for (const [key, entries] of Object.entries(keyGroups)) {
+        console.log(
+          `🔍 Processing key group "${key}" with ${entries.length} entries`
+        );
+
+        const typeGroups: { [type: string]: LogEntry[] } = {};
+
+        // Group by type
+        for (const entry of entries) {
+          if (!typeGroups[entry.type]) {
+            typeGroups[entry.type] = [];
+          }
+          typeGroups[entry.type].push(entry);
+        }
+
+        console.log(
+          `📊 Type groups for key "${key}":`,
+          Object.keys(typeGroups)
+        );
+
+        // Process each type group
+        const categories: { [type: string]: ProcessedLogCategory } = {};
+
+        for (const [type, typeEntries] of Object.entries(typeGroups)) {
+          console.log(
+            `🔧 Processing type "${type}" with ${typeEntries.length} entries`
+          );
+
+          // Sort by wireIndex in descending order (1번이 앞으로, 0번이 뒤로)
+          const sortedEntries = typeEntries.sort(
+            (a, b) => b.wireIndex - a.wireIndex
+          );
+
+          console.log(
+            `📋 Sorted entries for type "${type}":`,
+            sortedEntries.map((e) => ({
+              wireIndex: e.wireIndex,
+              valueHex: e.valueHex,
+            }))
+          );
+
+          // Concatenate valueHex values
+          const concatenatedValueHex = sortedEntries
+            .map((entry) => entry.valueHex.replace("0x", ""))
+            .join("");
+
+          console.log(
+            `🔗 Concatenated valueHex for type "${type}":`,
+            concatenatedValueHex
+          );
+
+          categories[type] = {
+            type,
+            valueHex: `0x${concatenatedValueHex}`,
+          };
+        }
+
+        logGroups.push({
+          key,
+          categories,
+        });
+      }
+
+      console.log("✅ Final processed log groups:", logGroups);
+      console.log("📊 Log groups count:", logGroups.length);
 
       setData((prev) => ({
         ...prev,
-        ...finalData,
+        instanceData,
+        logEntries,
+        logGroups,
         isLoading: false,
       }));
     } catch (error) {
-      console.error("Error fetching synthesizer result:", error);
+      console.error("❌ Error fetching instance data:", error);
       setData((prev) => ({
         ...prev,
         isLoading: false,
@@ -224,18 +237,20 @@ export const useSynthesizerResult = (): SynthesizerResultData => {
           error instanceof Error ? error.message : "Unknown error occurred",
       }));
     }
-  }, [currentDockerContainer, transactionHash, executeCommand]);
+  }, [currentDockerContainer, executeCommand]);
 
-  // Auto-fetch when container and transaction hash are available
+  // Auto-fetch instance data when container is available
   useEffect(() => {
-    if (currentDockerContainer?.ID && transactionHash) {
-      fetchSynthesizerResult();
+    if (currentDockerContainer?.ID) {
+      fetchInstanceData();
     }
-  }, [currentDockerContainer?.ID, transactionHash, fetchSynthesizerResult]);
+  }, [currentDockerContainer?.ID, fetchInstanceData]);
 
   return {
     ...data,
     // Expose refetch function for manual refresh
-    refetch: fetchSynthesizerResult,
-  } as SynthesizerResultData & { refetch: () => Promise<void> };
+    refetchInstance: fetchInstanceData,
+  } as SynthesizerResultData & {
+    refetchInstance: () => Promise<void>;
+  };
 };

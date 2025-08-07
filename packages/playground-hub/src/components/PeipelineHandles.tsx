@@ -30,7 +30,6 @@ export default function PeipelineHandles() {
           updateActiveSection("qap-to-setup-synthesizer");
         }}
         isActive={qapStage.isReady}
-        // isActive={true}
       />
       <Handle
         type="orange"
@@ -40,7 +39,6 @@ export default function PeipelineHandles() {
           // updateActiveSection("synthesizer-to-prove-bikzg");
         }}
         isActive={synthesizerStage.isReady}
-        // isActive={true}
       />
       <Handle
         type="green"
@@ -50,7 +48,6 @@ export default function PeipelineHandles() {
           // updateActiveSection("setup-to-prove");
         }}
         isActive={setupStage.isReady}
-        // isActive={true}
       />
       <Handle
         type="green"
@@ -59,8 +56,8 @@ export default function PeipelineHandles() {
           runProve();
           // updateActiveSection("prove-to-verify");
         }}
-        // isActive={proveStage.isReady}
-        isActive={true}
+        isActive={proveStage.isReady}
+        // isActive={true}
       />
       <Handle
         type="green"
@@ -69,8 +66,8 @@ export default function PeipelineHandles() {
           runVerify();
           // updateActiveSection("verify-to-result");
         }}
-        // isActive={verifyStage.isReady}
-        isActive={true}
+        isActive={verifyStage.isReady}
+        // isActive={true}
       />
       <Handle
         type="green"
@@ -79,8 +76,8 @@ export default function PeipelineHandles() {
           runPreProcess();
           // updateActiveSection("bikzg-to-verify");
         }}
-        // isActive={bikzgStage.isReady}
-        isActive={true}
+        isActive={bikzgStage.isReady}
+        // isActive={true}
       />
     </div>
   );
