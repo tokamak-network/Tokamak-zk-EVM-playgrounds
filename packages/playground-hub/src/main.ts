@@ -531,9 +531,9 @@ async function checkCudaSupport(): Promise<{
   };
 }
 
-// IPC 핸들러 등록
+// Register IPC handlers
 function setupIpcHandlers() {
-  console.log("Setting up IPC handlers..."); // 디버깅용 로그
+  console.log("Setting up IPC handlers..."); // Debug log for IPC handler setup
   ipcMain.handle("get-docker-images", async () => {
     return await getDockerImages();
   });
@@ -982,9 +982,9 @@ function setupIpcHandlers() {
     }
   });
 
-  // 시스템 하드웨어 정보 제공 핸들러
+  // System hardware information provider handler
   ipcMain.handle("get-system-info", async () => {
-    console.log("get-system-info handler called"); // 디버깅용 로그 추가
+    console.log("get-system-info handler called"); // Debug log for handler invocation
     try {
       const memoryTotal = os.totalmem();
       const memoryFree = os.freemem();
@@ -993,16 +993,16 @@ function setupIpcHandlers() {
       const release = os.release();
       const arch = os.arch();
 
-      console.log(`Platform detected: ${platform}`); // 플랫폼 확인용 로그
+      console.log(`Platform detected: ${platform}`); // Log for platform verification
 
-      // 플랫폼별 시스템 정보 명령어로 더 정확한 정보 수집
+      // Collect more accurate system information using platform-specific commands
       let cpuModel = cpus[0]?.model || "Unknown CPU";
       let osVersion = release;
 
       if (platform === "darwin") {
-        // macOS 정보 수집
+        // Collect macOS system information
         try {
-          // macOS에서 CPU 정보 수집
+          // Collect CPU information on macOS
           const { stdout: cpuInfo } = await execAsync(
             "sysctl -n machdep.cpu.brand_string"
           );
@@ -1010,7 +1010,7 @@ function setupIpcHandlers() {
             cpuModel = cpuInfo.trim();
           }
 
-          // macOS 버전 정보 수집
+          // Collect macOS version information
           const { stdout: versionInfo } = await execAsync(
             "sw_vers -productVersion"
           );
@@ -1018,7 +1018,7 @@ function setupIpcHandlers() {
             osVersion = `macOS ${versionInfo.trim()}`;
           }
 
-          // 빌드 정보 추가
+          // Add build information
           const { stdout: buildInfo } = await execAsync(
             "sw_vers -buildVersion"
           );
@@ -1029,15 +1029,15 @@ function setupIpcHandlers() {
           console.warn("Failed to get detailed macOS info:", error);
         }
       } else if (platform === "win32") {
-        // Windows 정보 수집 - systeminfo 명령어 사용
+        // Collect Windows system information using systeminfo command
         try {
-          // systeminfo 명령어로 전체 시스템 정보 수집
+          // Collect comprehensive system information using systeminfo command
           const { stdout: systemInfo } = await execAsync("systeminfo /fo csv", {
             timeout: 15000,
           });
 
           if (systemInfo.trim()) {
-            // CSV 파싱 (첫 번째 줄은 헤더, 두 번째 줄이 데이터)
+            // Parse CSV output (first line is header, second line is data)
             const lines = systemInfo.trim().split("\n");
             if (lines.length >= 2) {
               const headers = lines[0]
@@ -1047,12 +1047,12 @@ function setupIpcHandlers() {
                 .split('","')
                 .map((v) => v.replace(/"/g, ""));
 
-              // CPU 정보 찾기
+              // Find CPU information
               const processorIndex = headers.findIndex((h) =>
                 h.includes("Processor(s)")
               );
               if (processorIndex !== -1 && values[processorIndex]) {
-                // 프로세서 정보에서 첫 번째 프로세서 이름 추출
+                // Extract first processor name from processor information
                 const processorInfo = values[processorIndex];
                 const processorMatch = processorInfo.match(
                   /\[01\]:\s*(.+?)(?:\s*~|\s*,|\s*$)/
@@ -1062,7 +1062,7 @@ function setupIpcHandlers() {
                 }
               }
 
-              // OS 정보 찾기
+              // Find OS information
               const osNameIndex = headers.findIndex((h) =>
                 h.includes("OS Name")
               );
@@ -1096,7 +1096,7 @@ function setupIpcHandlers() {
           }
         } catch (error) {
           console.warn("Failed to get Windows info via systeminfo:", error);
-          // wmic fallback
+          // Fallback to wmic command
           try {
             const { stdout: cpuInfo } = await execAsync(
               'wmic cpu get name /format:value | findstr "Name="',
@@ -1110,7 +1110,7 @@ function setupIpcHandlers() {
             }
           } catch (wmicError) {
             console.warn("WMIC fallback also failed:", wmicError);
-            // PowerShell을 최종 fallback으로 시도
+            // Try PowerShell as final fallback
             try {
               const { stdout: psInfo } = await execAsync(
                 'powershell "Get-CimInstance -ClassName Win32_Processor | Select-Object -ExpandProperty Name"',
@@ -1125,9 +1125,9 @@ function setupIpcHandlers() {
           }
         }
       } else if (platform === "linux") {
-        // Linux 정보 수집
+        // Collect Linux system information
         try {
-          // Linux에서 CPU 정보 수집
+          // Collect CPU information on Linux
           const { stdout: cpuInfo } = await execAsync(
             "cat /proc/cpuinfo | grep 'model name' | head -1 | cut -d':' -f2"
           );
@@ -1135,7 +1135,7 @@ function setupIpcHandlers() {
             cpuModel = cpuInfo.trim();
           }
 
-          // Linux 배포판 정보 수집
+          // Collect Linux distribution information
           try {
             const { stdout: distroInfo } = await execAsync(
               "lsb_release -d -s 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d'\"' -f2"
@@ -1179,7 +1179,7 @@ function setupIpcHandlers() {
     }
   });
 
-  console.log("All IPC handlers registered successfully"); // 디버깅용 로그
+  console.log("All IPC handlers registered successfully"); // Debug log for handler registration completion
 }
 
 app.whenReady().then(() => {

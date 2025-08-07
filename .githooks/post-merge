@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Post-merge hook to ensure environment is up to date
+echo "🔄 Post-merge setup..."
+
+# Check if dependencies need updating
+if [ -f "package.json" ]; then
+    if [ "package-lock.json" -nt "node_modules" ] 2>/dev/null || [ ! -d "node_modules" ]; then
+        echo "📦 Updating dependencies..."
+        npm install
+    fi
+fi
+
+# Remind about coding guidelines
+echo "📋 Remember: All comments must be in English!"
+echo "   Check PROMPT/ folder for detailed guidelines."

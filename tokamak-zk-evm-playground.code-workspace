@@ -1,0 +1,83 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": ".",
+    },
+    {
+      "name": "Playground Hub",
+      "path": "./packages/playground-hub",
+    },
+    {
+      "name": "Synthesizer Playground",
+      "path": "./packages/synthesizer-playground",
+    },
+    {
+      "name": "Airdrop Contracts",
+      "path": "./contracts/airdrop-contracts",
+    },
+  ],
+  "settings": {
+    // Cursor specific settings
+    "cursor.general.enableCodebaseIndexing": true,
+    "cursor.chat.includeCodebase": true,
+    "cursor.chat.contextLength": 8000,
+
+    // General editor settings
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true,
+    },
+    "editor.rulers": [80, 120],
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+
+    // TypeScript settings
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.suggest.paths": true,
+    "typescript.preferences.includePackageJsonAutoImports": "on",
+
+    // ESLint settings
+    "eslint.workingDirectories": [
+      "packages/playground-hub",
+      "packages/synthesizer-playground",
+    ],
+    "eslint.validate": [
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+    ],
+
+    // File associations
+    "files.associations": {
+      ".cursorrules": "plaintext",
+      "*.md": "markdown",
+    },
+
+    // Exclude patterns
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/.git": true,
+    },
+
+    // Search exclude patterns
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/.git": true,
+    },
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "ms-vscode.vscode-json",
+    ],
+  },
+}

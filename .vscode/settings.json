@@ -1,0 +1,15 @@
+{
+  "cursor.general.enableCodebaseIndexing": true,
+  "cursor.chat.includeCodebase": true,
+  "files.associations": {
+    ".cursorrules": "plaintext"
+  },
+  "editor.rulers": [80, 120],
+  "editor.formatOnSave": true,
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "eslint.workingDirectories": [
+    "packages/playground-hub",
+    "packages/synthesizer-playground"
+  ],
+  "typescript.suggest.paths": true
+}
