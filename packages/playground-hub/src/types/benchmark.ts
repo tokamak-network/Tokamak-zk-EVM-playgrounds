@@ -29,13 +29,27 @@ export interface ProcessTiming {
   error?: string;
 }
 
+// 상세한 prove 타이밍 정보
+export interface DetailedProveTiming extends ProcessTiming {
+  details?: {
+    proverInitTime?: number; // seconds
+    prove0Time?: number; // seconds
+    prove1Time?: number; // seconds
+    prove2Time?: number; // seconds
+    prove3Time?: number; // seconds
+    prove4Time?: number; // seconds
+    totalProvingTime?: number; // seconds
+    checkPoints?: string[]; // 로그에서 추출한 체크포인트들
+  };
+}
+
 export interface BenchmarkData {
   sessionId: string;
   timestamp: string; // ISO string
   hardwareInfo: HardwareInfo;
   processes: {
     preprocess?: ProcessTiming;
-    prove?: ProcessTiming;
+    prove?: DetailedProveTiming;
     verify?: ProcessTiming;
   };
   metadata: {
@@ -51,7 +65,7 @@ export interface BenchmarkSession {
   hardwareInfo?: HardwareInfo;
   processes: {
     preprocess?: ProcessTiming;
-    prove?: ProcessTiming;
+    prove?: DetailedProveTiming;
     verify?: ProcessTiming;
   };
   metadata: {

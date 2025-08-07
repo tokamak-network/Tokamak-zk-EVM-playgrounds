@@ -704,14 +704,8 @@ export const useDocker = () => {
         if (window.docker?.getContainers && window.docker?.stopContainer) {
           const currentContainers = await window.docker.getContainers();
 
-          console.log(`Found ${currentContainers.length} total containers`);
-
           // 실행 중인 모든 컨테이너를 즉시 병렬 종료
           if (currentContainers.length > 0) {
-            console.log(
-              `⚡ IMMEDIATE: Stopping all ${currentContainers.length} running container(s)...`
-            );
-
             const stopPromises = currentContainers.map(async (container) => {
               try {
                 await window.docker.stopContainer(container.ID);
