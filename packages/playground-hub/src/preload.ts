@@ -139,6 +139,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   removeListener: (channel: string, func: (...args: any[]) => void) => {
     ipcRenderer.removeListener(channel, func);
   },
+  getSystemInfo: () => ipcRenderer.invoke("get-system-info"),
 });
 
 contextBridge.exposeInMainWorld("env", {

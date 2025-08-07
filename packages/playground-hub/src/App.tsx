@@ -6,7 +6,6 @@ import PipelineBG from "./components/PipelineBG";
 import Logo from "./components/Logo";
 import Settings from "./pages/Settings";
 import PlaygroundModals from "./components/modals";
-import CudaStatus from "./components/CudaStatus";
 import { useDocker } from "./hooks/useDocker";
 import {
   cudaStatusAtom,

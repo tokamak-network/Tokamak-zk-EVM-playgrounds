@@ -12,6 +12,7 @@ import {
 } from "electron";
 import path from "node:path";
 import fs from "node:fs";
+import os from "node:os";
 import { exec } from "node:child_process";
 import started from "electron-squirrel-startup";
 import {
@@ -977,6 +978,162 @@ function setupIpcHandlers() {
         hasGpuSupport: false,
         error: error.message,
       };
+    }
+  });
+
+  // 시스템 하드웨어 정보 제공 핸들러
+  ipcMain.handle("get-system-info", async () => {
+    try {
+      const memoryTotal = os.totalmem();
+      const memoryFree = os.freemem();
+      const cpus = os.cpus();
+      const platform = os.platform();
+      const release = os.release();
+      const arch = os.arch();
+
+      // 플랫폼별 시스템 정보 명령어로 더 정확한 정보 수집
+      let cpuModel = cpus[0]?.model || "Unknown CPU";
+      let osVersion = release;
+
+      if (platform === "darwin") {
+        // macOS 정보 수집
+        try {
+          // macOS에서 CPU 정보 수집
+          const { stdout: cpuInfo } = await execAsync(
+            "sysctl -n machdep.cpu.brand_string"
+          );
+          if (cpuInfo.trim()) {
+            cpuModel = cpuInfo.trim();
+          }
+
+          // macOS 버전 정보 수집
+          const { stdout: versionInfo } = await execAsync(
+            "sw_vers -productVersion"
+          );
+          if (versionInfo.trim()) {
+            osVersion = `macOS ${versionInfo.trim()}`;
+          }
+
+          // 빌드 정보 추가
+          const { stdout: buildInfo } = await execAsync(
+            "sw_vers -buildVersion"
+          );
+          if (buildInfo.trim()) {
+            osVersion += ` ${buildInfo.trim()}`;
+          }
+        } catch (error) {
+          console.warn("Failed to get detailed macOS info:", error);
+        }
+      } else if (platform === "win32") {
+        // Windows 정보 수집
+        try {
+          // Windows에서 CPU 정보 수집
+          const { stdout: cpuInfo } = await execAsync(
+            'wmic cpu get name /format:value | findstr "Name="',
+            { timeout: 10000 }
+          );
+          if (cpuInfo.trim()) {
+            const match = cpuInfo.match(/Name=(.+)/);
+            if (match && match[1]) {
+              cpuModel = match[1].trim();
+            }
+          }
+
+          // Windows 버전 정보 수집 (더 상세한 정보)
+          const { stdout: versionInfo } = await execAsync(
+            'wmic os get Caption,Version,BuildNumber /format:value | findstr "="',
+            { timeout: 10000 }
+          );
+          if (versionInfo.trim()) {
+            const lines = versionInfo.split("\n");
+            let caption = "";
+            let version = "";
+            let buildNumber = "";
+
+            lines.forEach((line) => {
+              const trimmed = line.trim();
+              if (trimmed.startsWith("Caption=")) {
+                caption = trimmed.replace("Caption=", "").trim();
+              } else if (trimmed.startsWith("Version=")) {
+                version = trimmed.replace("Version=", "").trim();
+              } else if (trimmed.startsWith("BuildNumber=")) {
+                buildNumber = trimmed.replace("BuildNumber=", "").trim();
+              }
+            });
+
+            if (caption) {
+              osVersion = caption;
+              if (version) osVersion += ` ${version}`;
+              if (buildNumber) osVersion += ` (Build ${buildNumber})`;
+            }
+          }
+        } catch (error) {
+          console.warn("Failed to get detailed Windows info:", error);
+          // PowerShell을 fallback으로 시도
+          try {
+            const { stdout: psInfo } = await execAsync(
+              'powershell "Get-CimInstance -ClassName Win32_Processor | Select-Object -ExpandProperty Name"',
+              { timeout: 10000 }
+            );
+            if (psInfo.trim()) {
+              cpuModel = psInfo.trim();
+            }
+          } catch (psError) {
+            console.warn("PowerShell fallback also failed:", psError);
+          }
+        }
+      } else if (platform === "linux") {
+        // Linux 정보 수집
+        try {
+          // Linux에서 CPU 정보 수집
+          const { stdout: cpuInfo } = await execAsync(
+            "cat /proc/cpuinfo | grep 'model name' | head -1 | cut -d':' -f2"
+          );
+          if (cpuInfo.trim()) {
+            cpuModel = cpuInfo.trim();
+          }
+
+          // Linux 배포판 정보 수집
+          try {
+            const { stdout: distroInfo } = await execAsync(
+              "lsb_release -d -s 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d'\"' -f2"
+            );
+            if (distroInfo.trim()) {
+              osVersion = distroInfo.trim();
+            }
+          } catch (distroError) {
+            console.warn("Failed to get Linux distro info:", distroError);
+          }
+        } catch (error) {
+          console.warn("Failed to get detailed Linux info:", error);
+        }
+      }
+
+      return {
+        cpu: {
+          model: cpuModel,
+          cores: cpus.length,
+          threads: cpus.length, // Node.js에서는 논리 코어 수만 제공
+          architecture: arch,
+        },
+        memory: {
+          total: Math.round(memoryTotal / (1024 * 1024 * 1024)), // GB로 변환
+          available: Math.round(memoryFree / (1024 * 1024 * 1024)), // GB로 변환
+        },
+        os: {
+          platform:
+            platform === "darwin"
+              ? "macOS"
+              : platform === "win32"
+                ? "Windows"
+                : platform,
+          release: osVersion,
+          version: `${platform} ${release} ${arch}`,
+        },
+      };
+    } catch (error) {
+      console.error("Failed to get system info:", error);
+      return null;
     }
   });
 }
