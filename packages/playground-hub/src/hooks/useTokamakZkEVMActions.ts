@@ -52,11 +52,11 @@ export function useTokamakZkEVMActions() {
     globalBenchmarkSession,
   } = useBenchmark();
 
-  // Prove 로그 분석 및 step 업데이트 함수
+  // Analyze prove logs and update steps
   const analyzeProveLog = useCallback(
     (logData: string) => {
-      // 실제 prove 로그를 기준으로 단계 분석
-      // Prove initialization은 1단계 유지, Running prove0부터 2단계 시작
+      // Analyze steps based on actual prove logs
+      // Prove initialization stays at step 1, Running prove0 starts from step 2
       if (logData.includes("Running prove0")) {
         setProveStep(2); // "Oops, a drop!"
       } else if (logData.includes("Running prove1")) {
@@ -84,7 +84,7 @@ export function useTokamakZkEVMActions() {
                 openModal("loading");
               }
 
-              // Docker 컨테이너 실행 - 환경별 이미지 이름 사용
+              // Run Docker container - use environment-specific image name
               const imageName = dockerConfig?.imageName || DOCKER_NAME;
               console.log(
                 `🐳 Running Docker container with image: ${imageName}`
@@ -218,7 +218,7 @@ export function useTokamakZkEVMActions() {
                 currentDockerContainer.ID
               );
 
-              // 벤치마크 세션이 없으면 강제로 초기화
+              // Force initialization if no benchmark session exists
               if (!currentSession) {
                 console.log(
                   "🔍 PreProcess: No benchmark session found, initializing..."
@@ -226,14 +226,14 @@ export function useTokamakZkEVMActions() {
                 await initializeBenchmarkSession();
               }
 
-              // 전역 세션 확인 - 전역 세션이 있으면 사용
+              // Check global session - use global session if available
               const activeSession = globalBenchmarkSession || currentSession;
               if (!activeSession) {
                 console.warn("🔍 PreProcess: No benchmark session available");
                 return updateActiveSection("bikzg-to-verify");
               }
 
-              // 벤치마킹: PreProcess 시작 시간 기록
+              // Benchmarking: Record PreProcess start time
               const preprocessStartTime = startProcessTiming("preprocess");
               console.log(
                 "🔍 PreProcess: startProcessTiming result:",
@@ -245,7 +245,7 @@ export function useTokamakZkEVMActions() {
                 await preProcess(currentDockerContainer.ID);
                 console.log("🔍 PreProcess: preProcess completed successfully");
 
-                // 벤치마킹: PreProcess 성공 완료 시간 기록
+                // Benchmarking: Record PreProcess successful completion time
                 if (preprocessStartTime) {
                   console.log("🔍 PreProcess: Calling endProcessTiming...");
                   endProcessTiming("preprocess", preprocessStartTime, true);
@@ -259,7 +259,7 @@ export function useTokamakZkEVMActions() {
                 return updateActiveSection("bikzg-to-verify");
               } catch (error) {
                 console.error("🔍 PreProcess: Error occurred:", error);
-                // 벤치마킹: PreProcess 실패 시간 기록
+                // Benchmarking: Record PreProcess failure time
                 if (preprocessStartTime) {
                   console.log(
                     "🔍 PreProcess: Calling endProcessTiming for error..."
@@ -280,9 +280,9 @@ export function useTokamakZkEVMActions() {
             if (currentDockerContainer?.ID) {
               // setPendingAnimation(true);
               openModal("prove-loading");
-              setProveStep(1); // 초기 단계 설정
+              setProveStep(1); // Set initial step
 
-              // 벤치마크 세션이 없으면 강제로 초기화
+              // Force initialization if no benchmark session exists
               if (!currentSession) {
                 console.log(
                   "🔍 ProveTransaction: No benchmark session found, initializing..."
@@ -290,7 +290,7 @@ export function useTokamakZkEVMActions() {
                 await initializeBenchmarkSession();
               }
 
-              // 전역 세션 확인 - 전역 세션이 있으면 사용
+              // Check global session - use global session if available
               const activeSession = globalBenchmarkSession || currentSession;
               if (!activeSession) {
                 console.warn(
@@ -299,10 +299,10 @@ export function useTokamakZkEVMActions() {
                 return updateActiveSection("prove-to-verify");
               }
 
-              // 벤치마킹: Prove 시작 시간 기록
+              // Benchmarking: Record Prove start time
               const proveStartTime = startProcessTiming("prove");
 
-              // prove 로그 수집을 위한 변수
+              // Variable to collect prove logs
               let proveLogData = "";
 
               try {
@@ -312,13 +312,13 @@ export function useTokamakZkEVMActions() {
                     if (!isError) {
                       console.log("Prove log:", data);
                       analyzeProveLog(data);
-                      // 로그 데이터 수집
+                      // Collect log data
                       proveLogData += data + "\n";
                     }
                   }
                 );
 
-                // 벤치마킹: Prove 성공 완료 시간 기록 (로그 데이터 포함)
+                // Benchmarking: Record Prove successful completion time (including log data)
                 if (proveStartTime) {
                   endProcessTiming(
                     "prove",
@@ -327,13 +327,13 @@ export function useTokamakZkEVMActions() {
                     undefined,
                     proveLogData
                   );
-                  // Prove 완료 후 자동 다운로드 체크
+                  // Check auto download after Prove completion
                   checkAutoDownload();
                 }
 
                 return updateActiveSection("prove-to-verify");
               } catch (error) {
-                // 벤치마킹: Prove 실패 시간 기록
+                // Benchmarking: Record Prove failure time
                 if (proveStartTime) {
                   endProcessTiming(
                     "prove",
@@ -362,7 +362,7 @@ export function useTokamakZkEVMActions() {
                   setProvingIsDone(true);
                   const provingResultValue = lastLine.split(":")[1].trim();
 
-                  // 대소문자 구분 없이 true 체크 (true, True, TRUE 등 모두 허용)
+                  // Check true case-insensitively (true, True, TRUE, etc. all allowed)
                   const normalizedResult = provingResultValue.toLowerCase();
                   const isTrue =
                     normalizedResult.includes("true") &&
