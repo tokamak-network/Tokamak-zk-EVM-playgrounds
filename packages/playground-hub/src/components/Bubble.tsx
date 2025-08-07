@@ -152,7 +152,9 @@ export default function Bubbles() {
         isActive={synthesizerStage.isReady}
         isDone={synthesizerStage.isDone}
         onClick={() => {
-          return openModal("synthesizer-result");
+          if (synthesizerStage.isDone) {
+            return openModal("synthesizer-result");
+          }
         }}
       />
       <Bubble
@@ -161,7 +163,9 @@ export default function Bubbles() {
         isActive={proveStage.isReady}
         isDone={proveStage.isDone}
         onClick={() => {
-          return openModal("prove-result");
+          if (proveStage.isDone) {
+            return openModal("prove-result");
+          }
         }}
       />
       <Bubble
@@ -176,7 +180,9 @@ export default function Bubbles() {
         isActive={setupStage.isReady}
         isDone={setupStage.isDone}
         onClick={() => {
-          return openModal("setup-result");
+          if (setupStage.isDone) {
+            return openModal("setup-result");
+          }
         }}
       />
       <Bubble
@@ -185,7 +191,9 @@ export default function Bubbles() {
         isActive={bikzgStage.isReady}
         isDone={bikzgStage.isDone}
         onClick={() => {
-          return openModal("preprocess-result");
+          if (bikzgStage.isDone) {
+            return openModal("preprocess-result");
+          }
         }}
       />
     </div>
