@@ -1,14 +1,5 @@
 import { HardwareInfo } from "../types/benchmark";
 
-// Electron의 system info API가 있는지 확인
-declare global {
-  interface Window {
-    electronAPI?: {
-      getSystemInfo?: () => Promise<any>;
-    };
-  }
-}
-
 export async function getHardwareInfo(): Promise<HardwareInfo> {
   try {
     // Attempt to collect system information via Electron API
@@ -88,8 +79,8 @@ function getCPUInfo(): string {
   // GPU 정보를 통해 Apple Silicon 감지 시도
   try {
     const canvas = document.createElement("canvas");
-    const gl =
-      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    const gl = (canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl")) as WebGLRenderingContext | null;
     if (gl) {
       const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
       if (debugInfo) {
@@ -136,8 +127,8 @@ function getArchitecture(): string {
   // Apple Silicon 감지 개선
   try {
     const canvas = document.createElement("canvas");
-    const gl =
-      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    const gl = (canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl")) as WebGLRenderingContext | null;
     if (gl) {
       const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
       if (debugInfo) {
@@ -179,8 +170,8 @@ function getArchitecture(): string {
 
 function getMemoryInfo(): { total: number; available: number } {
   // 웹에서는 정확한 메모리 정보를 얻기 어려움
-  // @ts-ignore - performance.memory는 Chrome에서만 사용 가능
-  const memory = (performance as any)?.memory;
+  const memory = (performance as { memory?: { totalJSHeapSize: number } })
+    ?.memory;
 
   if (memory) {
     return {
@@ -189,7 +180,10 @@ function getMemoryInfo(): { total: number; available: number } {
     };
   }
 
-  return { total: 0, available: 0 };
+  return {
+    total: 0,
+    available: 0,
+  };
 }
 
 function getPlatform(): string {
@@ -242,8 +236,8 @@ async function getGPUInfo(): Promise<{
   try {
     // WebGL을 통한 GPU 정보 수집 시도
     const canvas = document.createElement("canvas");
-    const gl =
-      canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    const gl = (canvas.getContext("webgl") ||
+      canvas.getContext("experimental-webgl")) as WebGLRenderingContext | null;
 
     if (gl) {
       const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");

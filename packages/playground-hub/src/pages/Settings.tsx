@@ -5,14 +5,6 @@ import { useAtom } from "jotai";
 import { useDebouncedEtherscanValidation } from "../hooks/useEtherscanApi";
 import WarningIconImage from "../assets/modals/warning-icon.svg";
 
-declare global {
-  interface Window {
-    electron: {
-      closeSettingsWindow: () => void;
-    };
-  }
-}
-
 export default function Settings() {
   const isDarkMode = useSystemTheme();
   console.log("isDarkMode", isDarkMode);
