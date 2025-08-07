@@ -57,7 +57,7 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools(); // Commented out to prevent auto-opening DevTools
 
   // 외부 링크를 기본 브라우저에서 열도록 설정
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

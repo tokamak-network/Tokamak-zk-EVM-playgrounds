@@ -96,7 +96,7 @@ const SubmitModal: React.FC = () => {
 
       const link = document.createElement("a");
       link.href = url;
-      link.download = `tokamak_result_${benchmarkData.sessionId}.zip`;
+      link.download = `tokamak-zk-evm-proof.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
