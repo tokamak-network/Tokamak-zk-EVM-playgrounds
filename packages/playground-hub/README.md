@@ -34,31 +34,32 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
   - Check the operating system of your computer (e.g., Windows 10/11, latest macOS version, etc.)
 - **Installation Method:**
 
-  1. **Access the Docker download page:**
-     - **Windows users:** [Download Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/) (Click to go to the download page)
-     - **Mac users (Check Apple Silicon chip before downloading):** [Download Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) (Click to go to the download page)
-  2. **Proceed with download and installation:**
-     - Run the downloaded installation file (`Docker Desktop Installer.exe` or `Docker.dmg`) and follow the on-screen instructions to complete the installation.
-     - (For Windows, you may need to install or configure WSL 2. Follow the on-screen instructions carefully.)
-     - (There are no special options to select; keeping the default settings is fine.)
-  3. **Verify installation (Most important! ✨):**
+  1.  **Access the Docker download page:**
+      - **Windows users:** [Download Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/) (Click to go to the download page)
+      - **Mac users (Check Apple Silicon chip before downloading):** [Download Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) (Click to go to the download page)
+  2.  **Proceed with download and installation:**
+      - Run the downloaded installation file (`Docker Desktop Installer.exe` or `Docker.dmg`) and follow the on-screen instructions to complete the installation.
+      - (For Windows, you may need to install or configure WSL 2. Follow the on-screen instructions carefully.)
+      - (There are no special options to select; keeping the default settings is fine.)
+  3.  **Verify installation (Most important! ✨):**
 
-     - Launch **Docker Desktop** from the desktop or application list.
-     - Check if the **whale icon** 🐳 appears in the taskbar (Windows) or the menu bar at the top of the screen (Mac).
-       **Windows:**
-       ![Docker Installation Success - Windows](./assets/images/4-1-windows.png)
-       **MacOS:**![Docker Installation Success - MacOS](./assets/images/4-1.png)
-     - You can check the running status from the menu that appears when you click the whale icon. Look for a message like "Docker Desktop is running" or a green "Running" indicator.
+      - Launch **Docker Desktop** from the desktop or application list.
+      - Check if the **whale icon** 🐳 appears in the taskbar (Windows) or the menu bar at the top of the screen (Mac).
+        **Windows:**
+        ![Docker Installation Success - Windows](./assets/images/4-1-windows.png)
+        **MacOS:**![Docker Installation Success - MacOS](./assets/images/4-1.png)
+      - You can check the running status from the menu that appears when you click the whale icon. Look for a message like "Docker Desktop is running" or a green "Running" indicator.
 
-      **Windows:**
-  ![Docker Running Success - Windows](./assets/images/4-2-windows.png)
-       ![Docker Running Success - Windows](./assets/images/4-3-windows.png)
+            **Windows:**
 
-       **MacOS:**
-       ![Docker Running Success - MacOS](./assets/images/4-2.png)
-       ![Docker Running Success - MacOS](./assets/images/4-3.png)
+        ![Docker Running Success - Windows](./assets/images/4-2-windows.png)
+        ![Docker Running Success - Windows](./assets/images/4-3-windows.png)
 
-       - If Docker doesn't run correctly or you see an error, try restarting your computer. A reboot is sometimes required after installation.
+             **MacOS:**
+             ![Docker Running Success - MacOS](./assets/images/4-2.png)
+             ![Docker Running Success - MacOS](./assets/images/4-3.png)
+
+             - If Docker doesn't run correctly or you see an error, try restarting your computer. A reboot is sometimes required after installation.
 
 ### 3.1.1. Installing CUDA (Optional but Very Recommended - for NVIDIA GPU users) ⚡
 
@@ -103,9 +104,33 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
   - **Mac users (Apple Silicon):** Download the `playground-hub-macOS-arm64-vX.X.X-portable.zip` file. (`X.X.X` is the version)
   - **Note:** You do not need to download the files marked as `Source code`, as they are for developers.
 - **Extract and File Location:**
+
   - Extract the downloaded compressed file.
   - **Windows:** After extracting, you will get a folder containing `tokamak-zk-evm-playground.exe` file. Move this folder to a convenient location, such as `My Documents`, `Program Files`, or your Desktop.
-  - **Mac:** After extracting, you will get a `tokamak-zk-evm-playground.app` file. Move this file to a convenient location, such as the `Applications` folder or your Desktop.
+  - **Mac:** After extracting, you will get a `tokamak-zk-evm-playground.app` file. Move this file to a convenient location, such as your Desktop.
+
+    **Note:** If you encounter a "damaged" or "unidentified developer" error when trying to open the app, follow these steps:
+
+    1. **Open Terminal:**
+       - Press `Cmd + Space` to open Spotlight Search
+       - Type "Terminal" and press Enter
+       - A black window with white text will open (this is Terminal)
+    2. **Copy the command below and paste it in Terminal:**
+
+       ```bash
+       xattr -d com.apple.quarantine ~/Desktop/tokamak-zk-evm-playground-hub.app
+       ```
+
+       **If you placed the app in a different location:** Replace `~/Desktop/` with the actual path where you moved the app. For example:
+
+       - If you put it in Documents: `~/Documents/tokamak-zk-evm-playground-hub.app`
+       - If you put it in Downloads: `~/Downloads/tokamak-zk-evm-playground-hub.app`
+       - If you put it in a custom folder: `/path/to/your/folder/tokamak-zk-evm-playground-hub.app`
+
+    3. **Press Enter** to run the command
+    4. **Try opening the app again** - it should now work without the error
+
+    **What this does:** This command tells macOS that the app is safe to run, removing the security restriction that was preventing it from opening.
 
 ## 4. Running Tokamak-zk-evm-playground 🚀
 
@@ -124,6 +149,17 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 
 1. If the program runs successfully, you will see a screen like this.
    ![Program Initial Screen](./assets/images/5-1.png)
+
+   **Note:** The application is designed for a resolution of 1000x1000 pixels. If you experience UI layout issues or elements appearing broken on lower resolution displays like this:
+   ![Broken UI Example](./assets/images/5-1-1.png)
+
+   You can fix this by zooming out:
+
+   - **Windows:** Press `Ctrl + -` (Control + minus)
+   - **Mac:** Press `Cmd + -` (Command + minus)
+
+   This will scale down the interface to fit better on your screen without breaking the layout.
+
 2. Click the cloud located under the **EVM Spec.** heading in the top left corner to display a modal screen like this.  
    ![Program Initial Screen](./assets/images/5-2.png)
 3. This modal allows you to select one of the various Tokamak-zk-EVM specs supported by the playground. Click the download button to the right of the title to start downloading the Docker image for that spec.
@@ -155,6 +191,9 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 14. Next, run backend/prove, and you will see **backend/verify** become activated. By running verify, you can see the final result of how the Ethereum transaction you selected is analyzed by the Tokamak-zk-EVM.
     ![Program Loading Screen](./assets/images/5-17-1.png)
     ![Program Initial Screen](./assets/images/5-17.png)
+
+    **Pro tip:** The prove process is the marathon of our playground! 🏃‍♂️ It's the longest step in the entire pipeline, so grab a coffee ☕ and watch the processing modal change through different stages - it's like watching a progress bar that actually tells you what's happening behind the scenes. Each modal change means we're one step closer to that sweet verification result!
+
 15. After backend/prove completes, the water tank will change based on the generated proof and its verification result. If the proof was generated correctly and verified successfully, the tank will fill with blue water along with the number **1**, signifying "True". This indicates that the Tokamk-zk-EVM has operated correctly.
     ![Program Initial Screen](./assets/images/5-18.png)
     15-1. If it did not operate correctly or an issue occurred, the tank will fill with white water along with the number 0, signifying "False". In this case, there may be an issue with the Tokamak-zk-EVM, so please report it using Section 6 below!
