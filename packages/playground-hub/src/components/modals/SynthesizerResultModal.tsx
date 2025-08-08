@@ -424,10 +424,22 @@ const SynthesizerResultModal: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            <CustomTabSwitcher
+            <div
+              className="w-full h-[37px] flex items-center pl-[7px]"
+              style={{
+                background: "#F6F6F6",
+                border: "1px solid #E5E5E5",
+                fontSize: "18px",
+                fontWeight: 600,
+                color: "#006FA1",
+              }}
+            >
+              Logs
+            </div>
+            {/* <CustomTabSwitcher
               activeTab={activeTab}
               setActiveTab={setActiveTab}
-            />
+            /> */}
             <div
               className="flex-1 w-full overflow-y-auto border border-t-0 border-[#E5E5E5] bg-[#fafafa] p-4 
              px-[6px]"
