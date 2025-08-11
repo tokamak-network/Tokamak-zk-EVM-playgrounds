@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import TransactionInputModalImage from "../../assets/modals/docker/docker-modal.png";
 import DownloadButtonImage from "../../assets/modals/docker/download-button.png";
 import PauseIconImage from "../../assets/modals/docker/pause.png";
@@ -6,12 +6,12 @@ import DownloadedImage from "../../assets/modals/docker/run-button.png";
 import DockerImage from "../../assets/images/docker.svg";
 import RunningImage from "../../assets/images/running.svg";
 import PauseImage from "../../assets/modals/docker/paused.svg";
-import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 import useElectronFileDownloader from "../../hooks/useFileDownload";
 import { useTokamakZkEVMActions } from "../../hooks/useTokamakZkEVMActions";
 import { useModals } from "../../hooks/useModals";
 import { useDocker } from "../../hooks/useDocker";
 import { DOCKER_DOWNLOAD_URL, FILE_NAME } from "../../constants";
+import LoadingSpinner from "../common/LoadingSpinner";
 
 const DockerModal: React.FC = () => {
   const {
@@ -25,18 +25,84 @@ const DockerModal: React.FC = () => {
   } = useElectronFileDownloader();
 
   const { setupEvmSpec } = useTokamakZkEVMActions();
-  const { updateActiveSection } = usePipelineAnimation();
   const { activeModal, closeModal } = useModals();
-  const { dockerStatus, isContainerRunning } = useDocker();
+  const {
+    dockerStatus,
+    isContainerRunning,
+    dockerConfig,
+    isDockerStatusLoading,
+    verifyDockerStatus,
+  } = useDocker();
+
+  // 이전 상태를 기억하여 깜빡임 방지
+  const lastKnownImageState = useRef<boolean>(false);
+  const lastKnownContainerState = useRef<boolean>(false);
+  // 스피너 지연 표시를 위한 상태
+  const [isDelayedSpinnerActive, setIsDelayedSpinnerActive] =
+    React.useState(false);
 
   const isDockerImageDownloaded = useMemo(() => {
-    return dockerStatus.imageExists;
-  }, [dockerStatus]);
+    // Docker 상태 로딩이 완료된 경우에만 상태 업데이트
+    if (!isDockerStatusLoading) {
+      const newState = dockerStatus.imageExists;
+      if (lastKnownImageState.current !== newState) {
+        lastKnownImageState.current = newState;
+      }
+      return newState;
+    }
+
+    // 로딩 중일 때는 마지막으로 알려진 상태 유지
+
+    return lastKnownImageState.current;
+  }, [dockerStatus, isDockerStatusLoading]);
+
+  const stableIsContainerRunning = useMemo(() => {
+    // Docker 상태 로딩이 완료된 경우에만 상태 업데이트
+    if (!isDockerStatusLoading) {
+      lastKnownContainerState.current = isContainerRunning;
+      return isContainerRunning;
+    }
+
+    // 로딩 중일 때는 마지막으로 알려진 상태 유지
+    return lastKnownContainerState.current;
+  }, [isContainerRunning, isDockerStatusLoading]);
+
+  // Docker 이미지 로딩 완료 시 상태 재확인
+  useEffect(() => {
+    if (loadStatus.stage === "completed") {
+      console.log("Docker image loading completed, verifying status...");
+
+      // 스피너 지연 표시 시작
+      setIsDelayedSpinnerActive(true);
+
+      // 즉시 상태 체크 시작
+      verifyDockerStatus(dockerConfig?.imageName);
+    }
+  }, [loadStatus.stage, verifyDockerStatus, dockerConfig?.imageName]);
+
+  // verifyDockerStatus 완료 후 지연 스피너 종료
+  useEffect(() => {
+    if (
+      loadStatus.stage === "completed" &&
+      !isDockerStatusLoading &&
+      isDelayedSpinnerActive
+    ) {
+      console.log(
+        "Docker status verification completed, ending delayed spinner..."
+      );
+
+      // verifyDockerStatus 완료 후 1초 지연
+      const timer = setTimeout(() => {
+        setIsDelayedSpinnerActive(false);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [loadStatus.stage, isDockerStatusLoading, isDelayedSpinnerActive]);
 
   const startProcess = () => {
     try {
       setupEvmSpec();
-      updateActiveSection("evm-to-qap");
     } catch (error) {
       console.error(error);
       // setActiveSection("none");
@@ -55,8 +121,16 @@ const DockerModal: React.FC = () => {
     if (isDockerImageDownloaded) {
       return startProcess();
     }
-    const fileUrl = DOCKER_DOWNLOAD_URL; // 실제 R2 파일 URL
-    const desiredFilename = FILE_NAME;
+
+    // Use environment-specific Docker config
+    const fileUrl = dockerConfig?.downloadUrl || DOCKER_DOWNLOAD_URL;
+    const desiredFilename = dockerConfig?.fileName || FILE_NAME;
+
+    console.log("Downloading Docker image with config:", {
+      tag: dockerConfig?.tag,
+      url: fileUrl,
+      filename: desiredFilename,
+    });
 
     startDownloadAndLoad(fileUrl, desiredFilename);
   };
@@ -83,7 +157,7 @@ const DockerModal: React.FC = () => {
             isDownloading ? "row-gap-[7px]" : "row-gap-[0px]"
           } rounded-[10px]`}
           style={{
-            background: isContainerRunning ? "#ECFCFE" : "white",
+            background: stableIsContainerRunning ? "#ECFCFE" : "white",
           }}
         >
           <div className="w-full h-full  flex  items-center justify-between">
@@ -91,31 +165,42 @@ const DockerModal: React.FC = () => {
               <img src={DockerImage} alt="docker-image" />
               <span className="cursor-pointer">TOKAMAK-ZK-EVM</span>
             </div>
-            <img
-              className={`cursor-pointer ${
-                isPaused
-                  ? "w-[14px] h-[14px]"
-                  : isContainerRunning
-                    ? "w-[82px] h-[24px]"
-                    : isDockerImageDownloaded
-                      ? "w-[57px] h-[24px]"
-                      : isDownloading
-                        ? "w-[10px] h-[10px]"
-                        : "w-[24px] h-[24px]"
-              }`}
-              src={
-                isPaused
-                  ? PauseImage
-                  : isContainerRunning
-                    ? RunningImage
-                    : isDockerImageDownloaded
-                      ? DownloadedImage
-                      : isDownloading
-                        ? PauseIconImage
-                        : DownloadButtonImage
-              }
-              onClick={onClickStartProcess}
-            ></img>
+            {isDockerStatusLoading || isDelayedSpinnerActive ? (
+              <div className="w-[24px] h-[24px] flex items-center justify-center">
+                <LoadingSpinner />
+              </div>
+            ) : isDownloading && loadStatus.stage !== "downloading" ? (
+              // 다운로드 완료 후 압축 해제 및 도커 로딩 중 - 스피너 표시
+              <div className="w-[24px] h-[24px] flex items-center justify-center">
+                <LoadingSpinner />
+              </div>
+            ) : (
+              <img
+                className={`cursor-pointer ${
+                  isPaused
+                    ? "w-[14px] h-[14px]"
+                    : stableIsContainerRunning
+                      ? "w-[82px] h-[24px]"
+                      : isDockerImageDownloaded
+                        ? "w-[57px] h-[24px]"
+                        : isDownloading
+                          ? "w-[10px] h-[10px]"
+                          : "w-[24px] h-[24px]"
+                }`}
+                src={
+                  isPaused
+                    ? PauseImage
+                    : stableIsContainerRunning
+                      ? RunningImage
+                      : isDockerImageDownloaded
+                        ? DownloadedImage
+                        : isDownloading
+                          ? PauseIconImage
+                          : DownloadButtonImage
+                }
+                onClick={onClickStartProcess}
+              />
+            )}
           </div>
           {isDownloading && (
             <div

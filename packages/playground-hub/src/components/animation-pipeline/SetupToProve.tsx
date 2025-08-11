@@ -1,5 +1,6 @@
 import { PipelineAnimationProps } from "../../types/animation-pipeline";
 import PipelineSection from "./PipelineSection";
+import { usePipelineAnimation } from "../../hooks/usePipelineAnimation";
 
 // 파이프라인 섹션 정의
 const SETUP_TO_VERIFY_SECTION = {
@@ -60,7 +61,7 @@ const SETUP_TO_VERIFY_SECTION = {
       id: "segment6",
       startX: 300,
       startY: 565,
-      endX: 570,
+      endX: 590,
       endY: 565,
       direction: "horizontal" as const,
       animationDuration: 1000,
@@ -85,13 +86,13 @@ const SETUP_TO_VERIFY_SECTION = {
       endY: 350,
       direction: "vertical" as const,
       animationDuration: 1000,
-      delay: -200,
+      delay: 100,
     },
     {
       id: "segment9",
       startX: 390,
       startY: 330,
-      endX: 730,
+      endX: 740,
       endY: 330,
       direction: "horizontal" as const,
       animationDuration: 1000,
@@ -113,6 +114,8 @@ export default function SetupToProve({
     }
   };
 
+  const { pendingAnimation } = usePipelineAnimation();
+
   return (
     <div className="absolute w-full h-full bottom-[5px]">
       {/* 파이프라인 섹션 */}
@@ -123,6 +126,7 @@ export default function SetupToProve({
         onComplete={handleSectionComplete}
         baseDelay={0}
         onStart={onStart}
+        isPaused={pendingAnimation}
         resetAnimation={resetAnimation}
       />
     </div>

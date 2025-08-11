@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "concurrently \"next start\" \"npm run server\"",
     "lint": "next lint",
-    "start:dev": "concurrently \"npm run dev\" \"npm run server\""
+    "start:dev": "concurrently \"npm run dev\" \"npm run server\"",
+    "test:simple": "tsx server/test-simple.ts"
   },
   "dependencies": {
     "@tokamak-zk-evm/synthesizer": "^0.0.9",

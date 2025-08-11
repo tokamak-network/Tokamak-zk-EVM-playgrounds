@@ -16,10 +16,41 @@ contextBridge.exposeInMainWorld("docker", {
       containerName
     ),
   getContainers: () => ipcRenderer.invoke("get-docker-containers"),
-  stopContainer: (containerId: string) =>
-    ipcRenderer.invoke("stop-docker-container", containerId),
+  stopContainer: (containerId: string, force?: boolean) =>
+    ipcRenderer.invoke("stop-docker-container", containerId, force),
   executeCommand: (containerId: string, command: string[]) =>
     ipcRenderer.invoke("execute-command-in-container", containerId, command),
+  executeCommandWithStreaming: (containerId: string, command: string[]) =>
+    ipcRenderer.invoke(
+      "execute-command-in-container-with-streaming",
+      containerId,
+      command
+    ),
+  onStreamData: (
+    callback: (data: { data: string; isError: boolean }) => void
+  ) => {
+    ipcRenderer.on("docker-stream-data", (event, data) => callback(data));
+  },
+  removeStreamDataListener: () => {
+    ipcRenderer.removeAllListeners("docker-stream-data");
+  },
+  downloadLargeFile: (containerId: string, filePath: string) =>
+    ipcRenderer.invoke(
+      "download-large-file-from-container",
+      containerId,
+      filePath
+    ),
+  streamLargeFile: (
+    containerId: string,
+    containerFilePath: string,
+    localFilePath: string
+  ) =>
+    ipcRenderer.invoke(
+      "stream-large-file-from-container",
+      containerId,
+      containerFilePath,
+      localFilePath
+    ),
   checkDockerStatus: (imageNameToCheck?: string) =>
     ipcRenderer.invoke("check-docker-status", imageNameToCheck),
 });
@@ -27,6 +58,8 @@ contextBridge.exposeInMainWorld("docker", {
 //Settings
 contextBridge.exposeInMainWorld("electron", {
   closeSettingsWindow: () => ipcRenderer.invoke("close-settings-window"),
+  openExternalUrl: (url: string) =>
+    ipcRenderer.invoke("open-external-url", url),
 });
 
 // File Downloader and Docker Image Loader API
@@ -106,8 +139,29 @@ contextBridge.exposeInMainWorld("electronAPI", {
   removeListener: (channel: string, func: (...args: any[]) => void) => {
     ipcRenderer.removeListener(channel, func);
   },
+  getSystemInfo: () => ipcRenderer.invoke("get-system-info"),
 });
 
 contextBridge.exposeInMainWorld("env", {
   getEnvVars: () => ipcRenderer.invoke("get-env-vars"),
+  getEnvironmentInfo: () => ipcRenderer.invoke("get-environment-info"),
+});
+
+contextBridge.exposeInMainWorld("dockerFileDownloaderAPI", {
+  saveFile: async (defaultFileName: string, content: string) => {
+    const result = await ipcRenderer.invoke(
+      "show-save-dialog",
+      defaultFileName,
+      content
+    );
+    return result;
+  },
+});
+
+// CUDA API
+contextBridge.exposeInMainWorld("cudaAPI", {
+  checkCudaSupport: () => ipcRenderer.invoke("check-cuda-support"),
+  checkNvidiaGPU: () => ipcRenderer.invoke("check-nvidia-gpu"),
+  checkCudaCompiler: () => ipcRenderer.invoke("check-cuda-compiler"),
+  checkDockerCudaSupport: () => ipcRenderer.invoke("check-docker-cuda-support"),
 });

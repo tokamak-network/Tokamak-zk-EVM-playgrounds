@@ -1,6 +1,7 @@
 // src/docker-service.ts
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
+import fs from "fs";
 
 const execAsync = promisify(exec);
 
@@ -38,69 +39,218 @@ export async function checkDockerStatus(
   let imageExists = false;
   let isContainerFromImageRunning = false;
 
+  // Step 1: Check if Docker is installed (enhanced Windows support)
   try {
-    const { stdout: dockerPath } = await execAsync("which docker");
-    await execAsync("docker info");
-    isInstalled = true;
-    isDaemonRunning = true;
-  } catch (error) {
-    // Check if it's a "command not found" type of error for isInstalled
-    // This is a basic check; more robust checks might be needed for different OS/shells
-    if (
-      error.message &&
-      (error.message.includes("command not found") ||
-        error.message.includes("not recognized"))
-    ) {
-      isInstalled = false;
-    } else {
-      // Assume installed, but daemon not running or other error
-      isInstalled = true; // Or false if 'docker info' failing always means not installed in your context
-    }
-    isDaemonRunning = false;
+    const isWindows = process.platform === "win32";
 
-    // If daemon isn't running or Docker isn't installed, no need to check image/container
+    if (isWindows) {
+      // 윈도우에서 더 강력한 도커 탐지
+      try {
+        // 방법 1: 표준 PATH에서 찾기
+        await execAsync("where docker", { timeout: 10000 });
+        isInstalled = true;
+      } catch (pathError) {
+        console.log(
+          "Docker not found in PATH, trying alternative locations..."
+        );
+
+        // 방법 2: 일반적인 Docker Desktop 설치 경로 확인
+        const commonPaths = [
+          "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+          "C:\\Program Files (x86)\\Docker\\Docker\\resources\\bin\\docker.exe",
+          "%PROGRAMFILES%\\Docker\\Docker\\resources\\bin\\docker.exe",
+          "%PROGRAMFILES(X86)%\\Docker\\Docker\\resources\\bin\\docker.exe",
+        ];
+
+        // Docker Desktop 주요 파일들도 확인
+        const dockerDesktopPaths = [
+          "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe",
+          "C:\\Program Files (x86)\\Docker\\Docker\\Docker Desktop.exe",
+          "%PROGRAMFILES%\\Docker\\Docker\\Docker Desktop.exe",
+          "%PROGRAMFILES(X86)%\\Docker\\Docker\\Docker Desktop.exe",
+        ];
+
+        // docker.exe 파일 확인
+        for (const dockerPath of commonPaths) {
+          try {
+            // 환경변수 확장된 경로로 확인
+            const expandedPath = dockerPath.replace(
+              /%([^%]+)%/g,
+              (_, env) => process.env[env] || ""
+            );
+            // 파일 존재 여부만 확인 (데몬 실행 상태와 무관)
+            if (fs.existsSync(expandedPath)) {
+              isInstalled = true;
+              break;
+            }
+          } catch (pathCheckError) {
+            // 이 경로에서는 찾지 못함, 다음 경로 시도
+            continue;
+          }
+        }
+
+        // docker.exe를 찾지 못했다면 Docker Desktop.exe 확인
+        if (!isInstalled) {
+          for (const desktopPath of dockerDesktopPaths) {
+            try {
+              const expandedPath = desktopPath.replace(
+                /%([^%]+)%/g,
+                (_, env) => process.env[env] || ""
+              );
+              if (fs.existsSync(expandedPath)) {
+                isInstalled = true;
+                break;
+              }
+            } catch (pathCheckError) {
+              continue;
+            }
+          }
+        }
+
+        // 방법 3: Docker Desktop 서비스 확인
+        if (!isInstalled) {
+          try {
+            const { stdout } = await execAsync(
+              'sc query "com.docker.service"',
+              { timeout: 5000 }
+            );
+            if (
+              stdout.toLowerCase().includes("running") ||
+              stdout.toLowerCase().includes("stopped")
+            ) {
+              isInstalled = true;
+            }
+          } catch (serviceError) {
+            console.log("Docker Desktop service not found via sc query");
+          }
+        }
+
+        // 방법 4: 레지스트리 확인 (Docker Desktop 설치 확인)
+        if (!isInstalled) {
+          try {
+            await execAsync(
+              'reg query "HKEY_LOCAL_MACHINE\\SOFTWARE\\Docker Inc." /s',
+              { timeout: 5000 }
+            );
+            isInstalled = true;
+          } catch (regError) {
+            console.log("Docker not found in registry");
+          }
+        }
+
+        if (!isInstalled) {
+          throw new Error("Docker not found in any known location");
+        }
+      }
+    } else {
+      // 유닉스 계열에서는 기존 방식 사용
+      await execAsync("which docker", { timeout: 10000 });
+      isInstalled = true;
+    }
+  } catch (error) {
+    // Only log on first check or when status changes
     return {
-      isInstalled,
-      isRunning: isDaemonRunning,
+      isInstalled: false,
+      isRunning: false,
       imageExists,
       isContainerFromImageRunning,
     };
   }
 
+  // Step 2: Check if Docker daemon is running (enhanced with longer timeout and better error handling)
+  try {
+    // 윈도우에서 더 긴 타임아웃 적용
+    const timeout = process.platform === "win32" ? 15000 : 10000;
+
+    // 방법 1: docker version (가장 가벼운 명령어)
+    await execAsync("docker version --format json", { timeout });
+    isDaemonRunning = true;
+  } catch (versionError) {
+    // 방법 2: docker info 시도 (더 상세한 정보)
+    try {
+      await execAsync("docker info", {
+        timeout: process.platform === "win32" ? 20000 : 15000,
+      });
+      isDaemonRunning = true;
+    } catch (infoError) {
+      // 방법 3: docker ps 시도 (가장 기본적인 명령어)
+      try {
+        await execAsync("docker ps", {
+          timeout: process.platform === "win32" ? 15000 : 10000,
+        });
+        isDaemonRunning = true;
+      } catch (psError) {
+        // 윈도우에서 추가 진단 정보 제공
+        if (process.platform === "win32") {
+          try {
+            // Docker Desktop 프로세스 확인
+            const { stdout } = await execAsync(
+              'tasklist /FI "IMAGENAME eq Docker Desktop.exe"',
+              { timeout: 5000 }
+            );
+            if (stdout.includes("Docker Desktop.exe")) {
+              console.log(
+                "Docker Desktop process is running, but daemon may be starting up"
+              );
+              isDaemonRunning = false;
+            } else {
+              console.log("Docker Desktop process not found");
+            }
+          } catch (tasklistError) {
+            console.log(
+              "Could not check Docker Desktop process:",
+              tasklistError.message
+            );
+          }
+        }
+
+        isDaemonRunning = false;
+        return {
+          isInstalled,
+          isRunning: false,
+          imageExists,
+          isContainerFromImageRunning,
+        };
+      }
+    }
+  }
+
+  // 나머지 이미지 존재 여부 확인 로직은 동일
   if (isDaemonRunning && imageNameToCheck) {
     try {
       const allImages = await getDockerImages();
 
-      const trimmedImageNameToCheck = imageNameToCheck.trim(); // Trim input
-
+      const trimmedImageNameToCheck = imageNameToCheck.trim();
       const [repo, tag = "latest"] = trimmedImageNameToCheck.includes(":")
         ? trimmedImageNameToCheck.split(":")
         : [trimmedImageNameToCheck, "latest"];
 
-      // Check if the image exists by name:tag
+      // 정확한 레포지토리:태그 매치 확인
       imageExists = allImages.some((img) => {
         const repoMatch = img.Repository === repo;
         const tagMatch = img.Tag === tag;
         return repoMatch && tagMatch;
       });
 
-      // If not found by name:tag, and imageNameToCheck does not contain '/', try checking if it's an ID
+      // 태그가 없는 이름으로 검색된 경우, 해당 레포지토리의 모든 태그 확인
+      if (!imageExists && !trimmedImageNameToCheck.includes(":")) {
+        imageExists = allImages.some((img) => img.Repository === repo);
+      }
+
+      // 이미지 ID로 검색 (백업 옵션)
       if (
         !imageExists &&
         !trimmedImageNameToCheck.includes("/") &&
         !trimmedImageNameToCheck.includes(":")
       ) {
-        // Assuming if no '/' and no ':', it *could* be an ID or a simple name (already checked for simpleName:latest)
-        // This ID check is more for when currentDockerContainer.Image is an ID during polling
-
         imageExists = allImages.some(
           (img) =>
-            img.ID === trimmedImageNameToCheck || // Exact full ID match (e.g., "sha256:...")
-            img.ID.startsWith(trimmedImageNameToCheck) || // Starts with short ID (if trimmedImageNameToCheck is short)
+            img.ID === trimmedImageNameToCheck ||
+            img.ID.startsWith(trimmedImageNameToCheck) ||
             (img.ID.startsWith("sha256:") &&
               img.ID.substring("sha256:".length).startsWith(
                 trimmedImageNameToCheck
-              )) // Handle if trimmedImageNameToCheck is short ID without sha256: prefix
+              ))
         );
       }
 
@@ -110,12 +260,12 @@ export async function checkDockerStatus(
           (img) =>
             (img.Repository === repo && img.Tag === tag) ||
             img.ID.startsWith(trimmedImageNameToCheck)
-        ); // Find the image again for its details
+        );
 
         if (targetImageDetails) {
           isContainerFromImageRunning = runningContainers.some((cont) => {
             const containerImageName = cont.Image;
-            if (containerImageName === imageNameToCheck) return true; // Exact original name passed
+            if (containerImageName === imageNameToCheck) return true;
             if (
               containerImageName === targetImageDetails.Repository &&
               targetImageDetails.Tag === "latest"
@@ -125,13 +275,13 @@ export async function checkDockerStatus(
               containerImageName === targetImageDetails.Repository &&
               containerImageName === targetImageDetails.Tag
             )
-              return true; // if image is "foo:foo"
+              return true;
             if (containerImageName === targetImageDetails.ID) return true;
             if (
               targetImageDetails.ID &&
               targetImageDetails.ID.startsWith(containerImageName)
             )
-              return true; // cont.Image is short ID
+              return true;
             if (
               targetImageDetails.ID &&
               containerImageName.startsWith(
@@ -140,19 +290,12 @@ export async function checkDockerStatus(
             )
               return true;
 
-            // If targetImageDetails were found by ID, repo/tag might not be set from imageNameToCheck directly
-            // if (
-            //   img.Repository === targetImageDetails.Repository &&
-            //   img.Tag === targetImageDetails.Tag
-            // ) {
-            //   // Check against actual repo/tag of found image
-            //   if (containerImageName === img.Repository) return true; // e.g. image is ubuntu:latest, container shows 'ubuntu'
-            // }
             return false;
           });
         }
       }
-    } catch {
+    } catch (imageCheckError) {
+      console.log("Error checking images:", imageCheckError.message);
       imageExists = false;
       isContainerFromImageRunning = false;
     }
@@ -269,20 +412,32 @@ export async function getDockerContainers(): Promise<DockerContainer[]> {
   }
 }
 
-// 컨테이너 중지 (Original)
+// 컨테이너 중지 (Updated with force option)
 export async function stopDockerContainer(
-  containerId: string
+  containerId: string,
+  force: boolean = false
 ): Promise<boolean> {
   try {
-    await execAsync(`docker stop ${containerId}`);
+    if (force) {
+      // docker kill: 즉시 강제 종료 (SIGKILL)
+      console.log(
+        `🚀 Force killing container ${containerId} for faster shutdown`
+      );
+      await execAsync(`docker kill ${containerId}`);
+    } else {
+      // docker stop: 정상 종료 후 10초 후 강제 종료
+      await execAsync(`docker stop ${containerId}`);
+    }
     return true;
   } catch (error) {
-    console.error(`Error stopping container ${containerId}: ${error.message}`);
+    console.error(
+      `Error ${force ? "killing" : "stopping"} container ${containerId}: ${error.message}`
+    );
     throw error;
   }
 }
 
-// Docker 컨테이너 내에서 명령어 실행
+// Docker 컨테이너에서 명령어 실행
 export async function executeCommandInContainer(
   containerId: string,
   command: string[]
@@ -308,6 +463,123 @@ export async function executeCommandInContainer(
       } else {
         reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
       }
+    });
+  });
+}
+
+// Docker 컨테이너에서 명령어 실행 (실시간 스트리밍)
+export async function executeCommandInContainerWithStreaming(
+  containerId: string,
+  command: string[],
+  onData: (data: string, isError: boolean) => void
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const args = ["exec", containerId, ...command];
+
+    const process = spawn("docker", args);
+    let stdout = "";
+    let stderr = "";
+
+    process.stdout.on("data", (data) => {
+      const dataStr = data.toString();
+      stdout += dataStr;
+      onData(dataStr, false); // 실시간으로 데이터 전송
+    });
+
+    process.stderr.on("data", (data) => {
+      const dataStr = data.toString();
+      stderr += dataStr;
+      onData(dataStr, true); // 에러 데이터도 실시간으로 전송
+    });
+
+    process.on("close", (code) => {
+      if (code === 0) {
+        resolve(stdout);
+      } else {
+        reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
+      }
+    });
+
+    process.on("error", (error) => {
+      reject(new Error(`Process error: ${error.message}`));
+    });
+  });
+}
+
+// Docker 컨테이너에서 대용량 파일 다운로드 (스트리밍)
+export async function downloadLargeFileFromContainer(
+  containerId: string,
+  filePath: string
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const args = ["exec", containerId, "cat", filePath];
+
+    const process = spawn("docker", args);
+    const chunks: Buffer[] = [];
+    let stderr = "";
+
+    process.stdout.on("data", (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+
+    process.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    process.on("close", (code) => {
+      if (code === 0) {
+        try {
+          const content = Buffer.concat(chunks).toString("utf8");
+          resolve(content);
+        } catch (error) {
+          reject(new Error(`Failed to process file content: ${error.message}`));
+        }
+      } else {
+        reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
+      }
+    });
+
+    process.on("error", (error) => {
+      reject(new Error(`Process error: ${error.message}`));
+    });
+  });
+}
+
+// Docker 컨테이너에서 매우 큰 파일을 직접 로컬 파일로 스트리밍 다운로드
+export async function streamLargeFileFromContainer(
+  containerId: string,
+  containerFilePath: string,
+  localFilePath: string
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const args = ["exec", containerId, "cat", containerFilePath];
+
+    const process = spawn("docker", args);
+    const writeStream = fs.createWriteStream(localFilePath);
+    let stderr = "";
+
+    process.stdout.pipe(writeStream);
+
+    process.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    process.on("close", (code) => {
+      writeStream.end();
+      if (code === 0) {
+        resolve(true);
+      } else {
+        reject(new Error(`Command failed with exit code ${code}: ${stderr}`));
+      }
+    });
+
+    process.on("error", (error) => {
+      writeStream.destroy();
+      reject(new Error(`Process error: ${error.message}`));
+    });
+
+    writeStream.on("error", (error: Error) => {
+      reject(new Error(`Write stream error: ${error.message}`));
     });
   });
 }

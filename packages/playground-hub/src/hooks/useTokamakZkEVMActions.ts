@@ -7,11 +7,16 @@ import {
   provingResultAtom,
   provingIsDoneAtom,
 } from "../atoms/pipelineAnimation";
+import { proveStepAtom } from "../atoms/modals";
 import { useAtom } from "jotai";
 import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
 import { useModals } from "./useModals";
 import { DOCKER_NAME } from "../constants";
+import { useCuda } from "./useCuda";
+import { useBenchmark } from "./useBenchmark";
+
+// CUDA API types are defined in render.d.ts
 
 export enum TokamakActionType {
   SetupEvmSpec = "SETUP_EVM_SPEC",
@@ -25,13 +30,47 @@ export enum TokamakActionType {
 export function useTokamakZkEVMActions() {
   const [provingIsDone, setProvingIsDone] = useAtom(provingIsDoneAtom);
   const [provingResult, setProvingResult] = useAtom(provingResultAtom);
-  const { runContainer, currentDockerContainer } = useDocker();
+  const [, setProveStep] = useAtom(proveStepAtom);
+  const { runContainer, currentDockerContainer, executeCommand, dockerConfig } =
+    useDocker();
   const { parseTONTransfer } = useSynthesizer();
-  const { setup, preProcess, prove, verify } = useBackendCommand();
-  const { setPendingAnimation } = usePipelineAnimation();
+  const { setup, preProcess, prove, proveWithStreaming, verify } =
+    useBackendCommand();
+  const { updateActiveSection } = usePipelineAnimation();
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
   const { openModal, closeModal } = useModals();
+  const { cudaStatus } = useCuda();
+  const isCudaSupported = cudaStatus.isFullySupported;
+  const {
+    startProcessTiming,
+    endProcessTiming,
+    checkAutoDownload,
+    downloadBenchmarkData,
+    initializeBenchmarkSession,
+    currentSession,
+    globalBenchmarkSession,
+  } = useBenchmark();
+
+  // Analyze prove logs and update steps
+  const analyzeProveLog = useCallback(
+    (logData: string) => {
+      // Analyze steps based on actual prove logs
+      // Prove initialization stays at step 1, Running prove0 starts from step 2
+      if (logData.includes("Running prove0")) {
+        setProveStep(2); // "Oops, a drop!"
+      } else if (logData.includes("Running prove1")) {
+        setProveStep(3); // "Rain's starting…"
+      } else if (logData.includes("Running prove2")) {
+        setProveStep(4); // "Pouring now!"
+      } else if (logData.includes("Running prove3")) {
+        setProveStep(5); // "Catch it if you can!"
+      } else if (logData.includes("Running prove4")) {
+        setProveStep(6); // "Still raining!"
+      }
+    },
+    [setProveStep]
+  );
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
@@ -40,48 +79,280 @@ export function useTokamakZkEVMActions() {
         setPlaygroundStageInProcess(true);
         switch (actionType) {
           case TokamakActionType.SetupEvmSpec:
-            return await runContainer(DOCKER_NAME);
+            try {
+              if (isCudaSupported) {
+                openModal("loading");
+              }
+
+              // Run Docker container - use environment-specific image name
+              const imageName = dockerConfig?.imageName || DOCKER_NAME;
+              console.log(
+                `🐳 Running Docker container with image: ${imageName}`
+              );
+              const container = await runContainer(imageName);
+
+              if (!container?.ID) {
+                throw new Error("Failed to get container ID after running");
+              }
+
+              // if (isCudaSupported) {
+              //   console.log(
+              //     "✅ CUDA supported! Installing ICICLE for GPU acceleration..."
+              //   );
+
+              //   try {
+              //     // 🔍 컨테이너 내부 디렉토리 구조 디버깅
+              //     console.log("🔍 Debugging container directory structure...");
+
+              //     const pwdResult = await executeCommand(container.ID, ["pwd"]);
+              //     console.log(
+              //       "📍 Current working directory:",
+              //       pwdResult.trim()
+              //     );
+
+              //     const lsResult = await executeCommand(container.ID, [
+              //       "ls",
+              //       "-la",
+              //     ]);
+              //     console.log("📂 Current directory contents:\n", lsResult);
+
+              //     const findBackendResult = await executeCommand(container.ID, [
+              //       "find",
+              //       ".",
+              //       "-name",
+              //       "backend",
+              //       "-type",
+              //       "d",
+              //     ]);
+              //     console.log(
+              //       "🔍 Found 'backend' directories:",
+              //       findBackendResult.trim() || "None found"
+              //     );
+
+              //     const findScriptResult = await executeCommand(container.ID, [
+              //       "find",
+              //       ".",
+              //       "-name",
+              //       "icicle_auto_install.sh",
+              //     ]);
+              //     console.log(
+              //       "🔍 Found 'icicle_auto_install.sh' files:",
+              //       findScriptResult.trim() || "None found"
+              //     );
+
+              //     // backend 디렉토리가 존재하는지 확인
+              //     let backendPath = "";
+              //     if (findBackendResult.trim()) {
+              //       backendPath = findBackendResult.trim().split("\n")[0]; // 첫 번째 결과 사용
+              //       console.log("✅ Using backend path:", backendPath);
+              //     } else {
+              //       console.log(
+              //         "❌ No backend directory found, trying root directory"
+              //       );
+              //       backendPath = "."; // 현재 디렉토리에서 시도
+              //     }
+
+              //     // ICICLE 설치 스크립트 실행
+              //     const sedCommand = `cd ${backendPath} && sed -i 's/\\r$//' ./icicle_auto_install.sh`;
+              //     console.log("🔧 Running sed command:", sedCommand);
+              //     await executeCommand(container.ID, [
+              //       "bash",
+              //       "-c",
+              //       sedCommand,
+              //     ]);
+
+              //     console.log("📦 Running ICICLE auto installation...");
+              //     const installCommand = `cd ${backendPath} && ./icicle_auto_install.sh`;
+              //     console.log("🔧 Running install command:", installCommand);
+              //     const installResult = await executeCommand(container.ID, [
+              //       "bash",
+              //       "-c",
+              //       installCommand,
+              //     ]);
+              //     console.log("📦 ICICLE installation output:", installResult);
+
+              //     console.log("✅ ICICLE installation completed!");
+              //   } catch (icicleError) {
+              //     console.error("❌ ICICLE installation failed:", icicleError);
+              //     console.log("⚠️ Continuing with setup without ICICLE...");
+              //   }
+              // } else {
+              //   console.log(
+              //     "ℹ️ CUDA not supported, skipping ICICLE installation:",
+              //     cudaStatus.error
+              //   );
+              // }
+
+              updateActiveSection("evm-to-qap");
+
+              return container;
+            } catch (error) {
+              console.error("❌ SetupEvmSpec process failed:", error);
+              throw error;
+            }
 
           case TokamakActionType.RunSynthesizer:
             console.log("currentDockerContainer", currentDockerContainer);
             if (currentDockerContainer?.ID) {
-              setTimeout(() => {
-                setPendingAnimation(true);
-              }, 900);
               openModal("loading");
-              return await parseTONTransfer(currentDockerContainer.ID);
+              await parseTONTransfer(currentDockerContainer.ID);
+              return updateActiveSection("synthesizer-to-prove-bikzg");
             }
             throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.SetupTrustedSetup:
             if (currentDockerContainer?.ID) {
-              return await setup(currentDockerContainer.ID);
+              // await setup(currentDockerContainer.ID);
+              return updateActiveSection("setup-to-prove");
             }
             throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.PreProcess:
             if (currentDockerContainer?.ID) {
-              setTimeout(() => {
-                setPendingAnimation(true);
-              }, 500);
+              // setPendingAnimation(true);
               openModal("loading");
-              return await preProcess(currentDockerContainer.ID);
+
+              console.log("🔍 PreProcess: Starting preprocess action...");
+              console.log(
+                "🔍 PreProcess: currentDockerContainer.ID:",
+                currentDockerContainer.ID
+              );
+
+              // Force initialization if no benchmark session exists
+              if (!currentSession) {
+                console.log(
+                  "🔍 PreProcess: No benchmark session found, initializing..."
+                );
+                await initializeBenchmarkSession();
+              }
+
+              // Check global session - use global session if available
+              const activeSession = globalBenchmarkSession || currentSession;
+              if (!activeSession) {
+                console.warn("🔍 PreProcess: No benchmark session available");
+                return updateActiveSection("bikzg-to-verify");
+              }
+
+              // Benchmarking: Record PreProcess start time
+              const preprocessStartTime = startProcessTiming("preprocess");
+              console.log(
+                "🔍 PreProcess: startProcessTiming result:",
+                preprocessStartTime
+              );
+
+              try {
+                console.log("🔍 PreProcess: Calling preProcess function...");
+                await preProcess(currentDockerContainer.ID);
+                console.log("🔍 PreProcess: preProcess completed successfully");
+
+                // Benchmarking: Record PreProcess successful completion time
+                if (preprocessStartTime) {
+                  console.log("🔍 PreProcess: Calling endProcessTiming...");
+                  endProcessTiming("preprocess", preprocessStartTime, true);
+                  console.log("🔍 PreProcess: endProcessTiming completed");
+                } else {
+                  console.warn(
+                    "🔍 PreProcess: preprocessStartTime is null, skipping endProcessTiming"
+                  );
+                }
+
+                return updateActiveSection("bikzg-to-verify");
+              } catch (error) {
+                console.error("🔍 PreProcess: Error occurred:", error);
+                // Benchmarking: Record PreProcess failure time
+                if (preprocessStartTime) {
+                  console.log(
+                    "🔍 PreProcess: Calling endProcessTiming for error..."
+                  );
+                  endProcessTiming(
+                    "preprocess",
+                    preprocessStartTime,
+                    false,
+                    error.message
+                  );
+                }
+                throw error;
+              }
             }
             throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.ProveTransaction:
             if (currentDockerContainer?.ID) {
-              setTimeout(() => {
-                setPendingAnimation(true);
-              }, 500);
-              openModal("loading");
-              return await prove(currentDockerContainer.ID);
+              // setPendingAnimation(true);
+              openModal("prove-loading");
+              setProveStep(1); // Set initial step
+
+              // Force initialization if no benchmark session exists
+              if (!currentSession) {
+                console.log(
+                  "🔍 ProveTransaction: No benchmark session found, initializing..."
+                );
+                await initializeBenchmarkSession();
+              }
+
+              // Check global session - use global session if available
+              const activeSession = globalBenchmarkSession || currentSession;
+              if (!activeSession) {
+                console.warn(
+                  "🔍 ProveTransaction: No benchmark session available"
+                );
+                return updateActiveSection("prove-to-verify");
+              }
+
+              // Benchmarking: Record Prove start time
+              const proveStartTime = startProcessTiming("prove");
+
+              // Variable to collect prove logs
+              let proveLogData = "";
+
+              try {
+                await proveWithStreaming(
+                  currentDockerContainer.ID,
+                  (data, isError) => {
+                    if (!isError) {
+                      console.log("Prove log:", data);
+                      analyzeProveLog(data);
+                      // Collect log data
+                      proveLogData += data + "\n";
+                    }
+                  }
+                );
+
+                // Benchmarking: Record Prove successful completion time (including log data)
+                if (proveStartTime) {
+                  endProcessTiming(
+                    "prove",
+                    proveStartTime,
+                    true,
+                    undefined,
+                    proveLogData
+                  );
+                  // Check auto download after Prove completion
+                  checkAutoDownload();
+                }
+
+                return updateActiveSection("prove-to-verify");
+              } catch (error) {
+                // Benchmarking: Record Prove failure time
+                if (proveStartTime) {
+                  endProcessTiming(
+                    "prove",
+                    proveStartTime,
+                    false,
+                    error.message,
+                    proveLogData
+                  );
+                }
+                throw error;
+              }
             }
             throw new Error("currentDockerContainer is not found");
 
           case TokamakActionType.Verify:
             if (currentDockerContainer?.ID) {
               try {
+                // setPendingAnimation(true);
+                openModal("loading");
                 const result = await verify(currentDockerContainer.ID);
 
                 const lines = result.trim().split("\n");
@@ -90,8 +361,23 @@ export function useTokamakZkEVMActions() {
                 if (lastLine.startsWith("Verification result:")) {
                   setProvingIsDone(true);
                   const provingResultValue = lastLine.split(":")[1].trim();
-                  const isTrue = provingResultValue === "true, true";
+
+                  // Check true case-insensitively (true, True, TRUE, etc. all allowed)
+                  const normalizedResult = provingResultValue.toLowerCase();
+                  const isTrue =
+                    normalizedResult.includes("true") &&
+                    normalizedResult
+                      .split(",")
+                      .every((part) => part.trim().toLowerCase() === "true");
+
+                  console.log(`🔍 Verification result parsing:`, {
+                    raw: provingResultValue,
+                    normalized: normalizedResult,
+                    isTrue: isTrue,
+                  });
+
                   setProvingResult(isTrue);
+
                   return {
                     success: isTrue,
                     verificationResult: isTrue,
@@ -100,6 +386,7 @@ export function useTokamakZkEVMActions() {
                 } else {
                   setProvingIsDone(true);
                   setProvingResult(false);
+
                   return {
                     success: false,
                     error: "Verification line not found",
@@ -109,13 +396,15 @@ export function useTokamakZkEVMActions() {
               } catch (error) {
                 setProvingIsDone(true);
                 setProvingResult(false);
+
                 return {
                   success: false,
                   error: error.message || "An unknown error occurred",
                   rawResult: null,
                 };
               } finally {
-                setPendingAnimation(false);
+                updateActiveSection("verify-to-result");
+                // setPendingAnimation(false);
               }
             }
             throw new Error("currentDockerContainer is not found");
@@ -141,7 +430,7 @@ export function useTokamakZkEVMActions() {
             resolve();
             if (!hasError) {
               closeModal();
-              setPendingAnimation(false);
+              // setPendingAnimation(false);
             }
           }, 0);
         });
@@ -152,8 +441,12 @@ export function useTokamakZkEVMActions() {
       currentDockerContainer,
       parseTONTransfer,
       prove,
-      setPendingAnimation,
+      proveWithStreaming,
+      analyzeProveLog,
+      setProveStep,
+      // setPendingAnimation,
       initializeWhenCatchError,
+      isCudaSupported,
     ]
   );
 
