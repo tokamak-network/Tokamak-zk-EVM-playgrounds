@@ -45,21 +45,23 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 
       - Launch **Docker Desktop** from the desktop or application list.
       - Check if the **whale icon** 🐳 appears in the taskbar (Windows) or the menu bar at the top of the screen (Mac).
+
         **Windows:**
         ![Docker Installation Success - Windows](./assets/images/4-1-windows.png)
+
         **MacOS:**![Docker Installation Success - MacOS](./assets/images/4-1.png)
+
       - You can check the running status from the menu that appears when you click the whale icon. Look for a message like "Docker Desktop is running" or a green "Running" indicator.
 
-            **Windows:**
-
+        **Windows:**
         ![Docker Running Success - Windows](./assets/images/4-2-windows.png)
         ![Docker Running Success - Windows](./assets/images/4-3-windows.png)
 
-             **MacOS:**
-             ![Docker Running Success - MacOS](./assets/images/4-2.png)
-             ![Docker Running Success - MacOS](./assets/images/4-3.png)
+        **MacOS:**
+        ![Docker Running Success - MacOS](./assets/images/4-2.png)
+        ![Docker Running Success - MacOS](./assets/images/4-3.png)
 
-             - If Docker doesn't run correctly or you see an error, try restarting your computer. A reboot is sometimes required after installation.
+        - If Docker doesn't run correctly or you see an error, try restarting your computer. A reboot is sometimes required after installation.
 
 ### 3.1.1. Installing CUDA (Optional but Very Recommended - for NVIDIA GPU users) ⚡
 
