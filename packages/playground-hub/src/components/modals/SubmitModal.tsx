@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { activeModalAtom } from "../../atoms/modals";
 import SubmitModalImage from "../../assets/modals/submit/submit-modal.png";
 import { useResetStage } from "../../hooks/useResetStage";
@@ -7,6 +7,7 @@ import { useDockerFileDownload } from "../../hooks/useDockerFileDownload";
 import { useDocker } from "../../hooks/useDocker";
 import { useBenchmark } from "../../hooks/useBenchmark";
 import JSZip from "jszip";
+import { transactionHashAtom } from "../../atoms/api";
 
 const SubmitModal: React.FC = () => {
   const [activeModal, setActiveModal] = useAtom(activeModalAtom);
@@ -27,6 +28,8 @@ const SubmitModal: React.FC = () => {
     initializeWithNewTransaction();
     setActiveModal("none");
   };
+
+  const transactionHash = useAtomValue(transactionHashAtom);
 
   // Combined download handler for proof and benchmark files
   const handleDownloadCombined = async () => {
@@ -89,6 +92,15 @@ const SubmitModal: React.FC = () => {
       // Add benchmark file
       const benchmarkJson = JSON.stringify(benchmarkData, null, 2);
       zip.file("benchmark.json", benchmarkJson);
+
+      // Add transaction hash file
+      const transactionHashData = {
+        transactionHash: transactionHash, //
+        timestamp: new Date().toISOString(),
+        version: "0.1.0",
+      };
+      const transactionHashJson = JSON.stringify(transactionHashData, null, 2);
+      zip.file("transaction.json", transactionHashJson);
 
       // 5. Download zip file
       const zipBlob = await zip.generateAsync({ type: "blob" });
