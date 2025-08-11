@@ -100,10 +100,10 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 ### 3.2. Downloading and Preparing Tokamak-zk-evm-playground
 
 - **Download:**
-  - [Download the latest version](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/releases/tag/0.0.1-alpha)
+  - [Download the latest version](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/releases)
   - From the download page, download only one file that matches your operating system and CPU.
-  - **Windows users:** Download the `playground-hub-windows-x64-vX.X.X-portable.zip` file. (`X.X.X` is the version)
-  - **Mac users (Apple Silicon):** Download the `playground-hub-macOS-arm64-vX.X.X-portable.zip` file. (`X.X.X` is the version)
+  - **Windows users:** Download the `tokamak-zk-evm-playground-hub-win32-x64.zip` file.
+  - **Mac users (Apple Silicon):** Download the `tokamak-zk-evm-playground-hub-darwin-arm64.zip` file.
   - **Note:** You do not need to download the files marked as `Source code`, as they are for developers.
 - **Extract and File Location:**
 
