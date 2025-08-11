@@ -10,7 +10,7 @@ export const DOCKER_CONFIGS = {
     tag: "mac-arm",
     downloadUrl:
       "https://pub-30801471f84a46049e31eea6c3395e00.r2.dev/docker-images/tokamak-zk-evm_mac-arm.tar.gz",
-    fileName: "tokamak-zk-evm-mac-arm.gz",
+    fileName: "tokamak-zk-evm_mac-arm.tar.gz",
   },
   "windows-cpu": {
     tag: "windows-cpu-setup-completed",

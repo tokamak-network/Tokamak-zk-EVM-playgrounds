@@ -170,21 +170,21 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
    ![Program Initial Screen](./assets/images/5-4.png)
 5. After clicking, the modal will automatically close, and an animation filling the pipeline will start. The animation will stop when it reaches the handle for the next step, and the previously inactive **frontend/qap-compiler** heading will become colored, indicating it is ready for execution.
    ![Program Initial Screen](./assets/images/5-5.png)
-6. Let's set up the EVM Transaction in the same flow. Similar to the EVM Spec, click the cloud under the **Ethereum transaction** heading to open a modal. In this modal's input area, you need to enter the hash of an Ethereum transaction that matches the characteristics supported by the previously selected EVM Spec. Go to the [Etherscan page](https://etherscan.io/).
+6. Once you click on the activated **frontend/qap-compiler** handle and the process has finished, you will see that **backend/setup** is activated. Next, let's run Ethereum transaction.
+   ![Program Initial Screen](./assets/images/5-13.png)
+7. Let's set up the EVM Transaction in the same flow. Similar to the EVM Spec, click the cloud under the **Ethereum transaction** heading to open a modal. In this modal's input area, you need to enter the hash of an Ethereum transaction that matches the characteristics supported by the previously selected EVM Spec. Go to the [Etherscan page](https://etherscan.io/).
    ![Program Initial Screen](./assets/images/5-6.png)
-7. Find a transaction you want to verify through the Tokamak-zk-EVM and copy its hash value using the copy button next to the Transaction Hash.
+8. Find a transaction you want to verify through the Tokamak-zk-EVM and copy its hash value using the copy button next to the Transaction Hash.
    ![Program Initial Screen](./assets/images/5-9.png)
-8. Paste the copied hash value into the modal's input area. If the transaction hash is provable by the current Tokamak-zk-EVM, the Input button will be activated as follows.
+9. Paste the copied hash value into the modal's input area. If the transaction hash is provable by the current Tokamak-zk-EVM, the Input button will be activated as follows.
    ![Program Initial Screen](./assets/images/5-10.png)
-   8-1. If the copied hash value is incorrect, an error like this will appear, and the Input button will not be activated. For any other issues, the button will also remain inactive, and a message corresponding to the problem will be displayed in the same area.  
-   ![Program Initial Screen](./assets/images/5-11.png)
-9. When the Input button is activated, click it to close the modal, and an animation similar to the previous one will start. Once the animation is complete, you will see that the handles for both frontend/qap-compiler and frontend/synthesizer are activated. You can execute the activated handles in any order. In this guide, we will execute qap-compiler first.
-   ![Program Initial Screen](./assets/images/5-12.png)
-10. Once frontend/qap-compiler has finished, you will see that both **frontend/synthesizer** and **backend/setup** are activated. Next, let's run frontend/synthesizer. (For processes that take some time to execute, a loading modal like the one below will appear. When the process is complete, the modal will automatically close, and the animation will continue.)
-    ![Program Initial Screen](./assets/images/5-13.png)
-    ![Program Loading Screen](./assets/images/5-13-1.png)
+
+10. When the Input button is activated, click it to close the modal, and an animation similar to the previous one will start. Once the animation is complete, you will see that the handles for both backend/setup and frontend/synthesizer are activated. You can execute the activated handles in any order. In this guide, we will execute synthesizer first.
+    ![Program Initial Screen](./assets/images/5-12.png)
 11. After frontend/synthesizer finishes, you can infer from the pipelines that **backend/setup** must also be completed. Let's proceed with the only activated part, backend/setup.
+    ![Program Loading Screen](./assets/images/5-14-1.png)
     ![Program Initial Screen](./assets/images/5-14.png)
+
 12. Once backend/setup is complete, **backend/prove** is activated. The actual setup process takes a considerable amount of time, but it is already complete within the Docker image you downloaded earlier. Therefore, it runs very quickly inside the playground.
     ![Program Initial Screen](./assets/images/5-15.png)
 13. Once backend/setup is complete, both packages required for the final action, Verify, are ready for execution. First, run backend/preprocess.
