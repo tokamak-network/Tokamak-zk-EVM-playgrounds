@@ -12,7 +12,7 @@ const config: ForgeConfig = {
     asar: true,
     icon: "src/assets/icons/app-icon.icns",
     // Include binary files in the app package
-    extraResource: ["src/assets/binaries"],
+    extraResource: ["src/binaries"],
   },
   rebuildConfig: {},
   makers: [

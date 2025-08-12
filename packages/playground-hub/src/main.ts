@@ -197,23 +197,8 @@ function openSettingsWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", async () => {
-  const result = await dialog.showMessageBox({
-    type: "question",
-    buttons: ["Allow", "Deny"],
-    title: "Permission Request",
-    message: "This application needs access to Docker. Do you allow it?",
-  });
-
-  if (result.response === 0) {
-    // 사용자가 허용한 경우
-    console.log("Permission granted.");
-    createWindow();
-  } else {
-    // 사용자가 거부한 경우
-    console.log("Permission denied.");
-    // 필요한 경우 앱 종료 또는 기능 비활성화
-    app.quit();
-  }
+  console.log("App ready, creating window...");
+  createWindow();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
