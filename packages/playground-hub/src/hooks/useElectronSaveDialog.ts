@@ -9,6 +9,11 @@ declare global {
         success: boolean;
         error?: string;
       }>;
+      showLargeFileSaveDialog: (defaultFileName: string) => Promise<{
+        filePath: string | null;
+        success: boolean;
+        error?: string;
+      }>;
     };
   }
 }

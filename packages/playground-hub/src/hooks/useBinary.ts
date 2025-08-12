@@ -42,6 +42,7 @@ declare global {
       executeSystemCommand: (command: string[]) => Promise<string>;
       executeSystemCommandWithSudo: (command: string[]) => Promise<string>;
       executeScriptWithSudo: (scriptPath: string) => Promise<string>;
+      readBinaryFile: (filePath: string) => Promise<string>;
     };
   }
 }

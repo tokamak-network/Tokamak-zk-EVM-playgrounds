@@ -4,9 +4,9 @@ import { activeModalAtom } from "../../atoms/modals";
 import SynthesizerResultModalImage from "../../assets/modals/synthesizer/synthesizer-result.svg";
 import { useSynthesizerResult } from "../../hooks/useSynthesizerResult";
 import {
-  useDockerFileDownload,
+  useBinaryFileDownload,
   SynthesizerFiles,
-} from "../../hooks/useDockerFileDownload";
+} from "../../hooks/useBinaryFileDownload";
 import JsonIcon from "../../assets/modals/json.svg";
 import DownloadIcon from "../../assets/modals/docker/download-button.svg";
 import PauseIcon from "../../assets/modals/docker/pause.svg";
@@ -203,7 +203,7 @@ const SynthesizerResultModal: React.FC = () => {
 
   // Use the custom hook for file downloads
   const { isDownloading, files, downloadSynthesizerFiles, downloadToLocal } =
-    useDockerFileDownload();
+    useBinaryFileDownload();
 
   const isOpen = useMemo(
     () => activeModal === "synthesizer-result",

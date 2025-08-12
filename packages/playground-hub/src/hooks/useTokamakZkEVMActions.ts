@@ -84,7 +84,6 @@ export function useTokamakZkEVMActions() {
         setPlaygroundStageInProcess(true);
         switch (actionType) {
           case TokamakActionType.InstallDependencies:
-            updateActiveSection("evm-to-qap");
             openModal("loading");
 
             console.log(
@@ -100,7 +99,9 @@ export function useTokamakZkEVMActions() {
               console.log(
                 "🔍 InstallDependencies: Installation completed successfully"
               );
-              return updateActiveSection("qap-to-setup-synthesizer");
+
+              // Start animation after installation is complete
+              return updateActiveSection("evm-to-qap");
             } catch (error) {
               console.error("🔍 InstallDependencies: Error occurred:", error);
               throw error;

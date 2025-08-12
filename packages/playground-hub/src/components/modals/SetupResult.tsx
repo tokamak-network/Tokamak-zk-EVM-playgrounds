@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import FileDownloadItem from "../FileDownloadItem";
-import { useDockerFileDownload } from "../../hooks/useDockerFileDownload";
-import { useDocker } from "../../hooks/useDocker";
+import { useBinaryFileDownload } from "../../hooks/useBinaryFileDownload";
 import { useModals } from "../../hooks/useModals";
 import ExitIcon from "../../assets/modals/docker/exit.svg";
 
@@ -10,9 +9,8 @@ const SetupResult: React.FC = () => {
     setupFiles,
     downloadSetupFiles,
     downloadToLocal,
-    downloadVeryLargeFile,
-  } = useDockerFileDownload();
-  const { currentDockerContainer } = useDocker();
+    downloadLargeFileDirectly,
+  } = useBinaryFileDownload();
 
   const { activeModal, closeModal } = useModals();
   const isOpen = useMemo(() => activeModal === "setup-result", [activeModal]);
@@ -26,41 +24,12 @@ const SetupResult: React.FC = () => {
     console.log("handleDownloadCombinedSigna called with:", filename);
     console.log("setupFiles.combinedSigna exists:", !!setupFiles.combinedSigna);
 
-    if (setupFiles.combinedSigna) {
-      console.log("File exists in memory, downloading directly...");
-      const result = await downloadToLocal(filename, setupFiles.combinedSigna);
-      console.log("downloadToLocal result:", result);
-      return result;
-    }
-
-    // 파일이 없으면 먼저 다운로드 시도 (스피너 시간을 늘리기 위해)
-    console.log("File not in memory, fetching from Docker...");
-    const files = await downloadSetupFiles();
-    console.log("downloadSetupFiles completed, result:", files);
-
-    if (files && files.combinedSigna) {
-      console.log(
-        "Successfully fetched combinedSigna file from Docker, downloading..."
-      );
-      const result = await downloadToLocal(filename, files.combinedSigna);
-      console.log("downloadToLocal result:", result);
-      return result;
-    }
-
-    // combinedSigna 파일은 너무 크므로 직접 스트리밍으로 다운로드
-    console.log(
-      "Combined sigma file is too large, using streaming download..."
-    );
-    if (!currentDockerContainer?.ID) {
-      return { success: false, error: "Docker container not found" };
-    }
-
-    const result = await downloadVeryLargeFile(
-      currentDockerContainer.ID,
-      "packages/backend/setup/trusted-setup/output/combined_sigma.json",
-      filename
-    );
-    console.log("downloadVeryLargeFile result:", result);
+    // combinedSigna is a large file (1.5GB), use direct file copy
+    console.log("Large file detected, using direct download...");
+    const sourceFilePath =
+      "src/binaries/backend/resource/setup/output/combined_sigma.json";
+    const result = await downloadLargeFileDirectly(sourceFilePath, filename);
+    console.log("downloadLargeFileDirectly result:", result);
     return result;
   };
 
@@ -71,30 +40,13 @@ const SetupResult: React.FC = () => {
       !!setupFiles.sigmaPreprocess
     );
 
-    if (setupFiles.sigmaPreprocess) {
-      console.log("File exists in memory, downloading directly...");
-      const result = await downloadToLocal(
-        filename,
-        setupFiles.sigmaPreprocess
-      );
-      console.log("downloadToLocal result:", result);
-      return result;
-    }
-    // 파일이 없으면 먼저 다운로드 시도
-    console.log("File not in memory, fetching from Docker...");
-    const files = await downloadSetupFiles();
-    console.log("downloadSetupFiles completed, result:", files);
-
-    if (files && files.sigmaPreprocess) {
-      console.log(
-        "Successfully fetched sigmaPreprocess file from Docker, downloading..."
-      );
-      const result = await downloadToLocal(filename, files.sigmaPreprocess);
-      console.log("downloadToLocal result:", result);
-      return result;
-    }
-    console.error("Failed to get sigmaPreprocess file from Docker");
-    return { success: false, error: "File not available" };
+    // sigmaPreprocess is also a large file (492MB), use direct file copy
+    console.log("Large file detected, using direct download...");
+    const sourceFilePath =
+      "src/binaries/backend/resource/setup/output/sigma_preprocess.json";
+    const result = await downloadLargeFileDirectly(sourceFilePath, filename);
+    console.log("downloadLargeFileDirectly result:", result);
+    return result;
   };
 
   const handleDownloadSigmaVerify = async (filename: string) => {
@@ -108,19 +60,19 @@ const SetupResult: React.FC = () => {
       return result;
     }
     // 파일이 없으면 먼저 다운로드 시도
-    console.log("File not in memory, fetching from Docker...");
+    console.log("File not in memory, fetching from binary directory...");
     const files = await downloadSetupFiles();
     console.log("downloadSetupFiles completed, result:", files);
 
     if (files && files.sigmaVerify) {
       console.log(
-        "Successfully fetched sigmaVerify file from Docker, downloading..."
+        "Successfully fetched sigmaVerify file from binary directory, downloading..."
       );
       const result = await downloadToLocal(filename, files.sigmaVerify);
       console.log("downloadToLocal result:", result);
       return result;
     }
-    console.error("Failed to get sigmaVerify file from Docker");
+    console.error("Failed to get sigmaVerify file from binary directory");
     return { success: false, error: "File not available" };
   };
 

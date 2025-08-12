@@ -1,14 +1,12 @@
 import React, { useMemo } from "react";
 import FileDownloadItem from "../FileDownloadItem";
-import { useDockerFileDownload } from "../../hooks/useDockerFileDownload";
-import { useDocker } from "../../hooks/useDocker";
+import { useBinaryFileDownload } from "../../hooks/useBinaryFileDownload";
 import { useModals } from "../../hooks/useModals";
 import ExitIcon from "../../assets/modals/docker/exit.svg";
 
 const ProveResult: React.FC = () => {
   const { proveFiles, downloadProveFiles, downloadToLocal, isDownloading } =
-    useDockerFileDownload();
-  const { currentDockerContainer } = useDocker();
+    useBinaryFileDownload();
   const { activeModal, closeModal } = useModals();
   const isOpen = useMemo(() => activeModal === "prove-result", [activeModal]);
 
@@ -28,12 +26,8 @@ const ProveResult: React.FC = () => {
       return result;
     }
 
-    // 파일이 메모리에 없으면 Docker에서 다운로드
-    console.log("File not in memory, downloading from Docker...");
-    if (!currentDockerContainer?.ID) {
-      return { success: false, error: "Docker container not found" };
-    }
-
+    // 파일이 메모리에 없으면 바이너리 디렉토리에서 다운로드
+    console.log("File not in memory, downloading from binary directory...");
     const files = await downloadProveFiles();
     if (files?.proof) {
       const result = await downloadToLocal(filename, files.proof);

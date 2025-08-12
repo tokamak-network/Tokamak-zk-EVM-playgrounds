@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useDocker } from "./useDocker";
 
 export type LogItem = {
   topics?: string[];
@@ -41,8 +40,6 @@ export type SynthesizerResultData = {
 export const useSynthesizerResult = (): SynthesizerResultData & {
   refetchInstance: () => Promise<void>;
 } => {
-  const { executeCommand, currentDockerContainer } = useDocker();
-
   const [data, setData] = useState<SynthesizerResultData>({
     logs: [],
     instanceData: null,
@@ -53,36 +50,15 @@ export const useSynthesizerResult = (): SynthesizerResultData & {
   });
 
   const fetchInstanceData = useCallback(async () => {
-    if (!currentDockerContainer?.ID) {
-      console.log("❌ Docker container not found");
-      setData((prev) => ({
-        ...prev,
-        error: "Docker container not found. Please start the container first.",
-        isLoading: false,
-      }));
-      return;
-    }
-
     try {
       setData((prev) => ({ ...prev, isLoading: true, error: null }));
 
-      console.log("🔍 Fetching instance.json from Docker container...");
+      console.log("🔍 Fetching instance.json from binary directory...");
 
-      // First, check the file structure in the container
-      const lsResult = await executeCommand(currentDockerContainer.ID, [
-        "bash",
-        "-c",
-        `ls -la packages/frontend/synthesizer/examples/outputs/`,
-      ]);
-
-      console.log("📁 Directory listing:", lsResult);
-
-      // Execute command to read the instance.json file
-      const result = await executeCommand(currentDockerContainer.ID, [
-        "bash",
-        "-c",
-        `cat packages/frontend/synthesizer/examples/outputs/instance.json`,
-      ]);
+      // Read the instance.json file from binary directory
+      const result = await window.binaryService.readBinaryFile(
+        "src/binaries/backend/resource/synthesizer/outputs/instance.json"
+      );
 
       console.log("📄 Instance.json content length:", result.length);
       console.log(
@@ -237,14 +213,12 @@ export const useSynthesizerResult = (): SynthesizerResultData & {
           error instanceof Error ? error.message : "Unknown error occurred",
       }));
     }
-  }, [currentDockerContainer, executeCommand]);
+  }, []);
 
-  // Auto-fetch instance data when container is available
+  // Auto-fetch instance data when component mounts
   useEffect(() => {
-    if (currentDockerContainer?.ID) {
-      fetchInstanceData();
-    }
-  }, [currentDockerContainer?.ID, fetchInstanceData]);
+    fetchInstanceData();
+  }, [fetchInstanceData]);
 
   return {
     ...data,

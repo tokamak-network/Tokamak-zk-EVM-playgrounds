@@ -87,6 +87,8 @@ contextBridge.exposeInMainWorld("binaryService", {
     ipcRenderer.invoke("system-execute-command-with-sudo", command),
   executeScriptWithSudo: (scriptPath: string) =>
     ipcRenderer.invoke("system-execute-script-with-sudo", scriptPath),
+  readBinaryFile: (filePath: string) =>
+    ipcRenderer.invoke("binary-read-file", filePath),
 });
 
 //Settings
@@ -187,6 +189,13 @@ contextBridge.exposeInMainWorld("dockerFileDownloaderAPI", {
       "show-save-dialog",
       defaultFileName,
       content
+    );
+    return result;
+  },
+  showLargeFileSaveDialog: async (defaultFileName: string) => {
+    const result = await ipcRenderer.invoke(
+      "show-large-file-save-dialog",
+      defaultFileName
     );
     return result;
   },

@@ -933,6 +933,35 @@ function setupIpcHandlers() {
     }
   );
 
+  // Large file save dialog - only shows dialog without writing content
+  ipcMain.handle(
+    "show-large-file-save-dialog",
+    async (event, defaultFileName) => {
+      console.log("show-large-file-save-dialog called with:", {
+        defaultFileName,
+      });
+
+      try {
+        const { filePath } = await dialog.showSaveDialog({
+          defaultPath: defaultFileName,
+          filters: [{ name: "JSON", extensions: ["json"] }],
+        });
+
+        console.log("Large file dialog result:", { filePath });
+
+        if (filePath) {
+          return { filePath, success: true };
+        }
+
+        console.log("User cancelled large file save dialog");
+        return { filePath: null, success: false, error: "User cancelled" };
+      } catch (dialogError) {
+        console.error("Failed to show large file save dialog:", dialogError);
+        return { filePath: null, success: false, error: dialogError.message };
+      }
+    }
+  );
+
   // --- 파일 다운로드 및 Docker 이미지 로드 핸들러 끝 ---
 
   ipcMain.on("request-exit-modal", () => {
@@ -1062,6 +1091,27 @@ function setupIpcHandlers() {
       });
     } catch (error) {
       console.error("Failed to execute system command:", error);
+      throw error;
+    }
+  });
+
+  // Read file from binary directory
+  ipcMain.handle("binary-read-file", async (event, filePath: string) => {
+    try {
+      const fullPath = path.join(app.getAppPath(), filePath);
+      console.log("Reading binary file:", fullPath);
+
+      if (!fs.existsSync(fullPath)) {
+        throw new Error(`File not found: ${fullPath}`);
+      }
+
+      const content = fs.readFileSync(fullPath, "utf8");
+      console.log(
+        `Successfully read file: ${fullPath} (${content.length} characters)`
+      );
+      return content;
+    } catch (error) {
+      console.error("Failed to read binary file:", error);
       throw error;
     }
   });
