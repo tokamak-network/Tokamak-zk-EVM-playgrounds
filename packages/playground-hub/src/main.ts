@@ -26,10 +26,14 @@ import {
   streamLargeFileFromContainer,
   checkDockerStatus,
 } from "./api/docker-service";
+import { BinaryService } from "./services/binaryService";
 import { promisify } from "node:util";
 const execAsync = promisify(exec);
 
 let downloadItem: DownloadItem | null = null;
+
+// Initialize binary service
+let binaryService: BinaryService;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -961,6 +965,47 @@ function setupIpcHandlers() {
     return await checkDockerCudaSupport();
   });
 
+  // Binary Service IPC Handlers
+  ipcMain.handle("binary-get-info", async () => {
+    return await binaryService.getBinaryInfo();
+  });
+
+  ipcMain.handle("binary-get-status", async () => {
+    return await binaryService.getBinaryStatus();
+  });
+
+  ipcMain.handle("binary-start", async (event, args: string[] = []) => {
+    return await binaryService.startBinary(args);
+  });
+
+  ipcMain.handle("binary-stop", async (event, pid?: number) => {
+    return await binaryService.stopBinary(pid);
+  });
+
+  ipcMain.handle("binary-execute-command", async (event, command: string[]) => {
+    return await binaryService.executeCommand(command);
+  });
+
+  ipcMain.handle(
+    "binary-execute-command-streaming",
+    async (event, command: string[]) => {
+      return await binaryService.executeCommandWithStreaming(command);
+    }
+  );
+
+  // Set up streaming callback for binary service
+  ipcMain.handle("binary-setup-streaming", async (event) => {
+    binaryService.onStreamData(({ data, isError }) => {
+      event.sender.send("binary-stream-data", { data, isError });
+    });
+    return true;
+  });
+
+  ipcMain.handle("binary-remove-streaming", async () => {
+    binaryService.removeStreamDataListener();
+    return true;
+  });
+
   // 환경 정보 제공 핸들러
   ipcMain.handle("get-environment-info", async () => {
     try {
@@ -1183,6 +1228,10 @@ function setupIpcHandlers() {
 }
 
 app.whenReady().then(() => {
+  // Initialize binary service
+  binaryService = new BinaryService();
+  console.log("Binary service initialized");
+
   // macOS에서만 dock 아이콘 설정
   if (process.platform === "darwin") {
     try {
@@ -1255,6 +1304,21 @@ app.on("before-quit", async (event) => {
     }
   } catch (error) {
     console.error("[ERROR] Docker 컨테이너 중지 과정 중 예외 발생:", error);
+  }
+
+  // Clean up binary service
+  try {
+    console.log("[INFO] Binary service cleanup 시작...");
+    if (binaryService) {
+      await binaryService.cleanup();
+      console.log("[SUCCESS] Binary service cleanup 완료");
+    } else {
+      console.log(
+        "[INFO] Binary service가 초기화되지 않아 cleanup을 건너뜁니다."
+      );
+    }
+  } catch (error) {
+    console.error("[ERROR] Binary service cleanup 중 오류:", error);
   } finally {
     console.log(
       "[INFO] 모든 정리 작업 완료. 모든 창을 닫고 애플리케이션 실제 종료를 시도합니다."
