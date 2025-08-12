@@ -14,8 +14,31 @@ export interface BinaryInfo {
 export class BinaryManager {
   private binaryName: string;
 
-  constructor(binaryName = "tokamak-zk-evm-synthesizer") {
-    this.binaryName = binaryName;
+  constructor(binaryName?: string) {
+    // 플랫폼별 바이너리 이름 자동 생성
+    if (!binaryName) {
+      const platform = process.platform;
+      const arch = process.arch;
+
+      if (platform === "darwin") {
+        this.binaryName =
+          arch === "arm64" ? "synthesizer-mac-arm64" : "synthesizer-mac-x64";
+      } else if (platform === "win32") {
+        this.binaryName =
+          arch === "arm64"
+            ? "synthesizer-win-arm64.exe"
+            : "synthesizer-win-x64.exe";
+      } else if (platform === "linux") {
+        this.binaryName =
+          arch === "arm64"
+            ? "synthesizer-linux-arm64"
+            : "synthesizer-linux-x64";
+      } else {
+        this.binaryName = "synthesizer-unknown";
+      }
+    } else {
+      this.binaryName = binaryName;
+    }
   }
 
   /**
@@ -24,24 +47,18 @@ export class BinaryManager {
   private getBinaryPath(): string {
     const platform = process.platform;
     const arch = process.arch;
-    const extension = platform === "win32" ? ".exe" : "";
-    const binaryFileName = `${this.binaryName}${extension}`;
+    // 바이너리 이름에 이미 확장자가 포함되어 있음
+    const binaryFileName = this.binaryName;
 
     let basePath: string;
 
     if (app.isPackaged) {
       // Production: app resources folder
-      basePath = path.join(process.resourcesPath, "binaries", platform, arch);
+      basePath = path.join(process.resourcesPath, "binaries", "synthesizer");
     } else {
-      // Development: src/assets/binaries
-      basePath = path.join(
-        __dirname,
-        "..",
-        "assets",
-        "binaries",
-        platform,
-        arch
-      );
+      // Development: src/binaries
+      // Use app.getAppPath() instead of __dirname for better compatibility
+      basePath = path.join(app.getAppPath(), "src", "binaries", "synthesizer");
     }
 
     return path.join(basePath, binaryFileName);
@@ -124,9 +141,9 @@ export class BinaryManager {
     const arch = process.arch;
 
     if (app.isPackaged) {
-      return path.join(process.resourcesPath, "binaries", platform, arch);
+      return path.join(process.resourcesPath, "binaries", "synthesizer");
     } else {
-      return path.join(__dirname, "..", "assets", "binaries", platform, arch);
+      return path.join(app.getAppPath(), "src", "binaries", "synthesizer");
     }
   }
 
