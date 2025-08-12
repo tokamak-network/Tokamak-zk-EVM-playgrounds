@@ -330,98 +330,22 @@ export const useDocker = () => {
     }
   }, [dockerConfig]);
 
-  // 초기 로딩 시 Docker 상태 체크 및 스마트 주기적 체크
+  // Docker status checking disabled - using binary execution instead
   useEffect(() => {
-    // Docker 설정이 로드되지 않았으면 대기
-    if (!dockerConfig) return;
+    // Set default Docker status to avoid checking
+    setDockerStatus({
+      isInstalled: true,
+      isRunning: true,
+      imageExists: true,
+      isContainerFromImageRunning: true,
+    });
 
-    let checkInterval: NodeJS.Timeout | null = null;
-    let isComponentMounted = true;
-    let consecutiveSuccessCount = 0;
-    let lastStatus: DockerStatusCheckResult | null = null;
+    // Set loading to false immediately
+    setIsDockerStatusLoading(false);
 
-    const performCheck = async (imageName?: string) => {
-      if (!isComponentMounted) return;
-      try {
-        const status = await window.docker.checkDockerStatus(imageName);
-        if (isComponentMounted) {
-          // 상태가 변경되었을 때만 업데이트
-          const hasStatusChanged =
-            !lastStatus ||
-            lastStatus.isInstalled !== status.isInstalled ||
-            lastStatus.isRunning !== status.isRunning ||
-            lastStatus.imageExists !== status.imageExists ||
-            lastStatus.isContainerFromImageRunning !==
-              status.isContainerFromImageRunning;
-
-          if (hasStatusChanged) {
-            setDockerStatus(status);
-            lastStatus = status;
-            consecutiveSuccessCount = 0; // 상태 변화 시 카운트 리셋
-          } else {
-            consecutiveSuccessCount++;
-          }
-
-          // Docker cleanup이 완료된 후에만 로딩 상태를 false로 설정
-          // cleanup이 완료되지 않았다면 절대 loading을 끝내지 않음
-          if (globalCleanupCompleted) {
-            // cleanup이 완료되었고 config도 있다면 바로 loading 끝내기
-            if (dockerConfig?.imageName) {
-              setTimeout(() => {
-                setIsDockerStatusLoading(false);
-              }, 100);
-            }
-          } else {
-            // cleanup이 완료되지 않았으면 loading 상태 강제 유지
-            if (!isDockerStatusLoading) {
-              setIsDockerStatusLoading(true);
-            }
-          }
-
-          // 상태가 안정적이면 체크 간격을 늘림
-          if (consecutiveSuccessCount >= 3 && checkInterval) {
-            clearInterval(checkInterval);
-            checkInterval = setInterval(() => {
-              performCheck(imageNameForPolling);
-            }, 30000); // 30초로 간격 증가
-          }
-        }
-      } catch (err) {
-        console.error("Failed to check Docker status:", err);
-        consecutiveSuccessCount = 0;
-        if (isComponentMounted) {
-          const errorStatus = {
-            isInstalled: false,
-            isRunning: false,
-            imageExists: false,
-            isContainerFromImageRunning: false,
-          };
-          if (
-            !lastStatus ||
-            JSON.stringify(lastStatus) !== JSON.stringify(errorStatus)
-          ) {
-            setDockerStatus(errorStatus);
-            lastStatus = errorStatus;
-          }
-        }
-      }
-    };
-
-    // 초기 체크
-    performCheck(imageNameForPolling);
-
-    // 초기에는 10초마다 체크
-    checkInterval = setInterval(() => {
-      performCheck(imageNameForPolling);
-    }, 10000);
-
-    return () => {
-      isComponentMounted = false;
-      if (checkInterval) {
-        clearInterval(checkInterval);
-      }
-    };
-  }, [imageNameForPolling, dockerConfig]);
+    // Mark cleanup as completed to avoid waiting
+    globalCleanupCompleted = true;
+  }, []);
 
   const loadImages = useCallback(async () => {
     setLoading(true);
