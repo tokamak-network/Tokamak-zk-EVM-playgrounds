@@ -19,6 +19,7 @@ import { useBenchmark } from "./useBenchmark";
 // CUDA API types are defined in render.d.ts
 
 export enum TokamakActionType {
+  InstallDependencies = "INSTALL_DEPENDENCIES",
   SetupEvmSpec = "SETUP_EVM_SPEC",
   RunSynthesizer = "RUN_SYNTHESIZER",
   ProveTransaction = "PROVE_TRANSACTION",
@@ -82,6 +83,29 @@ export function useTokamakZkEVMActions() {
       try {
         setPlaygroundStageInProcess(true);
         switch (actionType) {
+          case TokamakActionType.InstallDependencies:
+            updateActiveSection("evm-to-qap");
+            openModal("loading");
+
+            console.log(
+              "🔍 InstallDependencies: Starting installation process..."
+            );
+
+            try {
+              console.log("🔍 InstallDependencies: Executing 1_install.sh...");
+              const result = await window.binaryService.executeScriptWithSudo(
+                "src/binaries/backend/1_install.sh"
+              );
+
+              console.log(
+                "🔍 InstallDependencies: Installation completed successfully"
+              );
+              return updateActiveSection("qap-to-setup-synthesizer");
+            } catch (error) {
+              console.error("🔍 InstallDependencies: Error occurred:", error);
+              throw error;
+            }
+
           case TokamakActionType.SetupEvmSpec:
             try {
               if (isCudaSupported) {
@@ -220,8 +244,28 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.SetupTrustedSetup:
             if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
-              // await setup(); // Binary-based setup
-              return updateActiveSection("setup-to-prove");
+              updateActiveSection("qap-to-setup-synthesizer");
+              openModal("loading");
+
+              console.log("🔍 SetupTrustedSetup: Starting setup process...");
+
+              try {
+                console.log(
+                  "🔍 SetupTrustedSetup: Executing system command..."
+                );
+                const result = await window.binaryService.executeSystemCommand([
+                  "bash",
+                  "src/binaries/backend/2_run-trusted-setup.sh",
+                ]);
+
+                console.log(
+                  "🔍 SetupTrustedSetup: Command completed successfully"
+                );
+                return updateActiveSection("setup-to-prove");
+              } catch (error) {
+                console.error("🔍 SetupTrustedSetup: Error occurred:", error);
+                throw error;
+              }
             }
             throw new Error("Binary is not available or not executable");
 
@@ -531,6 +575,10 @@ export function useTokamakZkEVMActions() {
     return executeTokamakAction(TokamakActionType.Verify);
   }, [executeTokamakAction]);
 
+  const runInstallDependencies = useCallback(async () => {
+    return executeTokamakAction(TokamakActionType.InstallDependencies);
+  }, [executeTokamakAction]);
+
   return {
     executeTokamakAction,
     setupEvmSpec,
@@ -539,6 +587,7 @@ export function useTokamakZkEVMActions() {
     runSetupTrustedSetup,
     runPreProcess,
     runVerify,
+    runInstallDependencies,
     provingIsDone,
     provingResult,
   };

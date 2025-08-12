@@ -1,23 +1,29 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useRef, useCallback } from "react";
 import ExitModalImage from "../../assets/modals/exit/exit-modal.svg";
 import { useModals } from "../../hooks/useModals";
 
 const ExitModal: React.FC = () => {
   const { activeModal, openModal } = useModals();
   const isOpen = useMemo(() => activeModal === "exit", [activeModal]);
+  const openModalRef = useRef(openModal);
+
+  // Keep the ref updated
+  useEffect(() => {
+    openModalRef.current = openModal;
+  }, [openModal]);
+
+  const handleShowExitModal = useCallback(() => {
+    console.log("show-exit-modal event received");
+    openModalRef.current("exit");
+  }, []);
 
   useEffect(() => {
-    const handleShowExitModal = () => {
-      console.log("show-exit-modal event received");
-      openModal("exit");
-    };
-
     window.electronAPI.on("show-exit-modal", handleShowExitModal); // 이벤트 리스너 등록
 
     return () => {
       window.electronAPI.removeListener("show-exit-modal", handleShowExitModal); // 이벤트 리스너 제거
     };
-  }, [openModal]);
+  }, [handleShowExitModal]);
 
   if (!isOpen) return null;
 

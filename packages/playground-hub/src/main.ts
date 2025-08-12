@@ -15,6 +15,7 @@ import fs from "node:fs";
 import os from "node:os";
 import { exec, spawn } from "node:child_process";
 import started from "electron-squirrel-startup";
+import * as sudo from "sudo-prompt";
 import {
   getDockerImages,
   runDockerContainer,
@@ -1160,6 +1161,250 @@ function setupIpcHandlers() {
       };
     }
   });
+
+  // Password dialog handler for sudo operations
+  ipcMain.handle("show-password-dialog", async (event, message?: string) => {
+    const mainWindow = BrowserWindow.fromWebContents(event.sender);
+    if (!mainWindow) return { success: false, error: "No window found" };
+
+    try {
+      // Use a custom input dialog approach for password input
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Password Required</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
+              padding: 20px;
+              background: #f5f5f5;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+            }
+            .dialog {
+              background: white;
+              border-radius: 8px;
+              padding: 24px;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+              width: 400px;
+              text-align: center;
+            }
+            .icon {
+              font-size: 48px;
+              margin-bottom: 16px;
+            }
+            h2 {
+              margin: 0 0 8px 0;
+              font-weight: 600;
+            }
+            p {
+              color: #666;
+              margin: 0 0 24px 0;
+              line-height: 1.4;
+            }
+            input[type="password"] {
+              width: 100%;
+              padding: 12px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              font-size: 14px;
+              margin-bottom: 20px;
+              box-sizing: border-box;
+            }
+            .buttons {
+              display: flex;
+              gap: 12px;
+              justify-content: flex-end;
+            }
+            button {
+              padding: 8px 16px;
+              border: none;
+              border-radius: 4px;
+              font-size: 14px;
+              cursor: pointer;
+            }
+            .cancel {
+              background: #f0f0f0;
+              color: #333;
+            }
+            .submit {
+              background: #007aff;
+              color: white;
+            }
+            button:hover {
+              opacity: 0.8;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="dialog">
+            <div class="icon">🔐</div>
+            <h2>Administrator Password Required</h2>
+            <p>${message || "Administrator access is required to install system dependencies."}</p>
+            <input type="password" id="password" placeholder="Enter your password" autofocus>
+            <div class="buttons">
+              <button class="cancel" onclick="window.close()">Cancel</button>
+              <button class="submit" onclick="submitPassword()">OK</button>
+            </div>
+          </div>
+          <script>
+            function submitPassword() {
+              const password = document.getElementById('password').value;
+              if (password) {
+                require('electron').ipcRenderer.send('password-submitted', password);
+                window.close();
+              } else {
+                alert('Please enter your password');
+              }
+            }
+            document.getElementById('password').addEventListener('keypress', function(e) {
+              if (e.key === 'Enter') {
+                submitPassword();
+              }
+            });
+          </script>
+        </body>
+        </html>
+      `;
+
+      return new Promise((resolve) => {
+        const passwordWindow = new BrowserWindow({
+          width: 450,
+          height: 300,
+          resizable: false,
+          minimizable: false,
+          maximizable: false,
+          parent: mainWindow,
+          modal: true,
+          show: false,
+          webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+          },
+        });
+
+        passwordWindow.loadURL(
+          `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`
+        );
+        passwordWindow.setMenuBarVisibility(false);
+        passwordWindow.show();
+
+        // Handle password submission
+        ipcMain.once("password-submitted", (event, password) => {
+          resolve({ success: true, password });
+          passwordWindow.close();
+        });
+
+        // Handle window close
+        passwordWindow.on("closed", () => {
+          resolve({ success: false, error: "Password dialog cancelled" });
+        });
+      });
+    } catch (error) {
+      console.error("Password dialog error:", error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Execute script content with OS native sudo prompt (to bypass file execution restrictions)
+  ipcMain.handle(
+    "system-execute-script-with-sudo",
+    async (event, scriptPath: string) => {
+      try {
+        console.log(
+          "Executing script content with native sudo prompt:",
+          scriptPath
+        );
+
+        // Read script content
+        const fullScriptPath = path.join(app.getAppPath(), scriptPath);
+        const scriptContent = fs.readFileSync(fullScriptPath, "utf8");
+
+        // Create a command that executes the script content directly
+        const fullCommand = `cd "${app.getAppPath()}" && bash -c '${scriptContent.replace(/'/g, "'\"'\"'")}'`;
+        const options = {
+          name: "Tokamak ZK EVM Playground",
+          env: { ...process.env },
+        };
+
+        console.log("Executing script content via sudo");
+
+        return new Promise((resolve, reject) => {
+          sudo.exec(fullCommand, options, (error, stdout, stderr) => {
+            if (error) {
+              console.error("Sudo script execution error:", error);
+              reject(
+                new Error(`Sudo script execution failed: ${error.message}`)
+              );
+            } else {
+              console.log("Sudo script execution completed successfully");
+              console.log("stdout:", stdout);
+              if (stderr) {
+                console.log("stderr:", stderr);
+              }
+              resolve(stdout || "Script execution completed successfully");
+            }
+          });
+        });
+      } catch (error) {
+        console.error("Failed to execute script with sudo:", error);
+        throw error;
+      }
+    }
+  );
+
+  // Execute command with OS native sudo prompt
+  ipcMain.handle(
+    "system-execute-command-with-sudo",
+    async (event, command: string[]) => {
+      try {
+        console.log(
+          "Executing system command with native sudo prompt:",
+          command
+        );
+
+        // Convert relative paths to absolute paths and set working directory
+        const processedCommand = command.map((arg) => {
+          if (arg.startsWith("src/binaries/")) {
+            return path.join(app.getAppPath(), arg);
+          }
+          return arg;
+        });
+
+        // Prepend cd command to ensure correct working directory
+        const fullCommand = `cd "${app.getAppPath()}" && ${processedCommand.join(" ")}`;
+        const options = {
+          name: "Tokamak ZK EVM Playground",
+          env: { ...process.env },
+        };
+
+        console.log("Processed command:", fullCommand);
+
+        return new Promise((resolve, reject) => {
+          sudo.exec(fullCommand, options, (error, stdout, stderr) => {
+            if (error) {
+              console.error("Sudo command error:", error);
+              reject(new Error(`Sudo command failed: ${error.message}`));
+            } else {
+              console.log("Sudo command completed successfully");
+              console.log("stdout:", stdout);
+              if (stderr) {
+                console.log("stderr:", stderr);
+              }
+              resolve(stdout || "Command completed successfully");
+            }
+          });
+        });
+      } catch (error) {
+        console.error("Failed to execute sudo command:", error);
+        throw error;
+      }
+    }
+  );
 
   // System hardware information provider handler
   ipcMain.handle("get-system-info", async () => {

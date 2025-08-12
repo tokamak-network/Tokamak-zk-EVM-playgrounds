@@ -6,6 +6,7 @@ import skyblueRain from "../assets/images/rain-skyblue.svg";
 import "../style.css";
 import { useModals } from "../hooks/useModals";
 import { usePlaygroundStartStage } from "../hooks/usePlaygroundStage";
+import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 
 interface CloudWithRainProps {
   position: string;
@@ -23,6 +24,7 @@ export default function CloudWithRain({
   const rainRef = useRef<HTMLDivElement>(null);
 
   const { openModal } = useModals();
+  const { runInstallDependencies } = useTokamakZkEVMActions();
 
   const { playgroundStartStage } = usePlaygroundStartStage();
   const showRain = isEVMSpec
@@ -67,7 +69,7 @@ export default function CloudWithRain({
         style={{ userSelect: "none" }}
         onClick={() => {
           if (isEVMSpec) {
-            return openModal("docker-select");
+            return runInstallDependencies();
           }
           return openModal("transaction-input");
         }}

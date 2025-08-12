@@ -40,6 +40,8 @@ declare global {
       removeStreamDataListener: () => void;
       executeDirectCommand: (command: string[]) => Promise<string>;
       executeSystemCommand: (command: string[]) => Promise<string>;
+      executeSystemCommandWithSudo: (command: string[]) => Promise<string>;
+      executeScriptWithSudo: (scriptPath: string) => Promise<string>;
     };
   }
 }
