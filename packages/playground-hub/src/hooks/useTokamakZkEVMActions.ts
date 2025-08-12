@@ -226,14 +226,11 @@ export function useTokamakZkEVMActions() {
             throw new Error("Binary is not available or not executable");
 
           case TokamakActionType.PreProcess:
-            if (currentDockerContainer?.ID) {
-              // setPendingAnimation(true);
+            if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
               openModal("loading");
 
-              console.log("🔍 PreProcess: Starting preprocess action...");
               console.log(
-                "🔍 PreProcess: currentDockerContainer.ID:",
-                currentDockerContainer.ID
+                "🔍 PreProcess: Starting binary-based preprocess action..."
               );
 
               // Force initialization if no benchmark session exists
@@ -259,9 +256,20 @@ export function useTokamakZkEVMActions() {
               );
 
               try {
-                console.log("🔍 PreProcess: Calling preProcess function...");
-                await preProcess(currentDockerContainer.ID);
-                console.log("🔍 PreProcess: preProcess completed successfully");
+                console.log(
+                  "🔍 PreProcess: Executing 3_run-preprocess.sh script..."
+                );
+
+                // Execute the preprocess script using system bash command
+                const result = await window.binaryService.executeSystemCommand([
+                  "bash",
+                  "src/binaries/backend/3_run-preprocess.sh",
+                ]);
+
+                console.log(
+                  "🔍 PreProcess: Script execution completed:",
+                  result
+                );
 
                 // Benchmarking: Record PreProcess successful completion time
                 if (preprocessStartTime) {
@@ -292,13 +300,16 @@ export function useTokamakZkEVMActions() {
                 throw error;
               }
             }
-            throw new Error("currentDockerContainer is not found");
+            throw new Error("Binary is not available or not executable");
 
           case TokamakActionType.ProveTransaction:
-            if (currentDockerContainer?.ID) {
-              // setPendingAnimation(true);
+            if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
               openModal("prove-loading");
               setProveStep(1); // Set initial step
+
+              console.log(
+                "🔍 ProveTransaction: Starting binary-based prove action..."
+              );
 
               // Force initialization if no benchmark session exists
               if (!currentSession) {
@@ -324,16 +335,29 @@ export function useTokamakZkEVMActions() {
               let proveLogData = "";
 
               try {
-                await proveWithStreaming(
-                  currentDockerContainer.ID,
-                  (data, isError) => {
-                    if (!isError) {
-                      console.log("Prove log:", data);
-                      analyzeProveLog(data);
-                      // Collect log data
-                      proveLogData += data + "\n";
-                    }
+                console.log(
+                  "🔍 ProveTransaction: Executing 4_run-prove.sh script..."
+                );
+
+                // Set up streaming data listener for prove logs
+                window.binaryService.onStreamData(({ data, isError }) => {
+                  if (!isError) {
+                    console.log("Prove log:", data);
+                    analyzeProveLog(data);
+                    // Collect log data
+                    proveLogData += data + "\n";
                   }
+                });
+
+                // Execute the prove script using system bash command
+                const result = await window.binaryService.executeSystemCommand([
+                  "bash",
+                  "src/binaries/backend/4_run-prove.sh",
+                ]);
+
+                console.log(
+                  "🔍 ProveTransaction: Script execution completed:",
+                  result
                 );
 
                 // Benchmarking: Record Prove successful completion time (including log data)
@@ -351,6 +375,7 @@ export function useTokamakZkEVMActions() {
 
                 return updateActiveSection("prove-to-verify");
               } catch (error) {
+                console.error("🔍 ProveTransaction: Error occurred:", error);
                 // Benchmarking: Record Prove failure time
                 if (proveStartTime) {
                   endProcessTiming(
@@ -362,16 +387,30 @@ export function useTokamakZkEVMActions() {
                   );
                 }
                 throw error;
+              } finally {
+                // Clean up streaming listener
+                window.binaryService.removeStreamDataListener();
               }
             }
-            throw new Error("currentDockerContainer is not found");
+            throw new Error("Binary is not available or not executable");
 
           case TokamakActionType.Verify:
-            if (currentDockerContainer?.ID) {
+            if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
               try {
-                // setPendingAnimation(true);
                 openModal("loading");
-                const result = await verify(currentDockerContainer.ID);
+
+                console.log(
+                  "🔍 Verify: Starting binary-based verify action..."
+                );
+                console.log("🔍 Verify: Executing 5_run-verify.sh script...");
+
+                // Execute the verify script using system bash command
+                const result = await window.binaryService.executeSystemCommand([
+                  "bash",
+                  "src/binaries/backend/5_run-verify.sh",
+                ]);
+
+                console.log("🔍 Verify: Script execution completed:", result);
 
                 const lines = result.trim().split("\n");
                 const lastLine = lines[lines.length - 1].trim();
@@ -412,6 +451,7 @@ export function useTokamakZkEVMActions() {
                   };
                 }
               } catch (error) {
+                console.error("🔍 Verify: Error occurred:", error);
                 setProvingIsDone(true);
                 setProvingResult(false);
 
@@ -422,10 +462,9 @@ export function useTokamakZkEVMActions() {
                 };
               } finally {
                 updateActiveSection("verify-to-result");
-                // setPendingAnimation(false);
               }
             }
-            throw new Error("currentDockerContainer is not found");
+            throw new Error("Binary is not available or not executable");
 
           default:
             console.warn(

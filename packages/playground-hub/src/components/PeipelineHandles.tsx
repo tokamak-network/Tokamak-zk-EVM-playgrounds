@@ -56,8 +56,8 @@ export default function PeipelineHandles() {
           runProve();
           // updateActiveSection("prove-to-verify");
         }}
-        isActive={proveStage.isReady}
-        // isActive={true}
+        // isActive={proveStage.isReady}
+        isActive={true}
       />
       <Handle
         type="green"
@@ -66,8 +66,8 @@ export default function PeipelineHandles() {
           runVerify();
           // updateActiveSection("verify-to-result");
         }}
-        isActive={verifyStage.isReady}
-        // isActive={true}
+        // isActive={verifyStage.isReady}
+        isActive={true}
       />
       <Handle
         type="green"
@@ -76,8 +76,8 @@ export default function PeipelineHandles() {
           runPreProcess();
           // updateActiveSection("bikzg-to-verify");
         }}
-        isActive={bikzgStage.isReady}
-        // isActive={true}
+        // isActive={bikzgStage.isReady}
+        isActive={true}
       />
     </div>
   );

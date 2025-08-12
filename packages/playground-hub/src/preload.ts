@@ -71,13 +71,18 @@ contextBridge.exposeInMainWorld("binaryService", {
     // Set up streaming first
     ipcRenderer.invoke("binary-setup-streaming");
     ipcRenderer.on("binary-stream-data", (event, data) => callback(data));
+    // Also listen for system command streaming
+    ipcRenderer.on("system-stream-data", (event, data) => callback(data));
   },
   removeStreamDataListener: () => {
     ipcRenderer.invoke("binary-remove-streaming");
     ipcRenderer.removeAllListeners("binary-stream-data");
+    ipcRenderer.removeAllListeners("system-stream-data");
   },
   executeDirectCommand: (command: string[]) =>
     ipcRenderer.invoke("binary-execute-direct", command),
+  executeSystemCommand: (command: string[]) =>
+    ipcRenderer.invoke("system-execute-command", command),
 });
 
 //Settings
