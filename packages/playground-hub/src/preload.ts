@@ -55,6 +55,29 @@ contextBridge.exposeInMainWorld("docker", {
     ipcRenderer.invoke("check-docker-status", imageNameToCheck),
 });
 
+// Binary Service
+contextBridge.exposeInMainWorld("binaryService", {
+  getBinaryInfo: () => ipcRenderer.invoke("binary-get-info"),
+  getBinaryStatus: () => ipcRenderer.invoke("binary-get-status"),
+  startBinary: (args?: string[]) => ipcRenderer.invoke("binary-start", args),
+  stopBinary: (pid?: number) => ipcRenderer.invoke("binary-stop", pid),
+  executeCommand: (command: string[]) =>
+    ipcRenderer.invoke("binary-execute-command", command),
+  executeCommandWithStreaming: (command: string[]) =>
+    ipcRenderer.invoke("binary-execute-command-streaming", command),
+  onStreamData: (
+    callback: (data: { data: string; isError: boolean }) => void
+  ) => {
+    // Set up streaming first
+    ipcRenderer.invoke("binary-setup-streaming");
+    ipcRenderer.on("binary-stream-data", (event, data) => callback(data));
+  },
+  removeStreamDataListener: () => {
+    ipcRenderer.invoke("binary-remove-streaming");
+    ipcRenderer.removeAllListeners("binary-stream-data");
+  },
+});
+
 //Settings
 contextBridge.exposeInMainWorld("electron", {
   closeSettingsWindow: () => ipcRenderer.invoke("close-settings-window"),
