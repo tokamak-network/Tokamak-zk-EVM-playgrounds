@@ -1006,6 +1006,65 @@ function setupIpcHandlers() {
     return true;
   });
 
+  // System command execution (for shell scripts and system commands)
+  ipcMain.handle("system-execute-command", async (event, command: string[]) => {
+    try {
+      console.log("Executing system command:", command);
+
+      return new Promise((resolve, reject) => {
+        const childProcess = spawn(command[0], command.slice(1), {
+          stdio: ["pipe", "pipe", "pipe"],
+          env: { ...process.env },
+          cwd: app.getAppPath(), // Set working directory to app root
+        });
+
+        let output = "";
+        let errorOutput = "";
+
+        childProcess.stdout?.on("data", (data: Buffer) => {
+          const text = data.toString();
+          output += text;
+          console.log("System command stdout:", text);
+          event.sender.send("system-stream-data", {
+            data: text,
+            isError: false,
+          });
+        });
+
+        childProcess.stderr?.on("data", (data: Buffer) => {
+          const text = data.toString();
+          errorOutput += text;
+          console.error("System command stderr:", text);
+          event.sender.send("system-stream-data", {
+            data: text,
+            isError: true,
+          });
+        });
+
+        childProcess.on("close", (code: number) => {
+          console.log(`System command exited with code: ${code}`);
+          if (code === 0) {
+            resolve(output);
+          } else {
+            reject(
+              new Error(
+                `System command failed with code ${code}: ${errorOutput}`
+              )
+            );
+          }
+        });
+
+        childProcess.on("error", (error: Error) => {
+          console.error("System command error:", error);
+          reject(error);
+        });
+      });
+    } catch (error) {
+      console.error("Failed to execute system command:", error);
+      throw error;
+    }
+  });
+
   // Direct binary execution (one-shot CLI commands)
   ipcMain.handle("binary-execute-direct", async (event, command: string[]) => {
     try {

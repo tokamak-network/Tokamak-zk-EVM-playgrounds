@@ -2,7 +2,14 @@
 
 ## General Rules
 
-### 1. Comments and Documentation
+### 1. Language Requirements
+
+- **ALL code, comments, documentation, and commit messages must be written in English**
+- **ALL user-facing text and error messages must be in English**
+- Use clear, concise English for all communications
+- No Korean or other languages in codebase
+
+### 2. Comments and Documentation
 
 - **ALL comments must be written in English**
 - Use clear, concise English for all code comments
@@ -19,7 +26,7 @@ function authenticateUser() {}
 function authenticateUser() {}
 ```
 
-### 2. Variable and Function Naming
+### 3. Variable and Function Naming
 
 - Use descriptive English names for variables, functions, and classes
 - Follow camelCase convention for JavaScript/TypeScript
@@ -35,7 +42,7 @@ const currentUserData = getUserData();
 const submitButton = document.getElementById('submit');
 ```
 
-### 3. Error Handling
+### 4. Error Handling
 
 - Always include proper error handling with try-catch blocks
 - Log errors with descriptive English messages
@@ -52,7 +59,7 @@ try {
 }
 ```
 
-### 4. Type Safety
+### 5. Type Safety
 
 - Use TypeScript types extensively
 - Define interfaces for complex objects
@@ -71,28 +78,28 @@ const processUserData = (user: UserData): string => {
 };
 ```
 
-### 5. Code Organization
+### 6. Code Organization
 
 - Group related functionality together
 - Use clear folder structure
 - Separate concerns (UI, business logic, utilities)
 - Keep functions small and focused (single responsibility)
 
-### 6. Performance Considerations
+### 7. Performance Considerations
 
 - Avoid unnecessary re-renders in React components
 - Use appropriate data structures
 - Implement proper caching where needed
 - Consider async/await for I/O operations
 
-### 7. Security
+### 8. Security
 
 - Validate all user inputs
 - Sanitize data before processing
 - Use secure authentication methods
 - Avoid exposing sensitive information in logs
 
-### 8. Platform-Specific Code
+### 9. Platform-Specific Code
 
 - Always provide fallback mechanisms for platform-specific operations
 - Test cross-platform compatibility
@@ -113,7 +120,26 @@ if (platform === "win32") {
 }
 ```
 
-### 9. Logging and Debugging
+### 10. Binary Execution and CLI Tools
+
+- **ALL binary executables in this project are CLI tools, NOT long-running services**
+- Never attempt to start binaries as persistent processes or servers
+- Use direct command execution for each operation (one-shot execution)
+- Always use system commands (bash, sh, cmd) to execute shell scripts
+- Handle binary execution through IPC with proper error handling
+
+```typescript
+// ❌ BAD - Trying to run binary as persistent service
+const binaryProcess = spawn('./my-tool', ['--server-mode']);
+
+// ✅ GOOD - Direct CLI execution
+const result = await executeDirectCommand(['./my-tool', 'command', '--arg']);
+
+// ✅ GOOD - System script execution
+const result = await executeDirectCommand(['bash', 'path/to/script.sh']);
+```
+
+### 11. Logging and Debugging
 
 - Use appropriate log levels (error, warn, info, debug)
 - Include context in log messages
@@ -126,7 +152,7 @@ console.warn('Failed to get detailed system info, using fallback method');
 console.error('Critical error in authentication:', error.message);
 ```
 
-### 10. Testing
+### 12. Testing
 
 - Write unit tests for critical functions
 - Test error scenarios and edge cases
