@@ -76,6 +76,8 @@ contextBridge.exposeInMainWorld("binaryService", {
     ipcRenderer.invoke("binary-remove-streaming");
     ipcRenderer.removeAllListeners("binary-stream-data");
   },
+  executeDirectCommand: (command: string[]) =>
+    ipcRenderer.invoke("binary-execute-direct", command),
 });
 
 //Settings

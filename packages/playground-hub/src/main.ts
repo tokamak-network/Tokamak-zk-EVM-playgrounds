@@ -13,7 +13,7 @@ import {
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";
-import { exec } from "node:child_process";
+import { exec, spawn } from "node:child_process";
 import started from "electron-squirrel-startup";
 import {
   getDockerImages,
@@ -1004,6 +1004,81 @@ function setupIpcHandlers() {
   ipcMain.handle("binary-remove-streaming", async () => {
     binaryService.removeStreamDataListener();
     return true;
+  });
+
+  // Direct binary execution (one-shot CLI commands)
+  ipcMain.handle("binary-execute-direct", async (event, command: string[]) => {
+    try {
+      const binaryManager = new (
+        await import("./utils/binaryManager")
+      ).BinaryManager();
+      const binaryPath = await binaryManager.ensureBinaryExists();
+
+      // Convert relative output paths to absolute paths
+      const processedCommand = command.map((arg) => {
+        if (arg.startsWith("src/binaries/")) {
+          return path.join(app.getAppPath(), arg);
+        }
+        return arg;
+      });
+
+      console.log(
+        "Executing direct binary command:",
+        binaryPath,
+        processedCommand
+      );
+
+      return new Promise((resolve, reject) => {
+        const childProcess = spawn(binaryPath, processedCommand, {
+          stdio: ["pipe", "pipe", "pipe"],
+          env: { ...process.env },
+        });
+
+        let output = "";
+        let errorOutput = "";
+
+        childProcess.stdout?.on("data", (data: Buffer) => {
+          const text = data.toString();
+          output += text;
+          console.log("Binary stdout:", text);
+          event.sender.send("binary-stream-data", {
+            data: text,
+            isError: false,
+          });
+        });
+
+        childProcess.stderr?.on("data", (data: Buffer) => {
+          const text = data.toString();
+          errorOutput += text;
+          console.error("Binary stderr:", text);
+          event.sender.send("binary-stream-data", {
+            data: text,
+            isError: true,
+          });
+        });
+
+        childProcess.on("close", (code: number) => {
+          console.log(`Binary process exited with code: ${code}`);
+          if (code === 0) {
+            resolve(output);
+          } else {
+            reject(
+              new Error(
+                `Binary process failed with code ${code}: ${errorOutput}`
+              )
+            );
+          }
+        });
+
+        childProcess.on("error", (error: Error) => {
+          console.error("Binary process error:", error);
+          reject(error);
+        });
+      });
+    } catch (error) {
+      console.error("Failed to execute direct binary command:", error);
+      throw error;
+    }
   });
 
   // 환경 정보 제공 핸들러

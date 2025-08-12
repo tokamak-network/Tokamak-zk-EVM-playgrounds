@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useDocker } from "./useDocker";
+import { useBinary } from "./useBinary";
 import { useSynthesizer } from "./useSynthesizer";
 import { useBackendCommand } from "./useBackend";
 import { usePipelineAnimation } from "./usePipelineAnimation";
@@ -31,8 +31,12 @@ export function useTokamakZkEVMActions() {
   const [provingIsDone, setProvingIsDone] = useAtom(provingIsDoneAtom);
   const [provingResult, setProvingResult] = useAtom(provingResultAtom);
   const [, setProveStep] = useAtom(proveStepAtom);
-  const { runContainer, currentDockerContainer, executeCommand, dockerConfig } =
-    useDocker();
+  const { startBinary, currentProcess, executeCommand, binaryStatus } =
+    useBinary();
+  // 임시: Docker 관련 변수들을 undefined로 설정 (다른 액션들 때문에)
+  const currentDockerContainer: any = undefined;
+  const runContainer: any = undefined;
+  const dockerConfig: any = undefined;
   const { parseTONTransfer } = useSynthesizer();
   const { setup, preProcess, prove, proveWithStreaming, verify } =
     useBackendCommand();
@@ -84,15 +88,12 @@ export function useTokamakZkEVMActions() {
                 openModal("loading");
               }
 
-              // Run Docker container - use environment-specific image name
-              const imageName = dockerConfig?.imageName || DOCKER_NAME;
-              console.log(
-                `🐳 Running Docker container with image: ${imageName}`
-              );
-              const container = await runContainer(imageName);
+              // Start binary process
+              console.log("🚀 Starting binary process");
+              const process = await startBinary();
 
-              if (!container?.ID) {
-                throw new Error("Failed to get container ID after running");
+              if (!process?.pid) {
+                throw new Error("Failed to start binary process");
               }
 
               // if (isCudaSupported) {
@@ -185,27 +186,44 @@ export function useTokamakZkEVMActions() {
 
               updateActiveSection("evm-to-qap");
 
-              return container;
+              return process;
             } catch (error) {
               console.error("❌ SetupEvmSpec process failed:", error);
               throw error;
             }
 
           case TokamakActionType.RunSynthesizer:
-            console.log("currentDockerContainer", currentDockerContainer);
-            if (currentDockerContainer?.ID) {
+            console.log("binaryStatus", binaryStatus);
+            console.log("binaryInfo details:", binaryStatus.binaryInfo);
+            if (binaryStatus.binaryInfo) {
+              console.log(
+                "Expected binary path:",
+                binaryStatus.binaryInfo.path
+              );
+              console.log("Binary exists:", binaryStatus.binaryInfo.exists);
+              console.log(
+                "Binary executable:",
+                binaryStatus.binaryInfo.executable
+              );
+              console.log("Platform:", binaryStatus.binaryInfo.platform);
+              console.log("Architecture:", binaryStatus.binaryInfo.arch);
+            }
+
+            if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
               openModal("loading");
-              await parseTONTransfer(currentDockerContainer.ID);
+              await parseTONTransfer();
               return updateActiveSection("synthesizer-to-prove-bikzg");
             }
-            throw new Error("currentDockerContainer is not found");
+            throw new Error(
+              `Binary is not available or not executable. Path: ${binaryStatus.binaryInfo?.path}, Exists: ${binaryStatus.binaryInfo?.exists}, Executable: ${binaryStatus.binaryInfo?.executable}`
+            );
 
           case TokamakActionType.SetupTrustedSetup:
-            if (currentDockerContainer?.ID) {
-              // await setup(currentDockerContainer.ID);
+            if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
+              // await setup(); // Binary-based setup
               return updateActiveSection("setup-to-prove");
             }
-            throw new Error("currentDockerContainer is not found");
+            throw new Error("Binary is not available or not executable");
 
           case TokamakActionType.PreProcess:
             if (currentDockerContainer?.ID) {

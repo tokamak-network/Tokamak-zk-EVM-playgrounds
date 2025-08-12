@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { BinaryManager, BinaryInfo } from "../utils/binaryManager";
 import useCuda from "./useCuda";
+
+// Import only the type, not the class
+import type { BinaryInfo } from "../utils/binaryManager";
 
 // Binary process status interface
 export interface BinaryStatus {
@@ -36,6 +38,7 @@ declare global {
         callback: (data: { data: string; isError: boolean }) => void
       ) => void;
       removeStreamDataListener: () => void;
+      executeDirectCommand: (command: string[]) => Promise<string>;
     };
   }
 }
@@ -73,7 +76,6 @@ export const useBinary = () => {
 
   const { cudaStatus } = useCuda();
   const hasInitialized = useRef(false);
-  const binaryManager = useMemo(() => new BinaryManager(), []);
 
   // 🚀 ULTRA-IMMEDIATE: 훅 호출 즉시 프로세스 정지 (useEffect 대기 없음)
   if (!globalCleanupCompleted && !globalCleanupInProgress) {
