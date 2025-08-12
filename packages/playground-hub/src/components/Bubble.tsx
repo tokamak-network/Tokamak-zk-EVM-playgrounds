@@ -34,6 +34,7 @@ import {
 import bubbleEvmInactive from "../assets/images/bubbles/bubble-evm-inactive.png";
 import bubbleTransactionInactive from "../assets/images/bubbles/bubble-transaction-inactive.svg";
 import { useModals } from "../hooks/useModals";
+import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 
 interface BubbleProps {
   type:
@@ -119,6 +120,7 @@ export default function Bubbles() {
     verifyStage,
   } = usePlaygroundStage();
   const { openModal } = useModals();
+  const { runInstallDependencies } = useTokamakZkEVMActions();
 
   return (
     <div className="w-full h-full absolute">
@@ -128,7 +130,7 @@ export default function Bubbles() {
         isActive={true}
         isDone={qapStage.isReady}
         onClick={() => {
-          return openModal("docker-select");
+          return runInstallDependencies();
         }}
       />
       <Bubble
