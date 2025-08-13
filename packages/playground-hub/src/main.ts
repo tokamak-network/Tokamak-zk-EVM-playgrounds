@@ -42,7 +42,20 @@ if (started) {
 }
 
 const createWindow = () => {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  // Default window size
+  let width = 1200;
+  let height = 800;
+
+  // Try to get screen size if available
+  try {
+    const { width: screenWidth, height: screenHeight } =
+      screen.getPrimaryDisplay().workAreaSize;
+    width = screenWidth;
+    height = screenHeight;
+  } catch (error) {
+    console.warn("Could not get screen size, using default:", error);
+  }
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width,
@@ -196,10 +209,7 @@ function openSettingsWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", async () => {
-  console.log("App ready, creating window...");
-  createWindow();
-});
+// Removed app.on("ready") - using app.whenReady() instead to avoid duplicate initialization
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -1026,12 +1036,194 @@ function setupIpcHandlers() {
     try {
       console.log("Executing system command:", command);
 
+      // Process command arguments to handle path resolution
+      const workingDirectory = app.isPackaged
+        ? process.resourcesPath
+        : app.getAppPath();
+
+      const processedCommand = command.map((arg) => {
+        if (arg.startsWith("src/binaries/")) {
+          if (app.isPackaged) {
+            // Production: resources folder (src/ prefix is removed in extraResource)
+            const resourcePath = arg.substring(4); // Remove "src/"
+            return path.join(process.resourcesPath, resourcePath);
+          } else {
+            // Development: source directory
+            return path.join(app.getAppPath(), arg);
+          }
+        }
+        return arg;
+      });
+
+      console.log("Processed command:", processedCommand);
+      console.log("Working directory:", workingDirectory);
+
+      // Ensure script has execute permissions if it's a shell script
+      if (processedCommand[0] && processedCommand[0].endsWith(".sh")) {
+        try {
+          fs.chmodSync(processedCommand[0], "755");
+          console.log(
+            `Set execute permissions for script: ${processedCommand[0]}`
+          );
+
+          // Also ensure all binaries in backend/bin have execute permissions
+          let backendBinDir: string;
+          if (app.isPackaged) {
+            backendBinDir = path.join(
+              process.resourcesPath,
+              "binaries",
+              "backend",
+              "bin"
+            );
+          } else {
+            backendBinDir = path.join(
+              app.getAppPath(),
+              "src",
+              "binaries",
+              "backend",
+              "bin"
+            );
+          }
+
+          if (fs.existsSync(backendBinDir)) {
+            const binFiles = fs.readdirSync(backendBinDir);
+            for (const binFile of binFiles) {
+              const binPath = path.join(backendBinDir, binFile);
+              try {
+                fs.chmodSync(binPath, "755");
+                console.log(`Set execute permissions for binary: ${binPath}`);
+              } catch (binChmodError) {
+                console.warn(
+                  `Failed to set execute permissions for binary ${binPath}: ${binChmodError}`
+                );
+              }
+            }
+          }
+
+          // On macOS, remove quarantine attribute
+          if (process.platform === "darwin" && app.isPackaged) {
+            try {
+              // Remove quarantine from script
+              await new Promise<void>((resolve) => {
+                exec(
+                  `xattr -d com.apple.quarantine "${processedCommand[0]}"`,
+                  (error: any) => {
+                    if (error) {
+                      console.warn(
+                        `Failed to remove quarantine from script: ${error.message}`
+                      );
+                    }
+                    resolve();
+                  }
+                );
+              });
+
+              // Remove quarantine from all binaries in backend/bin
+              if (fs.existsSync(backendBinDir)) {
+                const binFiles = fs.readdirSync(backendBinDir);
+                for (const binFile of binFiles) {
+                  const binPath = path.join(backendBinDir, binFile);
+                  await new Promise<void>((resolve) => {
+                    exec(
+                      `xattr -d com.apple.quarantine "${binPath}"`,
+                      (error: any) => {
+                        if (error) {
+                          console.warn(
+                            `Failed to remove quarantine from binary ${binPath}: ${error.message}`
+                          );
+                        }
+                        resolve();
+                      }
+                    );
+                  });
+                }
+              }
+            } catch (quarantineError) {
+              console.warn(
+                `Failed to remove quarantine attributes: ${quarantineError}`
+              );
+            }
+          }
+        } catch (chmodError) {
+          console.warn(
+            `Failed to set execute permissions for script: ${chmodError}`
+          );
+        }
+      }
+
       return new Promise((resolve, reject) => {
-        const childProcess = spawn(command[0], command.slice(1), {
-          stdio: ["pipe", "pipe", "pipe"],
-          env: { ...process.env },
-          cwd: app.getAppPath(), // Set working directory to app root
-        });
+        // Set working directory to backend directory for script execution
+        let scriptWorkingDirectory: string;
+        if (app.isPackaged) {
+          scriptWorkingDirectory = path.join(
+            process.resourcesPath,
+            "binaries",
+            "backend"
+          );
+        } else {
+          scriptWorkingDirectory = path.join(
+            app.getAppPath(),
+            "src",
+            "binaries",
+            "backend"
+          );
+        }
+
+        console.log("Script working directory:", scriptWorkingDirectory);
+        console.log(
+          "Script working directory exists:",
+          fs.existsSync(scriptWorkingDirectory)
+        );
+
+        // Check if required directories exist
+        const requiredDirs = [
+          path.join(
+            scriptWorkingDirectory,
+            "resource",
+            "qap_compiler",
+            "library",
+            "wasm"
+          ),
+          path.join(
+            scriptWorkingDirectory,
+            "resource",
+            "synthesizer",
+            "outputs"
+          ),
+          path.join(scriptWorkingDirectory, "resource", "setup", "output"),
+          path.join(scriptWorkingDirectory, "resource", "preprocess", "output"),
+          path.join(scriptWorkingDirectory, "bin"),
+        ];
+
+        for (const dir of requiredDirs) {
+          console.log(
+            `Directory ${path.basename(path.dirname(dir))}/${path.basename(dir)} exists:`,
+            fs.existsSync(dir)
+          );
+          if (dir.includes("wasm") && fs.existsSync(dir)) {
+            const wasmFiles = fs
+              .readdirSync(dir)
+              .filter((f) => f.endsWith(".wasm"));
+            console.log(`WASM files found: ${wasmFiles.length} files`);
+          }
+        }
+
+        const childProcess = spawn(
+          processedCommand[0],
+          processedCommand.slice(1),
+          {
+            stdio: ["pipe", "pipe", "pipe"],
+            env: {
+              ...process.env,
+              // Add environment variables that might help with library loading
+              DYLD_LIBRARY_PATH:
+                process.platform === "darwin" ? "/opt/icicle/lib" : undefined,
+              LD_LIBRARY_PATH:
+                process.platform !== "darwin" ? "/opt/icicle/lib" : undefined,
+            },
+            cwd: scriptWorkingDirectory, // Set working directory to backend directory
+          }
+        );
 
         let output = "";
         let errorOutput = "";
@@ -1083,7 +1275,17 @@ function setupIpcHandlers() {
   // Read file from binary directory
   ipcMain.handle("binary-read-file", async (event, filePath: string) => {
     try {
-      const fullPath = path.join(app.getAppPath(), filePath);
+      let fullPath: string;
+      if (app.isPackaged) {
+        // Production: resources folder (src/ prefix is removed in extraResource)
+        const resourcePath = filePath.startsWith("src/")
+          ? filePath.substring(4)
+          : filePath;
+        fullPath = path.join(process.resourcesPath, resourcePath);
+      } else {
+        // Development: source directory
+        fullPath = path.join(app.getAppPath(), filePath);
+      }
       console.log("Reading binary file:", fullPath);
 
       if (!fs.existsSync(fullPath)) {
@@ -1112,7 +1314,14 @@ function setupIpcHandlers() {
       // Convert relative output paths to absolute paths
       const processedCommand = command.map((arg) => {
         if (arg.startsWith("src/binaries/")) {
-          return path.join(app.getAppPath(), arg);
+          if (app.isPackaged) {
+            // Production: resources folder (src/ prefix is removed in extraResource)
+            const resourcePath = arg.substring(4); // Remove "src/"
+            return path.join(process.resourcesPath, resourcePath);
+          } else {
+            // Development: source directory
+            return path.join(app.getAppPath(), arg);
+          }
         }
         return arg;
       });
@@ -1122,11 +1331,64 @@ function setupIpcHandlers() {
         binaryPath,
         processedCommand
       );
+      console.log("Working directory:", path.dirname(binaryPath));
+      console.log("Binary exists:", fs.existsSync(binaryPath));
+
+      // Check if wasm files exist relative to working directory
+      const binaryDir = path.dirname(binaryPath);
+      const wasmPath = path.join(
+        binaryDir,
+        "../backend/resource/qap_compiler/library/wasm/subcircuit1.wasm"
+      );
+      console.log("WASM file path:", wasmPath);
+      console.log("WASM file exists:", fs.existsSync(wasmPath));
 
       return new Promise((resolve, reject) => {
-        const childProcess = spawn(binaryPath, processedCommand, {
+        // Set working directory to the backend directory where resource files are located
+        // The synthesizer expects to run from the backend directory to find relative paths
+        const binaryDir = path.dirname(binaryPath);
+        let workingDirectory: string;
+
+        if (app.isPackaged) {
+          // Production: backend directory in resources
+          workingDirectory = path.join(
+            process.resourcesPath,
+            "binaries",
+            "backend"
+          );
+        } else {
+          // Development: backend directory in src
+          workingDirectory = path.join(
+            app.getAppPath(),
+            "src",
+            "binaries",
+            "backend"
+          );
+        }
+
+        console.log("Setting working directory to:", workingDirectory);
+        console.log(
+          "Working directory exists:",
+          fs.existsSync(workingDirectory)
+        );
+
+        // Try to execute via system command to bypass macOS security restrictions
+        const fullCommand = [binaryPath, ...processedCommand];
+        console.log("Full command to execute:", fullCommand);
+
+        const childProcess = spawn(fullCommand[0], fullCommand.slice(1), {
           stdio: ["pipe", "pipe", "pipe"],
-          env: { ...process.env },
+          env: {
+            ...process.env,
+            // Add library paths for better compatibility
+            DYLD_LIBRARY_PATH:
+              process.platform === "darwin" ? "/opt/icicle/lib" : undefined,
+            LD_LIBRARY_PATH:
+              process.platform !== "darwin" ? "/opt/icicle/lib" : undefined,
+          },
+          cwd: workingDirectory,
+          // Add shell execution for better compatibility
+          shell: process.platform === "darwin",
         });
 
         let output = "";
@@ -1355,12 +1617,27 @@ function setupIpcHandlers() {
           scriptPath
         );
 
-        // Read script content
-        const fullScriptPath = path.join(app.getAppPath(), scriptPath);
+        // Read script content with correct path resolution for packaged apps
+        let fullScriptPath: string;
+        if (app.isPackaged) {
+          // Production: resources folder (src/ prefix is removed in extraResource)
+          const resourcePath = scriptPath.startsWith("src/")
+            ? scriptPath.substring(4)
+            : scriptPath;
+          fullScriptPath = path.join(process.resourcesPath, resourcePath);
+        } else {
+          // Development: source directory
+          fullScriptPath = path.join(app.getAppPath(), scriptPath);
+        }
+
+        console.log("Resolved script path:", fullScriptPath);
         const scriptContent = fs.readFileSync(fullScriptPath, "utf8");
 
         // Create a command that executes the script content directly
-        const fullCommand = `cd "${app.getAppPath()}" && bash -c '${scriptContent.replace(/'/g, "'\"'\"'")}'`;
+        const workingDirectory = app.isPackaged
+          ? process.resourcesPath
+          : app.getAppPath();
+        const fullCommand = `cd "${workingDirectory}" && bash -c '${scriptContent.replace(/'/g, "'\"'\"'")}'`;
         const options = {
           name: "Tokamak ZK EVM Playground",
           env: { ...process.env },
@@ -1403,15 +1680,25 @@ function setupIpcHandlers() {
         );
 
         // Convert relative paths to absolute paths and set working directory
+        const basePath = app.isPackaged
+          ? process.resourcesPath
+          : app.getAppPath();
         const processedCommand = command.map((arg) => {
           if (arg.startsWith("src/binaries/")) {
-            return path.join(app.getAppPath(), arg);
+            if (app.isPackaged) {
+              // Production: resources folder (src/ prefix is removed in extraResource)
+              const resourcePath = arg.substring(4); // Remove "src/"
+              return path.join(process.resourcesPath, resourcePath);
+            } else {
+              // Development: source directory
+              return path.join(app.getAppPath(), arg);
+            }
           }
           return arg;
         });
 
         // Prepend cd command to ensure correct working directory
-        const fullCommand = `cd "${app.getAppPath()}" && ${processedCommand.join(" ")}`;
+        const fullCommand = `cd "${basePath}" && ${processedCommand.join(" ")}`;
         const options = {
           name: "Tokamak ZK EVM Playground",
           env: { ...process.env },
@@ -1641,10 +1928,69 @@ function setupIpcHandlers() {
   console.log("All IPC handlers registered successfully"); // Debug log for handler registration completion
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  console.log("App ready, creating window...");
+
   // Initialize binary service
   binaryService = new BinaryService();
   console.log("Binary service initialized");
+
+  // Ensure all backend binaries have execute permissions on startup
+  try {
+    let backendBinDir: string;
+    if (app.isPackaged) {
+      backendBinDir = path.join(
+        process.resourcesPath,
+        "binaries",
+        "backend",
+        "bin"
+      );
+    } else {
+      backendBinDir = path.join(
+        app.getAppPath(),
+        "src",
+        "binaries",
+        "backend",
+        "bin"
+      );
+    }
+
+    if (fs.existsSync(backendBinDir)) {
+      const binFiles = fs.readdirSync(backendBinDir);
+      console.log(
+        `Setting permissions for ${binFiles.length} backend binaries...`
+      );
+
+      for (const binFile of binFiles) {
+        const binPath = path.join(backendBinDir, binFile);
+        try {
+          fs.chmodSync(binPath, "755");
+          console.log(`Set execute permissions for: ${binFile}`);
+
+          // On macOS, remove quarantine attribute
+          if (process.platform === "darwin" && app.isPackaged) {
+            await new Promise<void>((resolve) => {
+              exec(
+                `xattr -d com.apple.quarantine "${binPath}"`,
+                (error: any) => {
+                  if (error) {
+                    console.warn(
+                      `Failed to remove quarantine from ${binFile}: ${error.message}`
+                    );
+                  }
+                  resolve();
+                }
+              );
+            });
+          }
+        } catch (error) {
+          console.warn(`Failed to set permissions for ${binFile}: ${error}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to initialize backend binary permissions:", error);
+  }
 
   // macOS에서만 dock 아이콘 설정
   if (process.platform === "darwin") {
@@ -1662,6 +2008,9 @@ app.whenReady().then(() => {
   }
   setupIpcHandlers();
   process.env.PATH = `/usr/local/bin:${process.env.PATH}`;
+
+  // Create the main window after all initialization is complete
+  createWindow();
 });
 
 app.on("activate", () => {

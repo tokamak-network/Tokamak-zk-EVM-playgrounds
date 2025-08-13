@@ -1,6 +1,7 @@
 import { app } from "electron";
 import * as path from "path";
 import * as fs from "fs";
+import { exec } from "child_process";
 
 export interface BinaryInfo {
   name: string;
@@ -122,6 +123,33 @@ export class BinaryManager {
       try {
         fs.chmodSync(binaryInfo.path, "755");
         console.log(`Set execute permissions for binary: ${binaryInfo.path}`);
+
+        // On macOS, remove quarantine attribute to allow execution
+        if (process.platform === "darwin" && app.isPackaged) {
+          try {
+            await new Promise<void>((resolve, reject) => {
+              exec(
+                `xattr -d com.apple.quarantine "${binaryInfo.path}"`,
+                (error: any) => {
+                  if (error) {
+                    console.warn(
+                      `Failed to remove quarantine attribute: ${error.message}`
+                    );
+                    // Don't reject, as this is not critical
+                  }
+                  resolve();
+                }
+              );
+            });
+            console.log(
+              `Removed quarantine attribute from binary: ${binaryInfo.path}`
+            );
+          } catch (quarantineError) {
+            console.warn(
+              `Failed to remove quarantine attribute: ${quarantineError}`
+            );
+          }
+        }
       } catch (error) {
         console.warn(`Failed to set execute permissions: ${error}`);
         throw new Error(
