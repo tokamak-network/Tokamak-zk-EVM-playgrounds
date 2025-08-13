@@ -218,30 +218,17 @@ export function useTokamakZkEVMActions() {
             }
 
           case TokamakActionType.RunSynthesizer:
-            console.log("binaryStatus", binaryStatus);
-            console.log("binaryInfo details:", binaryStatus.binaryInfo);
-            if (binaryStatus.binaryInfo) {
-              console.log(
-                "Expected binary path:",
-                binaryStatus.binaryInfo.path
-              );
-              console.log("Binary exists:", binaryStatus.binaryInfo.exists);
-              console.log(
-                "Binary executable:",
-                binaryStatus.binaryInfo.executable
-              );
-              console.log("Platform:", binaryStatus.binaryInfo.platform);
-              console.log("Architecture:", binaryStatus.binaryInfo.arch);
-            }
-
-            if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
+            try {
+              console.log("🔍 RunSynthesizer: Starting synthesizer action...");
               openModal("loading");
-              await parseTONTransfer();
+              const result = await parseTONTransfer();
+              console.log("🔍 RunSynthesizer: Parse result:", result);
               return updateActiveSection("synthesizer-to-prove-bikzg");
+            } catch (error) {
+              console.error("🔍 RunSynthesizer: Error occurred:", error);
+              hasError = true;
+              throw error;
             }
-            throw new Error(
-              `Binary is not available or not executable. Path: ${binaryStatus.binaryInfo?.path}, Exists: ${binaryStatus.binaryInfo?.exists}, Executable: ${binaryStatus.binaryInfo?.executable}`
-            );
 
           case TokamakActionType.SetupTrustedSetup:
             if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
