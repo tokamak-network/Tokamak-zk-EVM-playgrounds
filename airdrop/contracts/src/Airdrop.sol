@@ -70,7 +70,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
         wton.approve(_depositManagerProxy, 3000 * 10 ** 27);
         layer2 = _layer2;
         airdropCompleted = false;
-        smax = 64;
+        smax = 512;
     }
 
     function inputWinnerList(
@@ -128,7 +128,7 @@ contract Airdrop is Ownable, ReentrancyGuard {
         }
         require(wton.balanceOf(address(this)) >= totalAmountGranted, "Not enough wton available");
         emit WinnerListUpdated(users.length);
-    }
+    } 
 
 
     /**
