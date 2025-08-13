@@ -1309,7 +1309,8 @@ function setupIpcHandlers() {
       const binaryManager = new (
         await import("./utils/binaryManager")
       ).BinaryManager();
-      const binaryPath = await binaryManager.ensureBinaryExists();
+      await binaryManager.ensureBinaryExists();
+      const binaryInfo = await binaryManager.getBinaryInfo();
 
       // Convert relative output paths to absolute paths
       const processedCommand = command.map((arg) => {
@@ -1328,43 +1329,15 @@ function setupIpcHandlers() {
 
       console.log(
         "Executing direct binary command:",
-        binaryPath,
+        binaryInfo.path,
         processedCommand
       );
-      console.log("Working directory:", path.dirname(binaryPath));
-      console.log("Binary exists:", fs.existsSync(binaryPath));
-
-      // Check if wasm files exist relative to working directory
-      const binaryDir = path.dirname(binaryPath);
-      const wasmPath = path.join(
-        binaryDir,
-        "../backend/resource/qap_compiler/library/wasm/subcircuit1.wasm"
-      );
-      console.log("WASM file path:", wasmPath);
-      console.log("WASM file exists:", fs.existsSync(wasmPath));
+      console.log("Working directory:", path.dirname(binaryInfo.path));
+      console.log("Binary exists:", fs.existsSync(binaryInfo.path));
 
       return new Promise((resolve, reject) => {
-        // Set working directory to the backend directory where resource files are located
-        // The synthesizer expects to run from the backend directory to find relative paths
-        const binaryDir = path.dirname(binaryPath);
-        let workingDirectory: string;
-
-        if (app.isPackaged) {
-          // Production: backend directory in resources
-          workingDirectory = path.join(
-            process.resourcesPath,
-            "binaries",
-            "backend"
-          );
-        } else {
-          // Development: backend directory in src
-          workingDirectory = path.join(
-            app.getAppPath(),
-            "src",
-            "binaries",
-            "backend"
-          );
-        }
+        // Set working directory to the synthesizer directory
+        const workingDirectory = path.dirname(binaryInfo.path);
 
         console.log("Setting working directory to:", workingDirectory);
         console.log(
@@ -1373,7 +1346,7 @@ function setupIpcHandlers() {
         );
 
         // Try to execute via system command to bypass macOS security restrictions
-        const fullCommand = [binaryPath, ...processedCommand];
+        const fullCommand = [binaryInfo.path, ...processedCommand];
         console.log("Full command to execute:", fullCommand);
 
         const childProcess = spawn(fullCommand[0], fullCommand.slice(1), {

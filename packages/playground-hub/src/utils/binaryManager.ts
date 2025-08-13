@@ -4,7 +4,6 @@ import * as fs from "fs";
 import { exec } from "child_process";
 
 export interface BinaryInfo {
-  name: string;
   path: string;
   platform: string;
   arch: string;
@@ -23,19 +22,15 @@ export class BinaryManager {
 
       if (platform === "darwin") {
         this.binaryName =
-          arch === "arm64" ? "synthesizer-mac-arm64" : "synthesizer-mac-x64";
+          arch === "arm64" ? "synthesizer-final" : "synthesizer-final";
       } else if (platform === "win32") {
         this.binaryName =
-          arch === "arm64"
-            ? "synthesizer-win-arm64.exe"
-            : "synthesizer-win-x64.exe";
+          arch === "arm64" ? "synthesizer-final.exe" : "synthesizer-final.exe";
       } else if (platform === "linux") {
         this.binaryName =
-          arch === "arm64"
-            ? "synthesizer-linux-arm64"
-            : "synthesizer-linux-x64";
+          arch === "arm64" ? "synthesizer-final" : "synthesizer-final";
       } else {
-        this.binaryName = "synthesizer-unknown";
+        this.binaryName = "synthesizer-final";
       }
     } else {
       this.binaryName = binaryName;
@@ -47,58 +42,49 @@ export class BinaryManager {
    */
   private getBinaryPath(): string {
     const platform = process.platform;
-    const arch = process.arch;
-    // 바이너리 이름에 이미 확장자가 포함되어 있음
-    const binaryFileName = this.binaryName;
-
     let basePath: string;
 
     if (app.isPackaged) {
-      // Production: app resources folder
       basePath = path.join(process.resourcesPath, "binaries", "synthesizer");
     } else {
-      // Development: src/binaries
-      // Use app.getAppPath() instead of __dirname for better compatibility
       basePath = path.join(app.getAppPath(), "src", "binaries", "synthesizer");
     }
 
-    return path.join(basePath, binaryFileName);
+    return path.join(basePath, this.binaryName);
   }
 
   /**
-   * Get binary information including existence and executability
+   * Get the binary directory path
+   */
+  getBinaryDirectory(): string {
+    if (app.isPackaged) {
+      return path.join(process.resourcesPath, "binaries", "synthesizer");
+    } else {
+      return path.join(app.getAppPath(), "src", "binaries", "synthesizer");
+    }
+  }
+
+  /**
+   * Check if binary exists and is executable
    */
   async getBinaryInfo(): Promise<BinaryInfo> {
     const binaryPath = this.getBinaryPath();
-    const platform = process.platform;
-    const arch = process.arch;
-
-    let exists = false;
+    const exists = fs.existsSync(binaryPath);
     let executable = false;
 
-    try {
-      const stats = fs.statSync(binaryPath);
-      exists = stats.isFile();
-
-      if (exists && platform !== "win32") {
-        // Check if file has execute permission (Unix-like systems)
-        const mode = stats.mode;
-        executable = !!(mode & parseInt("111", 8)); // Check if any execute bit is set
-      } else if (exists && platform === "win32") {
-        // On Windows, .exe files are generally executable
-        executable = binaryPath.endsWith(".exe");
+    if (exists) {
+      try {
+        const stats = fs.statSync(binaryPath);
+        executable = !!(stats.mode & parseInt("111", 8));
+      } catch (error) {
+        console.error("Error checking binary permissions:", error);
       }
-    } catch (error) {
-      // File doesn't exist or can't be accessed
-      exists = false;
-      executable = false;
     }
 
     return {
-      name: this.binaryName,
       path: binaryPath,
-      platform,
-      arch,
+      platform: process.platform,
+      arch: process.arch,
       exists,
       executable,
     };
@@ -107,72 +93,61 @@ export class BinaryManager {
   /**
    * Ensure binary exists and is executable
    */
-  async ensureBinaryExists(): Promise<string> {
-    const binaryInfo = await this.getBinaryInfo();
+  async ensureBinaryExists(): Promise<void> {
+    const info = await this.getBinaryInfo();
 
-    if (!binaryInfo.exists) {
-      throw new Error(`Binary not found at: ${binaryInfo.path}`);
+    if (!info.exists) {
+      throw new Error(`Binary not found: ${info.path}`);
     }
 
-    // Set execute permissions if needed (Unix-like systems)
-    if (
-      binaryInfo.exists &&
-      !binaryInfo.executable &&
-      process.platform !== "win32"
-    ) {
+    if (!info.executable) {
+      console.log("Setting execute permissions for binary:", info.path);
       try {
-        fs.chmodSync(binaryInfo.path, "755");
-        console.log(`Set execute permissions for binary: ${binaryInfo.path}`);
-
-        // On macOS, remove quarantine attribute to allow execution
-        if (process.platform === "darwin" && app.isPackaged) {
-          try {
-            await new Promise<void>((resolve, reject) => {
-              exec(
-                `xattr -d com.apple.quarantine "${binaryInfo.path}"`,
-                (error: any) => {
-                  if (error) {
-                    console.warn(
-                      `Failed to remove quarantine attribute: ${error.message}`
-                    );
-                    // Don't reject, as this is not critical
-                  }
-                  resolve();
-                }
-              );
-            });
-            console.log(
-              `Removed quarantine attribute from binary: ${binaryInfo.path}`
-            );
-          } catch (quarantineError) {
-            console.warn(
-              `Failed to remove quarantine attribute: ${quarantineError}`
-            );
-          }
-        }
+        fs.chmodSync(info.path, 0o755);
       } catch (error) {
-        console.warn(`Failed to set execute permissions: ${error}`);
-        throw new Error(
-          `Binary exists but cannot be made executable: ${binaryInfo.path}`
-        );
+        console.error("Failed to set execute permissions:", error);
+        throw error;
       }
     }
 
-    return binaryInfo.path;
+    // On macOS, remove quarantine attribute if present
+    if (process.platform === "darwin") {
+      await new Promise<void>((resolve) => {
+        exec(`xattr -d com.apple.quarantine "${info.path}"`, (error: any) => {
+          if (error) {
+            console.log(
+              "No quarantine attribute to remove or removal failed:",
+              error.message
+            );
+          } else {
+            console.log("Quarantine attribute removed from binary");
+          }
+          resolve();
+        });
+      });
+    }
   }
 
   /**
-   * Get the expected binary directory for manual installation
+   * Get all files in the binary directory
    */
-  getBinaryDirectory(): string {
-    const platform = process.platform;
-    const arch = process.arch;
-
-    if (app.isPackaged) {
-      return path.join(process.resourcesPath, "binaries", "synthesizer");
-    } else {
-      return path.join(app.getAppPath(), "src", "binaries", "synthesizer");
+  getBinaryDirectoryContents(): string[] {
+    const binaryDir = this.getBinaryDirectory();
+    try {
+      if (fs.existsSync(binaryDir)) {
+        return fs.readdirSync(binaryDir);
+      }
+    } catch (error) {
+      console.error("Error reading binary directory:", error);
     }
+    return [];
+  }
+
+  /**
+   * Get the expected binary name for the current platform
+   */
+  getExpectedBinaryName(): string {
+    return this.binaryName;
   }
 
   /**

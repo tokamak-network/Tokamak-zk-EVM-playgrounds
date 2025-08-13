@@ -13,6 +13,19 @@ const config: ForgeConfig = {
     icon: "src/assets/icons/app-icon.icns",
     // Include binary files in the app package
     extraResource: ["src/binaries"],
+    // Apple Developer 인증서 설정
+    ...(process.platform === "darwin" && {
+      osxSign: {
+        // 인증서 이름 (Keychain에서 확인 가능)
+        identity: "Developer ID Application: Tokamak Network",
+      },
+      // 공증(Notarization) 설정 (선택사항이지만 권장)
+      osxNotarize: {
+        appleId: process.env.APPLE_ID || "",
+        appleIdPassword: process.env.APPLE_ID_PASSWORD || "",
+        teamId: process.env.APPLE_TEAM_ID || "",
+      },
+    }),
   },
   rebuildConfig: {},
   makers: [
