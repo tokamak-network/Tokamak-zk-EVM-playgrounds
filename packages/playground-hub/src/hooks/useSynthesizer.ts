@@ -26,7 +26,7 @@ export const useSynthesizer = () => {
       console.log("result", result);
       return result;
     } catch (error) {
-      console.error("바이너리 명령 실행 실패:", error);
+      console.error("Failed to execute binary command:", error);
       throw error;
     }
   }, [transactionHash]);

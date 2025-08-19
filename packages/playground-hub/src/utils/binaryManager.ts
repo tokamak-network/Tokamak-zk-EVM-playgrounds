@@ -15,7 +15,7 @@ export class BinaryManager {
   private binaryName: string;
 
   constructor(binaryName?: string) {
-    // 플랫폼별 바이너리 이름 자동 생성
+    // Auto-generate platform-specific binary names
     if (!binaryName) {
       const platform = process.platform;
       const arch = process.arch;
