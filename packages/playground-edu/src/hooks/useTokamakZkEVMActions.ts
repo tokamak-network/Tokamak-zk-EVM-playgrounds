@@ -3,10 +3,16 @@ import { useBinary } from "./useBinary";
 import { useSynthesizer } from "./useSynthesizer";
 import { useBackendCommand } from "./useBackend";
 import { usePipelineAnimation } from "./usePipelineAnimation";
+import {
+  provingResultAtom,
+  provingIsDoneAtom,
+} from "../atoms/pipelineAnimation";
+import { proveStepAtom } from "../atoms/modals";
 import { useAtom } from "jotai";
 import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
 import { useModals } from "./useModals";
+import { DOCKER_NAME } from "../constants";
 import { useCuda } from "./useCuda";
 import { useBenchmark } from "./useBenchmark";
 
