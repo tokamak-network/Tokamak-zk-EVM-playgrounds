@@ -5,10 +5,16 @@ import { useViewport } from "@/hooks/useMediaView";
 import Stars from "@/components/Stars";
 import Header from "@/components/Header";
 import RainbowImage from "@/components/RainbowImage";
+import MainBanner from "@/components/MainBanner";
+import InputTransaction from "@/components/InputTransaction";
+import { useAtomValue } from "jotai";
+import { isStartedAtom } from "./atoms/ui";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const MainContent = () => {
   // Responsive design hook
   const { isOverBreakpoint } = useViewport();
+  const isStarted = useAtomValue(isStartedAtom);
 
   return (
     <div
@@ -25,16 +31,7 @@ const MainContent = () => {
       {/* Header with logo */}
       <Header isOverBreakpoint={isOverBreakpoint} />
 
-      <div
-        style={{
-          display: "flex",
-          flex: "1",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "35px",
-        }}
-      >
+      <div className="flex flex-col justify-center items-center h-screen">
         {/* Main content area - can add new components here */}
         <div
           style={{
@@ -46,30 +43,44 @@ const MainContent = () => {
             justifyContent: "center",
           }}
         >
-          {/* Placeholder for main playground content */}
-          <div style={{ textAlign: "center", color: "white" }}>
-            <h1
-              style={{
-                fontSize: "2.25rem",
-                fontWeight: "bold",
-                marginBottom: "1rem",
-                color: "white",
-                fontFamily: "'Jersey 10', cursive",
-              }}
-            >
-              ZK Proofs. One Click.
-            </h1>
-            <p
-              style={{
-                fontSize: "1.125rem",
-                marginBottom: "1rem",
-                color: "white",
-                opacity: "0.8",
-                fontFamily: "'Jersey 10', cursive",
-              }}
-            >
-              Ready for development
-            </p>
+          <div className="flex flex-col justify-center items-center gap-y-[70px]">
+            {/* Placeholder for main playground content */}
+            <div style={{ textAlign: "center", color: "white" }}>
+              <h1
+                style={{
+                  color: "#FFF",
+                  textAlign: "center",
+                  textShadow: "0 2px 0 #006CD8",
+                  fontFamily: "'Jersey 10', cursive",
+                  fontSize: "84px",
+                  fontStyle: "normal",
+                  fontWeight: "400",
+                  lineHeight: "normal",
+                  letterSpacing: "5.46px",
+                }}
+              >
+                ZK Proofs. One Click.
+              </h1>
+              <h2
+                style={{
+                  color: "#57D2FF",
+                  textAlign: "center",
+                  textShadow: "0 6px 0 #0E3260",
+                  fontFamily: "'Jersey 10', cursive",
+                  fontSize: "156px",
+                  fontStyle: "normal",
+                  fontWeight: "400",
+                  lineHeight: "normal",
+                  letterSpacing: "10.92px",
+                }}
+              >
+                Playground
+              </h2>
+            </div>
+            <div className="flex justify-center items-center w-full h-[50px] ">
+              {isStarted ? <InputTransaction /> : <MainBanner />}
+            </div>
+            <LoadingSpinner />
           </div>
         </div>
       </div>

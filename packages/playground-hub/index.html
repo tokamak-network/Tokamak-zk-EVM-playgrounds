@@ -13,9 +13,19 @@
     /* Ensure fonts are loaded */
     @import url('https://fonts.googleapis.com/css2?family=Jersey+10&display=swap');
 
+    /* Force Jersey 10 font loading */
+    * {
+      font-display: swap;
+    }
+
     /* Test if fonts are working */
     .jersey-font-test {
       font-family: 'Jersey 10', cursive !important;
+    }
+
+    /* Preload Jersey 10 font */
+    body {
+      font-family: 'Jersey 10', cursive;
     }
   </style>
   <link href="/src/styles.css" rel="stylesheet">

@@ -1,5 +1,6 @@
 import React from "react";
 import Logo from "@/assets/logo.svg";
+import { appInit } from "../utils/helpers";
 
 interface HeaderProps {
   isResultsShown?: boolean;
@@ -7,10 +8,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ isOverBreakpoint = true }) => {
-  const onLogoClick = () => window.location.reload();
-
-  // Debug: log the logo import
-  console.log("Header Logo:", Logo);
+  const onLogoClick = () => appInit();
 
   return (
     <div>
