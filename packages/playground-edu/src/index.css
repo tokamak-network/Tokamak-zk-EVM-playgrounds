@@ -1,100 +1,105 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
-
 @import url("https://fonts.googleapis.com/css2?family=Jersey+10&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Jersey+10&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap");
 
-/* Manual Tailwind utilities for testing */
-.bg-red-500 {
-  background-color: #ef4444 !important;
+/* 기존 로컬 폰트 파일들 - Google Fonts로 대체
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-Thin.ttf") format("truetype");
+  font-weight: 100;
+  font-style: normal;
 }
-
-.text-white {
-  color: white !important;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-ThinItalic.ttf") format("truetype");
+  font-weight: 100;
+  font-style: italic;
 }
-
-.p-2 {
-  padding: 0.5rem !important;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-ExtraLight.ttf") format("truetype");
+  font-weight: 200;
+  font-style: normal;
 }
-
-.mb-4 {
-  margin-bottom: 1rem !important;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-ExtraLightItalic.ttf") format("truetype");
+  font-weight: 200;
+  font-style: italic;
 }
-
-.rounded {
-  border-radius: 0.25rem !important;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
 }
-
-.text-4xl {
-  font-size: 2.25rem !important;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-LightItalic.ttf") format("truetype");
+  font-weight: 300;
+  font-style: italic;
 }
-
-.text-lg {
-  font-size: 1.125rem !important;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
 }
-
-.font-bold {
-  font-weight: 700 !important;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
 }
-
-.opacity-80 {
-  opacity: 0.8 !important;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
 }
-
-.text-center {
-  text-align: center !important;
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-MediumItalic.ttf") format("truetype");
+  font-weight: 500;
+  font-style: italic;
 }
-
-@keyframes focusEffect {
-  0% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 0;
-  }
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
 }
-
-@keyframes rain {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(20px);
-  }
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-SemiBoldItalic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
 }
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/fonts/IBMPlexMono-BoldItalic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+}
+*/
 
-/* Base styles without !important to allow Tailwind to work */
-html,
 body {
-  height: 100%;
-  margin: 0;
-  min-height: 100vh;
-  background: linear-gradient(179.38deg, #000306, #003466);
-}
-
-body {
-  text-align: center;
-  padding: 0;
-  font-family: "Jersey 10", cursive;
-}
-
-/* Ensure the root div also has the background */
-#root {
-  width: 100%;
-  height: 100vh;
-  min-height: 100vh;
-  background: linear-gradient(179.38deg, #000306, #003466);
-}
-
-.background-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  min-height: 100vh;
-  background: linear-gradient(179.38deg, #000306, #003466);
+  font-family:
+    "IBM Plex Mono",
+    monospace,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  margin: auto;
+  max-width: 38rem;
+  padding: 2rem;
 }
