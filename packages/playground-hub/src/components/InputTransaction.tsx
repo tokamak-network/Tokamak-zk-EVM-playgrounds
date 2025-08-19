@@ -1,9 +1,24 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { transactionHashAtom } from "../atoms/api";
-import ProcessBtnImage from "@/assets/process-button.svg";
+import ProcessBtnImageDisabled from "@/assets/process-button-inactive.svg";
+import ProcessBtnImageActive from "@/assets/process-button-active.svg";
+import ProcessBtnImageError from "@/assets/process-button-error.svg";
+import { useDebouncedTxHashValidation } from "../hooks/useTransaction";
+import { isErrorAtom } from "../atoms/ui";
+import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 
 export default function InputTransaction() {
   const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
+  const { isValid: isValidTxHash } =
+    useDebouncedTxHashValidation(transactionHash);
+  const isError = useAtomValue(isErrorAtom);
+  const { executeAll } = useTokamakZkEVMActions();
+
+  const processBtnImage = isValidTxHash
+    ? ProcessBtnImageActive
+    : isError
+      ? ProcessBtnImageError
+      : ProcessBtnImageDisabled;
 
   return (
     <div className="flex gap-[16px] w-full h-[59px] z-[100]">
@@ -27,7 +42,12 @@ export default function InputTransaction() {
         value={transactionHash}
         onChange={(e) => setTransactionHash(e.target.value)}
       ></input>
-      <img src={ProcessBtnImage} alt="ProcessBtnImage" />
+      <img
+        className="cursor-pointer"
+        src={processBtnImage}
+        alt="ProcessBtnImage"
+        onClick={() => executeAll()}
+      />
     </div>
   );
 }
