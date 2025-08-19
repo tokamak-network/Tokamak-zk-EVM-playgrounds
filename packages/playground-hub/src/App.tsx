@@ -25,15 +25,49 @@ const MainContent = () => {
       {/* Header with logo */}
       <Header isOverBreakpoint={isOverBreakpoint} />
 
-      <div className="flex flex-1 flex-col justify-center items-center gap-y-[35px]">
+      <div
+        style={{
+          display: "flex",
+          flex: "1",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: "35px",
+        }}
+      >
         {/* Main content area - can add new components here */}
-        <div className="w-full h-full flex flex-col items-center justify-center">
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           {/* Placeholder for main playground content */}
-          <div className="text-white text-center">
-            <h1 className="text-4xl font-bold mb-4 font-jersey">
-              Tokamak ZK-EVM Playground
+          <div style={{ textAlign: "center", color: "white" }}>
+            <h1
+              style={{
+                fontSize: "2.25rem",
+                fontWeight: "bold",
+                marginBottom: "1rem",
+                color: "white",
+                fontFamily: "'Jersey 10', cursive",
+              }}
+            >
+              ZK Proofs. One Click.
             </h1>
-            <p className="text-lg opacity-80 font-jersey">
+            <p
+              style={{
+                fontSize: "1.125rem",
+                marginBottom: "1rem",
+                color: "white",
+                opacity: "0.8",
+                fontFamily: "'Jersey 10', cursive",
+              }}
+            >
               Ready for development
             </p>
           </div>
@@ -41,7 +75,7 @@ const MainContent = () => {
       </div>
 
       {/* Rainbow animation at bottom */}
-      <div className="w-full mb-[8px]">
+      <div style={{ width: "100%", marginBottom: "8px" }}>
         <RainbowImage isOverBreakpoint={isOverBreakpoint} />
       </div>
     </div>
