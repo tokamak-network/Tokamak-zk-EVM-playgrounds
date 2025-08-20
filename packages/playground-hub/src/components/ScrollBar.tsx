@@ -1,16 +1,12 @@
 import { ReactNode } from "react";
-import { useContentView } from "../hooks/useContentView";
-
 interface ScrollBarProps {
   children: ReactNode;
 }
 
 const ScrollBar = ({ children }: ScrollBarProps) => {
-  const { maxHeight } = useContentView();
-
   return (
     <>
-      <style jsx global>{`
+      <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 16px;
         }

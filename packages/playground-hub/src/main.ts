@@ -10,6 +10,10 @@ import {
   screen,
   shell,
 } from "electron";
+
+// Declare Vite environment variables
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_NAME: string;
 import path from "node:path";
 import fs from "node:fs";
 import os from "node:os";

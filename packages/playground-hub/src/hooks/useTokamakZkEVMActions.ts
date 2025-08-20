@@ -25,13 +25,7 @@ export enum TokamakActionType {
 export function useTokamakZkEVMActions() {
   const { startBinary, currentProcess, executeCommand, binaryStatus } =
     useBinary();
-  // 임시: Docker 관련 변수들을 undefined로 설정 (다른 액션들 때문에)
-  const currentDockerContainer: any = undefined;
-  const runContainer: any = undefined;
-  const dockerConfig: any = undefined;
   const { parseTONTransfer } = useSynthesizer();
-  const { setup, preProcess, prove, proveWithStreaming, verify } =
-    useBackendCommand();
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
   const { cudaStatus } = useCuda();
@@ -39,8 +33,6 @@ export function useTokamakZkEVMActions() {
   const {
     startProcessTiming,
     endProcessTiming,
-    checkAutoDownload,
-    downloadBenchmarkData,
     initializeBenchmarkSession,
     currentSession,
     globalBenchmarkSession,
@@ -49,7 +41,7 @@ export function useTokamakZkEVMActions() {
   const [, setIsFirstTime] = useAtom(isFirstTimeAtom);
 
   const executeTokamakAction = useCallback(
-    async (actionType: TokamakActionType) => {
+    async (actionType: TokamakActionType): Promise<any> => {
       let hasError = false;
       try {
         setPlaygroundStageInProcess(true);
@@ -364,7 +356,7 @@ export function useTokamakZkEVMActions() {
 
               // Step 4: Verify
               console.log("🔍 ExecuteAll: Step 4 - Running Verify...");
-              const verifyResult = await executeTokamakAction(
+              const verifyResult: any = await executeTokamakAction(
                 TokamakActionType.Verify
               );
 
@@ -409,17 +401,7 @@ export function useTokamakZkEVMActions() {
         });
       }
     },
-    [
-      runContainer,
-      currentDockerContainer,
-      parseTONTransfer,
-      prove,
-      proveWithStreaming,
-      initializeWhenCatchError,
-      isCudaSupported,
-      setShowProcessResult,
-      setIsFirstTime,
-    ]
+    [initializeWhenCatchError, setShowProcessResult, setIsFirstTime]
   );
 
   const setupEvmSpec = useCallback(() => {

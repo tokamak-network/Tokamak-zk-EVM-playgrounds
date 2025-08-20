@@ -1,3 +1,4 @@
+import React from "react";
 import SpinnerImage from "../../assets/modals/Spinner.svg";
 
 const LoadingSpinner = () => {

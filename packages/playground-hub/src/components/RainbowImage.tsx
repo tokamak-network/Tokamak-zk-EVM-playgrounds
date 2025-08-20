@@ -16,16 +16,37 @@ const RainbowImage: React.FC<RainbowImageProps> = ({
       className={`flex w-full ${isOverBreakpoint ? "h-[75px]" : "h-[63px]"} relative overflow-hidden `}
     >
       <div
-        className={`absolute w-full ${isOverBreakpoint ? "h-[50px]" : "h-[36px]"} z-[1000] bottom-[11px]`}
+        className={`absolute w-full h-[50px] z-[1000] bottom-[11px] overflow-hidden`}
         style={{
-          backgroundImage: `url(${Rainbow})`,
-          backgroundRepeat: "repeat-x",
-          backgroundSize: "auto 100%",
-          backgroundPosition: "center bottom",
           animation: "moveRainbow 6s linear",
         }}
         key={animationKey}
-      />
+      >
+        <div className="flex" style={{ width: "2880px" }}>
+          <img
+            src={Rainbow}
+            alt="Rainbow"
+            className="flex-shrink-0"
+            style={{
+              width: "1440px",
+              height: "50px",
+              objectFit: "none",
+              objectPosition: "center center",
+            }}
+          />
+          <img
+            src={Rainbow}
+            alt="Rainbow"
+            className="flex-shrink-0"
+            style={{
+              width: "1440px",
+              height: "50px",
+              objectFit: "none",
+              objectPosition: "center center",
+            }}
+          />
+        </div>
+      </div>
       <div
         className={`absolute w-full ${isOverBreakpoint ? "h-[75px]" : "h-[63px]"} z-[9999999] opacity-0`}
         style={{

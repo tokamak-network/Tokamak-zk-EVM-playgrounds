@@ -11,21 +11,26 @@ const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     icon: "src/assets/icons/app-icon.icns",
-    // Include binary files in the app package
-    extraResource: ["src/binaries"],
-    // Apple Developer 인증서 설정
+    // Include binary files, assets, and public folder in the app package
+    extraResource: ["src/binaries", "src/assets", "public"],
+    // Disable code signing for development builds
     ...(process.platform === "darwin" && {
-      osxSign: {
-        // 인증서 이름 (Keychain에서 확인 가능)
-        identity: "Developer ID Application: Tokamak Network",
-      },
-      // 공증(Notarization) 설정 (선택사항이지만 권장)
-      osxNotarize: {
-        appleId: process.env.APPLE_ID || "",
-        appleIdPassword: process.env.APPLE_ID_PASSWORD || "",
-        teamId: process.env.APPLE_TEAM_ID || "",
-      },
+      osxSign: false,
     }),
+    // Apple Developer 인증서 설정 (프로덕션 빌드에서만 활성화)
+    ...(process.platform === "darwin" &&
+      process.env.NODE_ENV === "production" && {
+        osxSign: {
+          // 인증서 이름 (Keychain에서 확인 가능)
+          identity: "Developer ID Application: Tokamak Network",
+        },
+        // 공증(Notarization) 설정 (선택사항이지만 권장)
+        osxNotarize: {
+          appleId: process.env.APPLE_ID || "",
+          appleIdPassword: process.env.APPLE_ID_PASSWORD || "",
+          teamId: process.env.APPLE_TEAM_ID || "",
+        },
+      }),
   },
   rebuildConfig: {},
   makers: [

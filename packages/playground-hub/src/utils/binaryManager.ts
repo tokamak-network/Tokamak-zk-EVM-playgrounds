@@ -93,7 +93,7 @@ export class BinaryManager {
   /**
    * Ensure binary exists and is executable
    */
-  async ensureBinaryExists(): Promise<void> {
+  async ensureBinaryExists(): Promise<string> {
     const info = await this.getBinaryInfo();
 
     if (!info.exists) {
@@ -126,6 +126,8 @@ export class BinaryManager {
         });
       });
     }
+
+    return info.path;
   }
 
   /**
