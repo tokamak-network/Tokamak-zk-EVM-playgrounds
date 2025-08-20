@@ -6,7 +6,7 @@ import ProcessBtnImageError from "@/assets/process-button-error.svg";
 import { useDebouncedTxHashValidation } from "../hooks/useTransaction";
 import { isErrorAtom } from "../atoms/ui";
 import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useUI } from "../hooks/useUI";
 
 export default function TransactionInput() {
@@ -15,22 +15,23 @@ export default function TransactionInput() {
     useDebouncedTxHashValidation(transactionHash);
   const isError = useAtomValue(isErrorAtom);
   const { executeAll } = useTokamakZkEVMActions();
-  const { isFirstTime, isHeroUp } = useUI();
+  const { isFirstTime, isHeroUp, isInProcess } = useUI();
+  const [isFocused, setIsFocused] = useState(false);
 
-  const processBtnImage = isValidTxHash
+  const isActive = useMemo(() => {
+    return isValidTxHash && !isError && isFocused && !isInProcess;
+  }, [isValidTxHash, isError, isFocused, isInProcess]);
+
+  const processBtnImage = isActive
     ? ProcessBtnImageActive
     : isError
       ? ProcessBtnImageError
       : ProcessBtnImageDisabled;
 
-  const isActive = useMemo(() => {
-    return isValidTxHash && !isError;
-  }, [isValidTxHash, isError]);
-
   return (
     <div className="flex gap-[16px] w-full h-[59px] z-[100]">
       <input
-        className={`${isFirstTime ? "min-w-[838px]" : "min-w-[656px]"}`}
+        className={`focus:outline-none focus:ring-0 focus:border-transparent ${isFirstTime ? "min-w-[838px]" : "min-w-[656px]"}`}
         style={{
           width: "100%",
           height: "100%",
@@ -39,7 +40,10 @@ export default function TransactionInput() {
           borderBottom: "1px solid #5F5F5F",
           borderRight: "1px solid #5F5F5F",
           padding: "8px",
-          color: isFirstTime ? "#222" : "#999",
+          color:
+            isFirstTime || (isHeroUp && isInProcess) || isFocused
+              ? "#fff"
+              : "#999",
           fontFamily: "IBM Plex Mono",
           fontSize: isFirstTime ? "20px" : "16px",
           fontStyle: "normal",
@@ -49,12 +53,18 @@ export default function TransactionInput() {
         }}
         value={transactionHash}
         onChange={(e) => setTransactionHash(e.target.value)}
+        onFocus={() => setIsFocused(true)}
       ></input>
       <img
         className="cursor-pointer"
         src={processBtnImage}
         alt="ProcessBtnImage"
-        onClick={() => isActive && executeAll()}
+        onClick={() => {
+          if (isActive) {
+            setIsFocused(false);
+            executeAll();
+          }
+        }}
       />
     </div>
   );

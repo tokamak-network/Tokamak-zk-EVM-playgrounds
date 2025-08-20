@@ -12,12 +12,14 @@ import { isFirstTimeAtom, isStartedAtom } from "./atoms/ui";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ProcessResult from "./components/ProcessResult";
 import HeroSection from "./components/HeroSection";
+import { useUI } from "./hooks/useUI";
 
 const MainContent = () => {
   // Responsive design hook
   const { isOverBreakpoint } = useViewport();
   const isStarted = useAtomValue(isStartedAtom);
   const isFirstTime = useAtomValue(isFirstTimeAtom);
+  const { isInProcess } = useUI();
 
   return (
     <div
@@ -38,10 +40,14 @@ const MainContent = () => {
         } items-center h-screen ${!isFirstTime ? "gap-y-[70px]" : "gap-y-[32px]"} pt-[47px]`}
       >
         <HeroSection />
-        <div className="flex justify-center items-center w-full h-[50px] ">
+        <div className={`flex justify-center items-center w-full h-[50px]`}>
           {isStarted ? <TransactionInput /> : <MainBanner />}
         </div>
-        <div className="flex flex-col justify-center items-center">
+        <div
+          className={`flex flex-col justify-center items-center ${
+            isInProcess ? "h-full" : ""
+          }`}
+        >
           <LoadingSpinner />
           <ProcessResult />
         </div>
