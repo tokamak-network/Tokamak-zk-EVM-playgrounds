@@ -8,7 +8,7 @@ import RainbowImage from "@/components/RainbowImage";
 import MainBanner from "@/components/MainBanner";
 import TransactionInput from "@/components/TransactionInput";
 import { useAtomValue } from "jotai";
-import { isFirstTimeAtom, isStartedAtom } from "./atoms/ui";
+import { isStartedAtom } from "./atoms/ui";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ProcessResult from "./components/ProcessResult";
 import HeroSection from "./components/HeroSection";
@@ -18,8 +18,7 @@ const MainContent = () => {
   // Responsive design hook
   const { isOverBreakpoint } = useViewport();
   const isStarted = useAtomValue(isStartedAtom);
-  const isFirstTime = useAtomValue(isFirstTimeAtom);
-  const { isInProcess } = useUI();
+  const { isInProcess, isFirstTime } = useUI();
 
   return (
     <div
@@ -45,7 +44,7 @@ const MainContent = () => {
         </div>
         <div
           className={`flex flex-col justify-center items-center ${
-            isInProcess ? "h-full" : ""
+            isInProcess && !isFirstTime ? "h-full" : ""
           }`}
         >
           <LoadingSpinner />

@@ -28,6 +28,8 @@ export default function TransactionInput() {
       ? ProcessBtnImageError
       : ProcessBtnImageDisabled;
 
+  console.log(isFirstTime, isHeroUp && isInProcess, isFocused);
+
   return (
     <div className="flex gap-[16px] w-full h-[59px] z-[100]">
       <input
@@ -40,8 +42,9 @@ export default function TransactionInput() {
           borderBottom: "1px solid #5F5F5F",
           borderRight: "1px solid #5F5F5F",
           padding: "8px",
-          color:
-            isFirstTime || (isHeroUp && isInProcess) || isFocused
+          color: isFirstTime
+            ? "#222"
+            : (isHeroUp && isInProcess) || (!isFirstTime && isFocused)
               ? "#fff"
               : "#999",
           fontFamily: "IBM Plex Mono",
