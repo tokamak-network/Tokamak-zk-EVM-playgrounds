@@ -6,10 +6,11 @@ import Stars from "@/components/Stars";
 import Header from "@/components/Header";
 import RainbowImage from "@/components/RainbowImage";
 import MainBanner from "@/components/MainBanner";
-import InputTransaction from "@/components/InputTransaction";
+import TransactionInput from "@/components/TransactionInput";
 import { useAtomValue } from "jotai";
 import { isStartedAtom } from "./atoms/ui";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ProcessResult from "./components/ProcessResult";
 
 const MainContent = () => {
   // Responsive design hook
@@ -78,9 +79,10 @@ const MainContent = () => {
               </h2>
             </div>
             <div className="flex justify-center items-center w-full h-[50px] ">
-              {isStarted ? <InputTransaction /> : <MainBanner />}
+              {isStarted ? <TransactionInput /> : <MainBanner />}
             </div>
             <LoadingSpinner />
+            <ProcessResult />
           </div>
         </div>
       </div>

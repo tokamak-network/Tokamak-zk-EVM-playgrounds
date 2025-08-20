@@ -4,6 +4,7 @@ import ErrorSpinnerImage from "@/assets/components/error-spinner.svg";
 import { useAtomValue } from "jotai";
 import { isErrorAtom } from "../atoms/ui";
 import { appInit } from "../utils/helpers";
+import { usePlaygroundStage } from "../hooks/usePlaygroundStage";
 
 interface LoadingProps {
   spinner: React.ReactNode;
@@ -35,6 +36,7 @@ export default function LoadingSpinner() {
   const [activeBoxes, setActiveBoxes] = useState(0);
   const totalBoxes = 24;
   const isError = useAtomValue(isErrorAtom);
+  const { playgroundStageInProcess } = usePlaygroundStage();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -65,6 +67,8 @@ export default function LoadingSpinner() {
       </div>
     );
   };
+
+  if (!playgroundStageInProcess) return null;
 
   return (
     <div className="flex">

@@ -6,8 +6,9 @@ import ProcessBtnImageError from "@/assets/process-button-error.svg";
 import { useDebouncedTxHashValidation } from "../hooks/useTransaction";
 import { isErrorAtom } from "../atoms/ui";
 import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
+import { useMemo } from "react";
 
-export default function InputTransaction() {
+export default function TransactionInput() {
   const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
   const { isValid: isValidTxHash } =
     useDebouncedTxHashValidation(transactionHash);
@@ -19,6 +20,10 @@ export default function InputTransaction() {
     : isError
       ? ProcessBtnImageError
       : ProcessBtnImageDisabled;
+
+  const isActive = useMemo(() => {
+    return isValidTxHash && !isError;
+  }, [isValidTxHash, isError]);
 
   return (
     <div className="flex gap-[16px] w-full h-[59px] z-[100]">
@@ -46,7 +51,7 @@ export default function InputTransaction() {
         className="cursor-pointer"
         src={processBtnImage}
         alt="ProcessBtnImage"
-        onClick={() => executeAll()}
+        onClick={() => isActive && executeAll()}
       />
     </div>
   );

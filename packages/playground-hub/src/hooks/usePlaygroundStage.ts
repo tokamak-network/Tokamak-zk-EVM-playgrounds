@@ -5,7 +5,7 @@ import {
   PlaygroundStartStage,
   playgroundStartStageAtom,
   playgroundStageInProcessAtom,
-} from "../atoms/playgroundStage";
+} from "@/atoms/playgroundStage";
 import { useMemo } from "react";
 
 export function usePlaygroundStage() {

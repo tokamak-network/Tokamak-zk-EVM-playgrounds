@@ -2,13 +2,12 @@ import { useCallback } from "react";
 import { useBinary } from "./useBinary";
 import { useSynthesizer } from "./useSynthesizer";
 import { useBackendCommand } from "./useBackend";
-import { usePipelineAnimation } from "./usePipelineAnimation";
 import { useAtom } from "jotai";
 import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
-import { useModals } from "./useModals";
 import { useCuda } from "./useCuda";
 import { useBenchmark } from "./useBenchmark";
+import { showProcessResultModalAtom } from "../atoms/ui";
 
 // CUDA API types are defined in render.d.ts
 
@@ -24,9 +23,6 @@ export enum TokamakActionType {
 }
 
 export function useTokamakZkEVMActions() {
-  const [provingIsDone, setProvingIsDone] = useAtom(provingIsDoneAtom);
-  const [provingResult, setProvingResult] = useAtom(provingResultAtom);
-  const [, setProveStep] = useAtom(proveStepAtom);
   const { startBinary, currentProcess, executeCommand, binaryStatus } =
     useBinary();
   // 임시: Docker 관련 변수들을 undefined로 설정 (다른 액션들 때문에)
@@ -36,10 +32,8 @@ export function useTokamakZkEVMActions() {
   const { parseTONTransfer } = useSynthesizer();
   const { setup, preProcess, prove, proveWithStreaming, verify } =
     useBackendCommand();
-  const { updateActiveSection } = usePipelineAnimation();
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
-  const { openModal, closeModal } = useModals();
   const { cudaStatus } = useCuda();
   const isCudaSupported = cudaStatus.isFullySupported;
   const {
@@ -51,36 +45,17 @@ export function useTokamakZkEVMActions() {
     currentSession,
     globalBenchmarkSession,
   } = useBenchmark();
-
-  // Analyze prove logs and update steps
-  const analyzeProveLog = useCallback(
-    (logData: string) => {
-      // Analyze steps based on actual prove logs
-      // Prove initialization stays at step 1, Running prove0 starts from step 2
-      if (logData.includes("Running prove0")) {
-        setProveStep(2); // "Oops, a drop!"
-      } else if (logData.includes("Running prove1")) {
-        setProveStep(3); // "Rain's starting…"
-      } else if (logData.includes("Running prove2")) {
-        setProveStep(4); // "Pouring now!"
-      } else if (logData.includes("Running prove3")) {
-        setProveStep(5); // "Catch it if you can!"
-      } else if (logData.includes("Running prove4")) {
-        setProveStep(6); // "Still raining!"
-      }
-    },
-    [setProveStep]
-  );
+  const [, setShowProcessResultModal] = useAtom(showProcessResultModalAtom);
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
       let hasError = false;
       try {
         setPlaygroundStageInProcess(true);
+        setShowProcessResultModal(false);
+
         switch (actionType) {
           case TokamakActionType.InstallDependencies:
-            openModal("loading");
-
             console.log(
               "🔍 InstallDependencies: Starting installation process..."
             );
@@ -94,9 +69,7 @@ export function useTokamakZkEVMActions() {
               console.log(
                 "🔍 InstallDependencies: Installation completed successfully"
               );
-
-              // Start animation after installation is complete
-              return updateActiveSection("evm-to-qap");
+              return result;
             } catch (error) {
               console.error("🔍 InstallDependencies: Error occurred:", error);
               throw error;
@@ -104,10 +77,6 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.SetupEvmSpec:
             try {
-              if (isCudaSupported) {
-                openModal("loading");
-              }
-
               // Start binary process
               console.log("🚀 Starting binary process");
               const process = await startBinary();
@@ -115,8 +84,6 @@ export function useTokamakZkEVMActions() {
               if (!process?.pid) {
                 throw new Error("Failed to start binary process");
               }
-
-              updateActiveSection("evm-to-qap");
 
               return process;
             } catch (error) {
@@ -127,10 +94,9 @@ export function useTokamakZkEVMActions() {
           case TokamakActionType.RunSynthesizer:
             try {
               console.log("🔍 RunSynthesizer: Starting synthesizer action...");
-              openModal("loading");
               const result = await parseTONTransfer();
               console.log("🔍 RunSynthesizer: Parse result:", result);
-              return updateActiveSection("synthesizer-to-prove-bikzg");
+              return result;
             } catch (error) {
               console.error("🔍 RunSynthesizer: Error occurred:", error);
               hasError = true;
@@ -139,9 +105,6 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.SetupTrustedSetup:
             if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
-              updateActiveSection("qap-to-setup-synthesizer");
-              openModal("loading");
-
               console.log("🔍 SetupTrustedSetup: Starting setup process...");
 
               try {
@@ -156,7 +119,7 @@ export function useTokamakZkEVMActions() {
                 console.log(
                   "🔍 SetupTrustedSetup: Command completed successfully"
                 );
-                return updateActiveSection("setup-to-prove");
+                return result;
               } catch (error) {
                 console.error("🔍 SetupTrustedSetup: Error occurred:", error);
                 throw error;
@@ -166,8 +129,6 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.PreProcess:
             if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
-              openModal("loading");
-
               console.log(
                 "🔍 PreProcess: Starting binary-based preprocess action..."
               );
@@ -184,7 +145,6 @@ export function useTokamakZkEVMActions() {
               const activeSession = globalBenchmarkSession || currentSession;
               if (!activeSession) {
                 console.warn("🔍 PreProcess: No benchmark session available");
-                return updateActiveSection("bikzg-to-verify");
               }
 
               // Benchmarking: Record PreProcess start time
@@ -220,8 +180,7 @@ export function useTokamakZkEVMActions() {
                     "🔍 PreProcess: preprocessStartTime is null, skipping endProcessTiming"
                   );
                 }
-
-                return updateActiveSection("bikzg-to-verify");
+                return result;
               } catch (error) {
                 console.error("🔍 PreProcess: Error occurred:", error);
                 // Benchmarking: Record PreProcess failure time
@@ -243,9 +202,6 @@ export function useTokamakZkEVMActions() {
 
           case TokamakActionType.ProveTransaction:
             if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
-              openModal("prove-loading");
-              setProveStep(1); // Set initial step
-
               console.log(
                 "🔍 ProveTransaction: Starting binary-based prove action..."
               );
@@ -264,7 +220,6 @@ export function useTokamakZkEVMActions() {
                 console.warn(
                   "🔍 ProveTransaction: No benchmark session available"
                 );
-                return updateActiveSection("prove-to-verify");
               }
 
               // Benchmarking: Record Prove start time
@@ -282,7 +237,6 @@ export function useTokamakZkEVMActions() {
                 window.binaryService.onStreamData(({ data, isError }) => {
                   if (!isError) {
                     console.log("Prove log:", data);
-                    analyzeProveLog(data);
                     // Collect log data
                     proveLogData += data + "\n";
                   }
@@ -308,11 +262,8 @@ export function useTokamakZkEVMActions() {
                     undefined,
                     proveLogData
                   );
-                  // Check auto download after Prove completion
-                  checkAutoDownload();
                 }
-
-                return updateActiveSection("prove-to-verify");
+                return result;
               } catch (error) {
                 console.error("🔍 ProveTransaction: Error occurred:", error);
                 // Benchmarking: Record Prove failure time
@@ -336,8 +287,6 @@ export function useTokamakZkEVMActions() {
           case TokamakActionType.Verify:
             if (binaryStatus.isInstalled && binaryStatus.isExecutable) {
               try {
-                openModal("loading");
-
                 console.log(
                   "🔍 Verify: Starting binary-based verify action..."
                 );
@@ -355,7 +304,6 @@ export function useTokamakZkEVMActions() {
                 const lastLine = lines[lines.length - 1].trim();
 
                 if (lastLine.startsWith("Verification result:")) {
-                  setProvingIsDone(true);
                   const provingResultValue = lastLine.split(":")[1].trim();
 
                   // Check true case-insensitively (true, True, TRUE, etc. all allowed)
@@ -372,17 +320,12 @@ export function useTokamakZkEVMActions() {
                     isTrue: isTrue,
                   });
 
-                  setProvingResult(isTrue);
-
                   return {
                     success: isTrue,
                     verificationResult: isTrue,
                     rawResult: result,
                   };
                 } else {
-                  setProvingIsDone(true);
-                  setProvingResult(false);
-
                   return {
                     success: false,
                     error: "Verification line not found",
@@ -391,16 +334,11 @@ export function useTokamakZkEVMActions() {
                 }
               } catch (error) {
                 console.error("🔍 Verify: Error occurred:", error);
-                setProvingIsDone(true);
-                setProvingResult(false);
-
                 return {
                   success: false,
                   error: error.message || "An unknown error occurred",
                   rawResult: null,
                 };
-              } finally {
-                updateActiveSection("verify-to-result");
               }
             }
             throw new Error("Binary is not available or not executable");
@@ -425,9 +363,16 @@ export function useTokamakZkEVMActions() {
 
               // Step 4: Verify
               console.log("🔍 ExecuteAll: Step 4 - Running Verify...");
-              await executeTokamakAction(TokamakActionType.Verify);
+              const verifyResult = await executeTokamakAction(
+                TokamakActionType.Verify
+              );
 
               console.log("✅ ExecuteAll: All steps completed successfully!");
+
+              // Show ProcessResult modal on successful completion
+              setShowProcessResultModal(true);
+
+              return verifyResult;
             } catch (error) {
               console.error(
                 "❌ ExecuteAll: Integrated execution failed:",
@@ -457,8 +402,6 @@ export function useTokamakZkEVMActions() {
             setPlaygroundStageInProcess(false);
             resolve();
             if (!hasError) {
-              closeModal();
-              // setPendingAnimation(false);
             }
           }, 0);
         });
@@ -470,11 +413,9 @@ export function useTokamakZkEVMActions() {
       parseTONTransfer,
       prove,
       proveWithStreaming,
-      analyzeProveLog,
-      setProveStep,
-      // setPendingAnimation,
       initializeWhenCatchError,
       isCudaSupported,
+      setShowProcessResultModal,
     ]
   );
 
@@ -510,6 +451,10 @@ export function useTokamakZkEVMActions() {
     return executeTokamakAction(TokamakActionType.ExecuteAll);
   }, [executeTokamakAction]);
 
+  const closeProcessResultModal = useCallback(() => {
+    setShowProcessResultModal(false);
+  }, [setShowProcessResultModal]);
+
   return {
     executeTokamakAction,
     setupEvmSpec,
@@ -520,7 +465,6 @@ export function useTokamakZkEVMActions() {
     runVerify,
     runInstallDependencies,
     executeAll,
-    provingIsDone,
-    provingResult,
+    closeProcessResultModal,
   };
 }
