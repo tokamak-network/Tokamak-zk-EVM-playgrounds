@@ -7,6 +7,7 @@ import { useDebouncedTxHashValidation } from "../hooks/useTransaction";
 import { isErrorAtom } from "../atoms/ui";
 import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 import { useMemo } from "react";
+import { useUI } from "../hooks/useUI";
 
 export default function TransactionInput() {
   const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
@@ -14,6 +15,7 @@ export default function TransactionInput() {
     useDebouncedTxHashValidation(transactionHash);
   const isError = useAtomValue(isErrorAtom);
   const { executeAll } = useTokamakZkEVMActions();
+  const { isFirstTime, isInProcess, showProcessResultModal } = useUI();
 
   const processBtnImage = isValidTxHash
     ? ProcessBtnImageActive
@@ -28,7 +30,7 @@ export default function TransactionInput() {
   return (
     <div className="flex gap-[16px] w-full h-[59px] z-[100]">
       <input
-        className="min-w-[838px]"
+        className={`${isFirstTime ? "min-w-[838px]" : "min-w-[656px]"}`}
         style={{
           width: "100%",
           height: "100%",
@@ -37,12 +39,14 @@ export default function TransactionInput() {
           borderBottom: "1px solid #5F5F5F",
           borderRight: "1px solid #5F5F5F",
           padding: "8px",
-          color: "#222",
+          color: isFirstTime ? "#222" : "#999",
           fontFamily: "IBM Plex Mono",
-          fontSize: "20px",
+          fontSize: isFirstTime ? "20px" : "16px",
           fontStyle: "normal",
           fontWeight: "400",
           lineHeight: "normal",
+          backgroundColor:
+            isInProcess || showProcessResultModal ? "transparent" : "#fff",
         }}
         value={transactionHash}
         onChange={(e) => setTransactionHash(e.target.value)}

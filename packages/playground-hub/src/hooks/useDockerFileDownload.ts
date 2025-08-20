@@ -91,37 +91,25 @@ export const useDockerFileDownload = () => {
   );
 
   const downloadSynthesizerFiles = useCallback(async () => {
-    if (!currentDockerContainer?.ID) {
-      setState((prev) => ({
-        ...prev,
-        error: "Docker container not found. Please start the container first.",
-      }));
-      return null;
-    }
-
     try {
       setState((prev) => ({ ...prev, isDownloading: true, error: null }));
 
-      console.log("Downloading synthesizer files from Docker container...");
+      console.log("Downloading synthesizer files from local file system...");
 
-      // Define file paths in the container
+      // Define file paths for binary-based execution
       const filePaths = {
-        instance:
-          "packages/frontend/synthesizer/examples/outputs/instance.json",
+        instance: "binaries/backend/resource/synthesizer/outputs/instance.json",
         permutation:
-          "packages/frontend/synthesizer/examples/outputs/permutation.json",
+          "binaries/backend/resource/synthesizer/outputs/permutation.json",
         placementVariables:
-          "packages/frontend/synthesizer/examples/outputs/placementVariables.json",
+          "binaries/backend/resource/synthesizer/outputs/placementVariables.json",
       };
 
-      // Download each file
+      // Download each file from local file system
       const downloadPromises = Object.entries(filePaths).map(
         async ([key, path]) => {
           try {
-            const fileContent = await executeCommand(
-              currentDockerContainer.ID,
-              ["cat", path]
-            );
+            const fileContent = await window.binaryService.readFile(path);
             return { key, content: fileContent };
           } catch (error) {
             console.warn(`Failed to download ${key} file from ${path}:`, error);
@@ -168,41 +156,29 @@ export const useDockerFileDownload = () => {
       }));
       return null;
     }
-  }, [currentDockerContainer, executeCommand]);
+  }, []);
 
   const downloadSetupFiles = useCallback(async () => {
-    if (!currentDockerContainer?.ID) {
-      setState((prev) => ({
-        ...prev,
-        error: "Docker container not found. Please start the container first.",
-      }));
-      return null;
-    }
-
     try {
       setState((prev) => ({ ...prev, isDownloading: true, error: null }));
 
-      console.log("Downloading setup files from Docker container...");
+      console.log("Downloading setup files from local file system...");
 
-      // Define file paths in the container
+      // Define file paths for binary-based execution
       const filePaths = {
         combinedSigna:
-          "packages/backend/setup/trusted-setup/output/combined_sigma.json",
+          "binaries/backend/resource/setup/output/combined_sigma.json",
         sigmaPreprocess:
-          "packages/backend/setup/trusted-setup/output/sigma_preprocess.json",
-        sigmaVerify:
-          "packages/backend/setup/trusted-setup/output/sigma_verify.json",
+          "binaries/backend/resource/setup/output/sigma_preprocess.json",
+        sigmaVerify: "binaries/backend/resource/setup/output/sigma_verify.json",
       };
 
-      // Download each file using the new downloadLargeFile function
+      // Download each file from local file system
       const downloadPromises = Object.entries(filePaths).map(
         async ([key, path]) => {
           try {
             console.log(`Downloading ${key} file from ${path}...`);
-            const fileContent = await downloadLargeFile(
-              currentDockerContainer.ID,
-              path
-            );
+            const fileContent = await window.binaryService.readFile(path);
             console.log(
               `Successfully downloaded ${key} file (${fileContent.length} characters)`
             );
@@ -255,32 +231,20 @@ export const useDockerFileDownload = () => {
       }));
       return null;
     }
-  }, [currentDockerContainer, downloadLargeFile]);
+  }, []);
 
   const downloadPreprocessFiles = useCallback(async () => {
-    if (!currentDockerContainer?.ID) {
-      console.error("No Docker container available");
-      setState((prev) => ({
-        ...prev,
-        error: "No Docker container available",
-      }));
-      return null;
-    }
-
     setState((prev) => ({ ...prev, isDownloading: true, error: null }));
 
     try {
       console.log("Starting preprocess file download...");
 
       const filePath =
-        "packages/backend/verify/preprocess/output/preprocess.json";
+        "binaries/backend/resource/preprocess/output/preprocess.json";
 
       console.log(`Downloading preprocess file from: ${filePath}`);
 
-      const content = await downloadLargeFile(
-        currentDockerContainer.ID,
-        filePath
-      );
+      const content = await window.binaryService.readFile(filePath);
 
       if (!content) {
         console.error(`Failed to download preprocess file`);
@@ -315,31 +279,19 @@ export const useDockerFileDownload = () => {
       }));
       return null;
     }
-  }, [currentDockerContainer, downloadLargeFile]);
+  }, []);
 
   const downloadProveFiles = useCallback(async () => {
-    if (!currentDockerContainer?.ID) {
-      console.error("No Docker container available");
-      setState((prev) => ({
-        ...prev,
-        error: "No Docker container available",
-      }));
-      return null;
-    }
-
     setState((prev) => ({ ...prev, isDownloading: true, error: null }));
 
     try {
       console.log("Starting prove file download...");
 
-      const filePath = "packages/backend/prove/output/proof.json";
+      const filePath = "binaries/backend/resource/prove/output/proof.json";
 
       console.log(`Downloading prove file from: ${filePath}`);
 
-      const content = await downloadLargeFile(
-        currentDockerContainer.ID,
-        filePath
-      );
+      const content = await window.binaryService.readFile(filePath);
 
       if (!content) {
         console.error(`Failed to download prove file`);
@@ -374,7 +326,7 @@ export const useDockerFileDownload = () => {
       }));
       return null;
     }
-  }, [currentDockerContainer, downloadLargeFile]);
+  }, []);
 
   const downloadToLocal = useCallback(
     async (

@@ -8,14 +8,16 @@ import RainbowImage from "@/components/RainbowImage";
 import MainBanner from "@/components/MainBanner";
 import TransactionInput from "@/components/TransactionInput";
 import { useAtomValue } from "jotai";
-import { isStartedAtom } from "./atoms/ui";
+import { isFirstTimeAtom, isStartedAtom } from "./atoms/ui";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ProcessResult from "./components/ProcessResult";
+import HeroSection from "./components/HeroSection";
 
 const MainContent = () => {
   // Responsive design hook
   const { isOverBreakpoint } = useViewport();
   const isStarted = useAtomValue(isStartedAtom);
+  const isFirstTime = useAtomValue(isFirstTimeAtom);
 
   return (
     <div
@@ -28,62 +30,20 @@ const MainContent = () => {
     >
       {/* Background stars component */}
       <Stars isOverBreakpoint={isOverBreakpoint} />
-
       {/* Header with logo */}
       <Header isOverBreakpoint={isOverBreakpoint} />
-
-      <div className="flex flex-col justify-center items-center h-screen">
-        {/* Main content area - can add new components here */}
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div className="flex flex-col justify-center items-center gap-y-[70px]">
-            {/* Placeholder for main playground content */}
-            <div style={{ textAlign: "center", color: "white" }}>
-              <h1
-                style={{
-                  color: "#FFF",
-                  textAlign: "center",
-                  textShadow: "0 2px 0 #006CD8",
-                  fontFamily: "'Jersey 10', cursive",
-                  fontSize: "84px",
-                  fontStyle: "normal",
-                  fontWeight: "400",
-                  lineHeight: "normal",
-                  letterSpacing: "5.46px",
-                }}
-              >
-                ZK Proofs. One Click.
-              </h1>
-              <h2
-                style={{
-                  color: "#57D2FF",
-                  textAlign: "center",
-                  textShadow: "0 6px 0 #0E3260",
-                  fontFamily: "'Jersey 10', cursive",
-                  fontSize: "156px",
-                  fontStyle: "normal",
-                  fontWeight: "400",
-                  lineHeight: "normal",
-                  letterSpacing: "10.92px",
-                }}
-              >
-                Playground
-              </h2>
-            </div>
-            <div className="flex justify-center items-center w-full h-[50px] ">
-              {isStarted ? <TransactionInput /> : <MainBanner />}
-            </div>
-            <LoadingSpinner />
-            <ProcessResult />
-          </div>
+      <div
+        className={`flex flex-col ${
+          !isFirstTime ? "justify-start" : "justify-center"
+        } items-center h-screen ${!isFirstTime ? "gap-y-[70px]" : "gap-y-[32px]"} pt-[47px]`}
+      >
+        <HeroSection />
+        <div className="flex justify-center items-center w-full h-[50px] ">
+          {isStarted ? <TransactionInput /> : <MainBanner />}
+        </div>
+        <div className="flex flex-col justify-center items-center">
+          <LoadingSpinner />
+          <ProcessResult />
         </div>
       </div>
 

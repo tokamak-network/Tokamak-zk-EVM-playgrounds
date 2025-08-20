@@ -7,7 +7,7 @@ import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
 import { useCuda } from "./useCuda";
 import { useBenchmark } from "./useBenchmark";
-import { showProcessResultModalAtom } from "../atoms/ui";
+import { isFirstTimeAtom, showProcessResultModalAtom } from "../atoms/ui";
 
 // CUDA API types are defined in render.d.ts
 
@@ -45,14 +45,15 @@ export function useTokamakZkEVMActions() {
     currentSession,
     globalBenchmarkSession,
   } = useBenchmark();
-  const [, setShowProcessResultModal] = useAtom(showProcessResultModalAtom);
+  const [, setShowProcessResult] = useAtom(showProcessResultModalAtom);
+  const [, setIsFirstTime] = useAtom(isFirstTimeAtom);
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType) => {
       let hasError = false;
       try {
         setPlaygroundStageInProcess(true);
-        setShowProcessResultModal(false);
+        setShowProcessResult(false);
 
         switch (actionType) {
           case TokamakActionType.InstallDependencies:
@@ -370,7 +371,8 @@ export function useTokamakZkEVMActions() {
               console.log("✅ ExecuteAll: All steps completed successfully!");
 
               // Show ProcessResult modal on successful completion
-              setShowProcessResultModal(true);
+              setShowProcessResult(true);
+              setIsFirstTime(false);
 
               return verifyResult;
             } catch (error) {
@@ -415,7 +417,8 @@ export function useTokamakZkEVMActions() {
       proveWithStreaming,
       initializeWhenCatchError,
       isCudaSupported,
-      setShowProcessResultModal,
+      setShowProcessResult,
+      setIsFirstTime,
     ]
   );
 
@@ -451,10 +454,6 @@ export function useTokamakZkEVMActions() {
     return executeTokamakAction(TokamakActionType.ExecuteAll);
   }, [executeTokamakAction]);
 
-  const closeProcessResultModal = useCallback(() => {
-    setShowProcessResultModal(false);
-  }, [setShowProcessResultModal]);
-
   return {
     executeTokamakAction,
     setupEvmSpec,
@@ -465,6 +464,5 @@ export function useTokamakZkEVMActions() {
     runVerify,
     runInstallDependencies,
     executeAll,
-    closeProcessResultModal,
   };
 }
