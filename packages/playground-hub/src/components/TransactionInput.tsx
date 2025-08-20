@@ -15,7 +15,7 @@ export default function TransactionInput() {
     useDebouncedTxHashValidation(transactionHash);
   const isError = useAtomValue(isErrorAtom);
   const { executeAll } = useTokamakZkEVMActions();
-  const { isFirstTime, isInProcess, showProcessResultModal } = useUI();
+  const { isFirstTime, isHeroUp } = useUI();
 
   const processBtnImage = isValidTxHash
     ? ProcessBtnImageActive
@@ -45,8 +45,7 @@ export default function TransactionInput() {
           fontStyle: "normal",
           fontWeight: "400",
           lineHeight: "normal",
-          backgroundColor:
-            isInProcess || showProcessResultModal ? "transparent" : "#fff",
+          backgroundColor: isHeroUp ? "transparent" : "#fff",
         }}
         value={transactionHash}
         onChange={(e) => setTransactionHash(e.target.value)}

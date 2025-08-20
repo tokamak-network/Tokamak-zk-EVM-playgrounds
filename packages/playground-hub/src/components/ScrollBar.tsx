@@ -43,11 +43,28 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
           border: 1px solid #a8a8a8;
         }
       `}</style>
-      <div
-        className={`relative w-[729px] bg-[#bdbdbd] h-[calc(100%-40px)] border-[9px] border-[#bdbdbd] overflow-y-auto left-0 top-0 custom-scrollbar`}
-        style={{ height: "500px" }}
-      >
-        {children}
+      <div className="relative">
+        <div
+          className="absolute top-[-40px] text-center pt-[10px]"
+          style={{
+            width: "73px",
+            height: "40px",
+            background: "#BDBDBD",
+            borderTop: "1px solid #5F5F5F",
+            borderLeft: "1px solid #5F5F5F",
+            borderRight: "1px solid #5F5F5F",
+            fontSize: "16px",
+            fontFamily: "IBM Plex Mono",
+          }}
+        >
+          Logs
+        </div>
+        <div
+          className={`relative w-[729px] bg-[#bdbdbd] h-[calc(100%-40px)] border-[9px] border-[#bdbdbd] overflow-y-auto left-0 top-0 custom-scrollbar`}
+          style={{ height: "50vh" }}
+        >
+          {children}
+        </div>
       </div>
     </>
   );

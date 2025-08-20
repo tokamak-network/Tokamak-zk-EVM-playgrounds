@@ -8,7 +8,9 @@ import { useBenchmark } from "../hooks/useBenchmark";
 import JSZip from "jszip";
 
 const Logs = () => {
-  const { logGroups } = useSynthesizerResult();
+  const { logGroups: test } = useSynthesizerResult();
+
+  const logGroups = [...test, ...test, ...test, ...test, ...test, ...test];
 
   return logGroups && logGroups.length > 0 ? (
     logGroups.map((logGroup, index) => (
@@ -25,7 +27,7 @@ const Logs = () => {
       >
         {/* <div className="absolute">gogo</div> */}
         <div
-          className="absolute -top-[23px] left-[-1px] font-ibm-mono bg-white tracking-[0.15px] text-[#3b48ff] w-[58px] h-[22px] text-center  rounded-t py-[4px] z-[100]"
+          className="absolute -top-[23px] left-[-0.5px] font-ibm-mono bg-white tracking-[0.15px] text-[#3b48ff] w-[58px] h-[22px] text-center  rounded-t py-[4px] z-[100]"
           style={{
             background: "#fff",
             fontSize: "11px",
@@ -90,14 +92,8 @@ const Logs = () => {
 const ProcessResult = () => {
   const showProcessResult = useAtomValue(showProcessResultModalAtom);
 
-  const {
-    proveFiles,
-    files,
-    downloadAllFiles,
-    downloadSynthesizerFiles,
-    downloadPreprocessFiles,
-    downloadProveFiles,
-  } = useBinaryFileDownload();
+  const { downloadSynthesizerFiles, downloadProveFiles } =
+    useBinaryFileDownload();
   const { generateBenchmarkData } = useBenchmark();
 
   // Combined download handler for proof and benchmark files
@@ -107,7 +103,6 @@ const ProcessResult = () => {
     // First load all files into state
     console.log("Loading files from binary directory...");
     const synthesizerFiles = await downloadSynthesizerFiles();
-    const preprocessFiles = await downloadPreprocessFiles();
     const proveFilesResult = await downloadProveFiles();
 
     console.log("*****");
