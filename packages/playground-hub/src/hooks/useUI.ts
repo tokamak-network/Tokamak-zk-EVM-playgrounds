@@ -10,7 +10,7 @@ export const useUI = () => {
 
   const isHeroUp = useMemo(() => {
     return !isFirstTime;
-  }, []);
+  }, [isFirstTime]);
 
   return { isFirstTime, showProcessResultModal, isInProcess, isHeroUp };
 };

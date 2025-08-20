@@ -2,12 +2,16 @@ import { useCallback } from "react";
 import { useBinary } from "./useBinary";
 import { useSynthesizer } from "./useSynthesizer";
 import { useBackendCommand } from "./useBackend";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
 import { useCuda } from "./useCuda";
 import { useBenchmark } from "./useBenchmark";
-import { isFirstTimeAtom, showProcessResultModalAtom } from "../atoms/ui";
+import {
+  isErrorAtom,
+  isFirstTimeAtom,
+  showProcessResultModalAtom,
+} from "../atoms/ui";
 
 // CUDA API types are defined in render.d.ts
 
@@ -37,6 +41,7 @@ export function useTokamakZkEVMActions() {
     currentSession,
     globalBenchmarkSession,
   } = useBenchmark();
+  const setIsError = useSetAtom(isErrorAtom);
   const [, setShowProcessResult] = useAtom(showProcessResultModalAtom);
   const [, setIsFirstTime] = useAtom(isFirstTimeAtom);
 
@@ -385,6 +390,7 @@ export function useTokamakZkEVMActions() {
       } catch (error) {
         console.log("error", error);
         hasError = true;
+        setIsError(true);
         initializeWhenCatchError();
         return Promise.resolve({
           success: false,

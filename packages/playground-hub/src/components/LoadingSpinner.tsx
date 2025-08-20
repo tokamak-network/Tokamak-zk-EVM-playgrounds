@@ -39,11 +39,14 @@ export default function LoadingSpinner() {
   const { playgroundStageInProcess } = usePlaygroundStage();
 
   useEffect(() => {
+    if (isError) {
+      return setActiveBoxes(20);
+    }
     const interval = setInterval(() => {
       setActiveBoxes((prev) => (prev < totalBoxes ? prev + 1 : 0));
     }, 75);
     return () => clearInterval(interval);
-  }, []);
+  }, [isError]);
 
   const Spinner = () => {
     return (
