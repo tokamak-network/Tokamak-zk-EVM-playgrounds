@@ -39,7 +39,9 @@ const MainContent = () => {
         } items-center h-screen ${!isFirstTime ? "gap-y-[70px]" : "gap-y-[32px]"} pt-[47px]`}
       >
         <HeroSection />
-        <div className={`flex justify-center items-center w-full h-[50px]`}>
+        <div
+          className={`flex justify-center items-center w-full h-[50px] ${isStarted ? "mt-[80px]" : "mt-[70px]"}`}
+        >
           {isStarted ? <TransactionInput /> : <MainBanner />}
         </div>
         <div

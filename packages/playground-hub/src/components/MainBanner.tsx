@@ -20,7 +20,7 @@ export default function MainBanner() {
       <img
         src={FingerImage}
         alt="Finger"
-        className="absolute top-[45px] right-[-60px]"
+        className="absolute top-[43px] right-[-66px]"
       />
     </div>
   );

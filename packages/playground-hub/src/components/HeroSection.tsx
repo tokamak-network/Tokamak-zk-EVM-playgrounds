@@ -3,7 +3,10 @@ import { isFirstTimeAtom } from "../atoms/ui";
 
 const HeroSectionFirstTime = () => {
   return (
-    <div style={{ textAlign: "center", color: "white" }}>
+    <div
+      className="flex flex-col gap-y-[24px]"
+      style={{ textAlign: "center", color: "white" }}
+    >
       <h1
         style={{
           color: "#FFF",
@@ -13,8 +16,9 @@ const HeroSectionFirstTime = () => {
           fontSize: "84px",
           fontStyle: "normal",
           fontWeight: "400",
-          lineHeight: "normal",
           letterSpacing: "5.46px",
+          height: "49px",
+          lineHeight: "50px",
         }}
       >
         ZK Proofs. One Click.
@@ -28,8 +32,10 @@ const HeroSectionFirstTime = () => {
           fontSize: "156px",
           fontStyle: "normal",
           fontWeight: "400",
-          lineHeight: "normal",
           letterSpacing: "10.92px",
+          height: "100px",
+          lineHeight: "100px",
+          verticalAlign: "bottom",
         }}
       >
         Playground
