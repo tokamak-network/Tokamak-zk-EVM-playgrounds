@@ -18,13 +18,17 @@ export default function TransactionInput() {
   const { isFirstTime, isHeroUp, isInProcess } = useUI();
   const [isFocused, setIsFocused] = useState(false);
 
+  const errorCase = useMemo(() => {
+    return isError && isValidTxHash;
+  }, [isError, isValidTxHash]);
+
   const isActive = useMemo(() => {
-    return isValidTxHash && !isError && isFocused && !isInProcess;
-  }, [isValidTxHash, isError, isFocused, isInProcess]);
+    return isValidTxHash && !errorCase && isFocused && !isInProcess;
+  }, [isValidTxHash, errorCase, isFocused, isInProcess]);
 
   const processBtnImage = isActive
     ? ProcessBtnImageActive
-    : isError
+    : errorCase
       ? ProcessBtnImageError
       : ProcessBtnImageDisabled;
 

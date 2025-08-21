@@ -1,0 +1,95 @@
+# Tokamak zkEVM Playground - Cursor AI Rules
+
+## CRITICAL REQUIREMENTS
+
+### Language Requirements
+- ALL code comments MUST be written in English only
+- ALL documentation MUST be written in English only
+- ALL user-facing text and error messages MUST be in English
+- Korean comments are strictly prohibited in new code
+- When updating existing code, convert Korean comments to English
+
+### Code Quality Standards
+- Follow TypeScript best practices with strict typing
+- Implement comprehensive error handling with try-catch blocks
+- Use descriptive variable and function names in English
+- Apply proper code organization and separation of concerns
+
+### Binary Execution Rules
+- ALL binary executables in this project are CLI tools, NOT long-running services
+- Never attempt to start binaries as persistent processes or servers
+- Use direct command execution for each operation (one-shot execution)
+- Always use system commands (bash, sh, cmd) to execute shell scripts
+- Handle binary execution through IPC with proper error handling
+
+### Platform Compatibility
+- Always consider cross-platform compatibility (Windows, macOS, Linux)
+- Implement fallback mechanisms for platform-specific operations
+- Test critical paths on multiple platforms
+- Use appropriate error handling for OS-specific commands
+
+### Error Handling Requirements
+- Every async operation must have proper error handling
+- Provide meaningful error messages in English
+- Implement graceful degradation when possible
+- Log errors with sufficient context for debugging
+
+### Security Considerations
+- Validate all user inputs
+- Use context isolation in Electron preload scripts
+- Sanitize data before processing
+- Never expose sensitive information in logs or error messages
+
+## Examples
+
+### ✅ GOOD - English comments
+```typescript
+// Handle user authentication and return auth token
+// Fallback to generic methods if platform-specific collection fails
+export async function getSystemInfo(): Promise<SystemInfo> {
+  try {
+    // Platform detection and specific implementation
+    if (platform === 'win32') {
+      return await getWindowsSystemInfo();
+    }
+    // Fallback implementation
+    return await getGenericSystemInfo();
+  } catch (error) {
+    console.error('Failed to collect system information:', error);
+    throw new Error('System information collection failed');
+  }
+}
+```
+
+### ❌ BAD - Korean comments
+```typescript
+// 사용자 인증을 처리하는 함수
+// 시스템 정보를 가져오는 함수
+function authenticateUser() {}
+```
+
+### ✅ GOOD - Binary execution
+```typescript
+// Execute CLI tool directly (one-shot execution)
+const result = await executeDirectCommand(['./my-tool', 'command', '--arg']);
+
+// Execute system script
+const result = await executeDirectCommand(['bash', 'path/to/script.sh']);
+```
+
+### ❌ BAD - Binary execution
+```typescript
+// Trying to run binary as persistent service
+const binaryProcess = spawn('./my-tool', ['--server-mode']);
+```
+
+## Priority Order
+1. Security - Ensure no security vulnerabilities
+2. Functionality - Code must work correctly
+3. Error Handling - Comprehensive error management
+4. Platform Compatibility - Works across target platforms
+5. Code Quality - Clean, readable, maintainable code
+6. Performance - Optimize where necessary
+7. Documentation - Clear English comments and docs
+
+Remember: Quality, security, and maintainability are more important than speed of implementation. 

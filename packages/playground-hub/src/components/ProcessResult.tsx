@@ -176,7 +176,7 @@ const ProcessResult = () => {
     }
   };
 
-  if (!showProcessResult) return null;
+  // if (!showProcessResult) return null;
 
   return (
     <div className="flex flex-col gap-4 h-full gap-y-[24px]">
