@@ -62,9 +62,13 @@ export default function TransactionInput() {
   };
 
   return (
-    <div className="flex gap-[16px] w-full h-[59px] z-[100]">
+    <div
+      className={`flex gap-[16px] w-full ${
+        isHeroUp ? "h-[40px]" : "h-[56px]"
+      } z-[100]`}
+    >
       <input
-        className={`focus:outline-none focus:ring-0 focus:border-transparent ${isFirstTime ? "min-w-[838px]" : "min-w-[656px]"}`}
+        className={`focus:outline-none focus:ring-0 focus:border-transparent`}
         style={{
           width: "100%",
           height: "100%",
@@ -73,11 +77,13 @@ export default function TransactionInput() {
           borderBottom: "1px solid #5F5F5F",
           borderRight: "1px solid #5F5F5F",
           padding: "8px",
-          color: isFirstTime
-            ? "#222"
-            : (isHeroUp && isInProcess) || (isHeroUp && isFocused)
-              ? "#fff"
-              : "#999",
+          color: errorCase
+            ? "#DF3737"
+            : isFirstTime
+              ? "#222"
+              : (isHeroUp && isInProcess) || (isHeroUp && isFocused)
+                ? "#fff"
+                : "#999",
           fontFamily: "IBM Plex Mono",
           fontSize: !isHeroUp ? "20px" : "16px",
           fontStyle: "normal",
@@ -93,7 +99,7 @@ export default function TransactionInput() {
         className="transition-all duration-150 ease-in-out active:scale-95"
         style={{
           width: "182px",
-          height: "59px",
+          height: "100%",
           fontFamily: "IBM Plex Mono",
           fontSize: isHeroUp ? "16px" : "20px",
           fontStyle: "normal",
