@@ -18,7 +18,7 @@ const MainContent = () => {
   // Responsive design hook
   const { isOverBreakpoint } = useViewport();
   const isStarted = useAtomValue(isStartedAtom);
-  const { isInProcess, isFirstTime } = useUI();
+  const { isInProcess, isFirstTime, isHeroUp } = useUI();
 
   return (
     <div
@@ -36,16 +36,18 @@ const MainContent = () => {
       <div
         className={`flex flex-col ${
           !isFirstTime ? "justify-start" : "justify-center"
-        } items-center h-screen ${!isFirstTime ? "gap-y-[70px]" : "gap-y-[32px]"} pt-[47px]`}
+        } items-center h-screen ${!isHeroUp ? "gap-y-[70px]" : "gap-y-[32px]"} pt-[47px]`}
       >
         <HeroSection />
         <div
-          className={`flex justify-center items-center w-full h-[50px] ${isStarted ? "mt-[80px]" : "mt-[70px]"}`}
+          className={`flex justify-center items-center w-full h-[50px] ${
+            isHeroUp ? "mt-[0px]" : isStarted ? "mt-[20px]" : "mt-[70px]"
+          }`}
         >
           {isStarted ? <TransactionInput /> : <MainBanner />}
         </div>
         <div
-          className={`flex flex-col justify-center items-center ${
+          className={`flex flex-col justify-center items-center ${isInProcess && isFirstTime ? "mt-[23px]" : ""} ${
             isInProcess && !isFirstTime ? "h-full" : ""
           }`}
         >

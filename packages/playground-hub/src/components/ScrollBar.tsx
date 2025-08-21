@@ -84,7 +84,7 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
 
         {/* Main Container */}
         <div
-          className="relative w-[750px] bg-[#bdbdbd] border-[1px] border-[#bdbdbd] p-[8px]"
+          className="relative w-[790px] bg-[#bdbdbd] border-[1px] border-[#bdbdbd] p-[8px]"
           style={{
             height: "50vh",
             borderBottom: "1px solid #5F5F5F",
@@ -102,7 +102,10 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
           </div>
 
           {/* Custom Scrollbar */}
-          <div className="absolute right-[0px] top-[-0px] w-[20px] h-full bg-[#DFDFDF]">
+          <div
+            className="absolute right-[12px] top-[8px] w-[20px] bg-[#DFDFDF]"
+            style={{ height: "calc(100% - 8px)" }}
+          >
             {/* Top Button */}
             <button
               onClick={scrollToTop}

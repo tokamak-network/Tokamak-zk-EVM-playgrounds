@@ -20,12 +20,9 @@ const Logs = () => {
         style={{
           fontFamily: "IBM Plex Mono, monospace",
           background: "#fff",
-          borderTop: "1px solid #5F5F5F",
-          borderLeft: "1px solid #5F5F5F",
-          borderRight: "1px solid #5F5F5F",
+          border: "1px solid #5F5F5F",
         }}
       >
-        {/* <div className="absolute">gogo</div> */}
         <div
           className="absolute top-[-23px] left-[-0.8px] font-ibm-mono text-[#3b48ff] w-[58px] h-[22px] text-center  rounded-t py-[4px] z-[100]"
           style={{
@@ -52,10 +49,10 @@ const Logs = () => {
           {/* Topics Section */}
           {logGroup.categories && (
             <div className="mb-3 text-left mb-[9px]">
-              <strong className="block mb-1 text-sm font-ibm-mono text-[#222] font-medium text-[14px] mb-[4px]">
+              <strong className="block mb-1 text-[14px] font-ibm-mono text-[#222] font-medium mb-[4px]">
                 Topics:
               </strong>
-              <div className="flex flex-col gap-y-[4px] text-[12px]">
+              <div className="flex flex-col gap-y-[4px] text-[16px]">
                 {Object.entries(logGroup.categories)
                   .filter(([key]) => key.startsWith("topic"))
                   .map(([categoryKey, category]) => (
@@ -80,7 +77,7 @@ const Logs = () => {
                 .filter(([key]) => key.startsWith("value"))
                 .map(([categoryKey, category]) => (
                   <div key={categoryKey} className="mb-1">
-                    <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono text-[11px]">
+                    <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono text-[16px]">
                       {categoryKey}: {hexToDecimal(category.valueHex)}
                     </span>
                   </div>
@@ -185,8 +182,8 @@ const ProcessResult = () => {
   if (!showProcessResult) return null;
 
   return (
-    <div className="flex flex-col gap-4 h-full gap-y-[24px]">
-      <div className="w-[729px]">
+    <div className="flex flex-col gap-4 h-full gap-y-[24px] mt-[40px]">
+      <div className="w-[790px]">
         <ScrollBar>
           <Logs />
         </ScrollBar>
