@@ -190,7 +190,7 @@ const ProcessResult = () => {
       </div>
       <div className="flex w-full h-[46px] justify-between z-[100]">
         <button
-          className="w-[354px] bg-[#008BEE] cursor-pointer"
+          className="w-[386px] bg-[#008BEE] cursor-pointer"
           style={{
             color: "#F8F8F8",
             fontFamily: "IBM Plex Mono",
@@ -198,13 +198,17 @@ const ProcessResult = () => {
             fontStyle: "normal",
             fontWeight: "700",
             lineHeight: "normal",
+            height: "46px",
+            border: "1px solid #A8A8A8",
+            borderRight: "1px solid #5F5F5F",
+            borderBottom: "1px solid #5F5F5F",
           }}
           onClick={handleDownloadCombined}
         >
           Download Proof
         </button>
         <button
-          className="w-[354px] bg-[#773FE0] cursor-pointer"
+          className="w-[386px] bg-[#773FE0] cursor-pointer"
           style={{
             color: "#F8F8F8",
             fontFamily: "IBM Plex Mono",
@@ -212,6 +216,10 @@ const ProcessResult = () => {
             fontStyle: "normal",
             fontWeight: "700",
             lineHeight: "normal",
+            height: "46px",
+            border: "1px solid #A8A8A8",
+            borderRight: "1px solid #5F5F5F",
+            borderBottom: "1px solid #5F5F5F",
           }}
           onClick={async () => {
             const url =
