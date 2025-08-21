@@ -27,7 +27,7 @@ const Logs = () => {
       >
         {/* <div className="absolute">gogo</div> */}
         <div
-          className="absolute -top-[23px] left-[-0.5px] font-ibm-mono bg-white tracking-[0.15px] text-[#3b48ff] w-[58px] h-[22px] text-center  rounded-t py-[4px] z-[100]"
+          className="absolute top-[-23px] left-[-0.8px] font-ibm-mono text-[#3b48ff] w-[58px] h-[22px] text-center  rounded-t py-[4px] z-[100]"
           style={{
             background: "#fff",
             fontSize: "11px",
@@ -42,6 +42,12 @@ const Logs = () => {
         >
           Data #{index + 1}
         </div>
+        <div
+          className="absolute top-[-1px] left-[0px] w-[56.5px] h-[1px]"
+          style={{
+            background: "#fff",
+          }}
+        ></div>
         <div>
           {/* Topics Section */}
           {logGroup.categories && (

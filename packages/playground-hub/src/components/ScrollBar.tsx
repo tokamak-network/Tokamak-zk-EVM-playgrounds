@@ -41,7 +41,8 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
   };
 
   // Calculate scrollbar handle position and size
-  const trackHeight = clientHeight > 40 ? clientHeight - 40 : 200; // Subtract button heights
+  const actualTrackHeight = clientHeight > 40 ? clientHeight - 40 : 200; // Subtract button heights
+  const trackHeight = actualTrackHeight;
   const handleHeight = Math.max(
     20,
     (clientHeight / scrollHeight) * trackHeight
@@ -66,7 +67,7 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
       <div className="relative">
         {/* Logs Tab */}
         <div
-          className="absolute top-[-40px] text-center pt-[10px]"
+          className="absolute top-[-40px] text-center pt-[10px] left-[0px]"
           style={{
             width: "73px",
             height: "40px",
@@ -83,8 +84,13 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
 
         {/* Main Container */}
         <div
-          className="relative w-[750px] bg-[#bdbdbd] border-[9px] border-[#bdbdbd]"
-          style={{ height: "50vh" }}
+          className="relative w-[750px] bg-[#bdbdbd] border-[1px] border-[#bdbdbd] p-[8px]"
+          style={{
+            height: "50vh",
+            borderBottom: "1px solid #5F5F5F",
+            borderLeft: "1px solid #5F5F5F",
+            borderRight: "1px solid #5F5F5F",
+          }}
         >
           {/* Content Area */}
           <div
@@ -123,10 +129,7 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
             </button>
 
             {/* Track */}
-            <div
-              className="relative flex-1"
-              style={{ height: `${trackHeight}px` }}
-            >
+            <div className="relative" style={{ height: `calc(100% - 40px)` }}>
               {/* Handle */}
               <div
                 className="absolute left-0 w-[20px] bg-[#BDBDBD]"
