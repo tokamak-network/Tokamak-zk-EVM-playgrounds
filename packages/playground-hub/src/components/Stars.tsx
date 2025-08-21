@@ -170,8 +170,7 @@ const Stars: React.FC<StarsProps> = ({ isOverBreakpoint = true }) => {
           }
           
           .animate-twinkle {
-            animation: twinkle 1.5s infinite ease-in-out;
-            animation-play-state: paused;
+            animation: twinkle 4s infinite ease-in-out;
           }
 
           .animate-twinkle:nth-child(1) { animation-delay: 0.0s; }
