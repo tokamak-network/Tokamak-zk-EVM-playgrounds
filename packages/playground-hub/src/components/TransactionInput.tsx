@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue } from "jotai";
 import { transactionHashAtom } from "../atoms/api";
 import { useDebouncedTxHashValidation } from "../hooks/useTransaction";
-import { isErrorAtom } from "../atoms/ui";
+import { isErrorAtom, isFirstTimeAtom } from "../atoms/ui";
 import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
 import { useMemo, useState } from "react";
 import { useUI } from "../hooks/useUI";
@@ -10,10 +10,11 @@ export default function TransactionInput() {
   const [transactionHash, setTransactionHash] = useAtom(transactionHashAtom);
   const { isValid: isValidTxHash } =
     useDebouncedTxHashValidation(transactionHash);
-  const isError = useAtomValue(isErrorAtom);
   const { executeAll } = useTokamakZkEVMActions();
-  const { isFirstTime, isHeroUp, isInProcess } = useUI();
+  const { isHeroUp, isInProcess } = useUI();
   const [isFocused, setIsFocused] = useState(false);
+  const [isError, setIsError] = useAtom(isErrorAtom);
+  const [isFirstTime, setIsFirstTime] = useAtom(isFirstTimeAtom);
 
   const errorCase = useMemo(() => {
     return isError && isValidTxHash;
@@ -93,7 +94,14 @@ export default function TransactionInput() {
         }}
         value={transactionHash}
         onChange={(e) => setTransactionHash(e.target.value)}
-        onFocus={() => setIsFocused(true)}
+        onFocus={() => {
+          if (isError) {
+            setIsError(false);
+            setTransactionHash("");
+            setIsFirstTime(true);
+          }
+          setIsFocused(true);
+        }}
       ></input>
       <button
         className="transition-all duration-150 ease-in-out active:scale-95"
