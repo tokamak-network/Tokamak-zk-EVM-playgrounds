@@ -347,23 +347,76 @@ export function useTokamakZkEVMActions() {
 
               // Step 1: Run Synthesizer
               console.log("🔍 ExecuteAll: Step 1 - Running Synthesizer...");
-              await executeTokamakAction(TokamakActionType.RunSynthesizer);
+              const synthesizerResult = await executeTokamakAction(
+                TokamakActionType.RunSynthesizer
+              );
+              if (synthesizerResult?.success === false) {
+                console.error(
+                  "❌ ExecuteAll: Synthesizer failed, stopping execution"
+                );
+                hasError = true;
+                return {
+                  success: false,
+                  error:
+                    synthesizerResult.error || "Synthesizer execution failed",
+                  step: "synthesizer",
+                };
+              }
 
               // Step 2: PreProcess
               console.log("🔍 ExecuteAll: Step 2 - Running PreProcess...");
-              await executeTokamakAction(TokamakActionType.PreProcess);
+              const preprocessResult = await executeTokamakAction(
+                TokamakActionType.PreProcess
+              );
+              if (preprocessResult?.success === false) {
+                console.error(
+                  "❌ ExecuteAll: PreProcess failed, stopping execution"
+                );
+                hasError = true;
+                return {
+                  success: false,
+                  error:
+                    preprocessResult.error || "PreProcess execution failed",
+                  step: "preprocess",
+                };
+              }
 
               // Step 3: Prove Transaction
               console.log(
                 "🔍 ExecuteAll: Step 3 - Running Prove Transaction..."
               );
-              await executeTokamakAction(TokamakActionType.ProveTransaction);
+              const proveResult = await executeTokamakAction(
+                TokamakActionType.ProveTransaction
+              );
+              if (proveResult?.success === false) {
+                console.error(
+                  "❌ ExecuteAll: Prove Transaction failed, stopping execution"
+                );
+                hasError = true;
+                return {
+                  success: false,
+                  error:
+                    proveResult.error || "Prove Transaction execution failed",
+                  step: "prove",
+                };
+              }
 
               // Step 4: Verify
               console.log("🔍 ExecuteAll: Step 4 - Running Verify...");
               const verifyResult: any = await executeTokamakAction(
                 TokamakActionType.Verify
               );
+              if (verifyResult?.success === false) {
+                console.error(
+                  "❌ ExecuteAll: Verify failed, stopping execution"
+                );
+                hasError = true;
+                return {
+                  success: false,
+                  error: verifyResult.error || "Verify execution failed",
+                  step: "verify",
+                };
+              }
 
               console.log("✅ ExecuteAll: All steps completed successfully!");
 
@@ -371,14 +424,22 @@ export function useTokamakZkEVMActions() {
               setShowProcessResult(true);
               setIsFirstTime(false);
 
-              return verifyResult;
+              return {
+                success: true,
+                verificationResult: verifyResult.verificationResult,
+                rawResult: verifyResult.rawResult,
+              };
             } catch (error) {
               console.error(
                 "❌ ExecuteAll: Integrated execution failed:",
                 error
               );
               hasError = true;
-              throw error;
+              return {
+                success: false,
+                error: error.message || "An unknown error occurred",
+                step: "unknown",
+              };
             }
 
           default:
@@ -401,8 +462,6 @@ export function useTokamakZkEVMActions() {
           setTimeout(() => {
             setPlaygroundStageInProcess(false);
             resolve();
-            if (!hasError) {
-            }
           }, 0);
         });
       }
@@ -439,7 +498,7 @@ export function useTokamakZkEVMActions() {
   }, [executeTokamakAction]);
 
   const executeAll = useCallback(async () => {
-    return executeTokamakAction(TokamakActionType.ExecuteAll);
+    return await executeTokamakAction(TokamakActionType.ExecuteAll);
   }, [executeTokamakAction]);
 
   return {

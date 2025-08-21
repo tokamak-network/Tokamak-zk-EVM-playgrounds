@@ -71,7 +71,7 @@ export default function LoadingSpinner() {
     );
   };
 
-  if (!playgroundStageInProcess) return null;
+  if (!playgroundStageInProcess && !isError) return null;
 
   return (
     <div className="flex">

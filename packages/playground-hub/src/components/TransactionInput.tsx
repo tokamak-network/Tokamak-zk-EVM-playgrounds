@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { transactionHashAtom } from "../atoms/api";
 import { useDebouncedTxHashValidation } from "../hooks/useTransaction";
 import { isErrorAtom, isFirstTimeAtom } from "../atoms/ui";
