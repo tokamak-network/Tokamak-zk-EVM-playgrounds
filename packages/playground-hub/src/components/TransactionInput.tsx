@@ -1,8 +1,5 @@
 import { useAtom, useAtomValue } from "jotai";
 import { transactionHashAtom } from "../atoms/api";
-import ProcessBtnImageDisabled from "@/assets/process-button-inactive.svg";
-import ProcessBtnImageActive from "@/assets/process-button-active.svg";
-import ProcessBtnImageError from "@/assets/process-button-error.svg";
 import { useDebouncedTxHashValidation } from "../hooks/useTransaction";
 import { isErrorAtom } from "../atoms/ui";
 import { useTokamakZkEVMActions } from "../hooks/useTokamakZkEVMActions";
@@ -26,11 +23,43 @@ export default function TransactionInput() {
     return isValidTxHash && !errorCase && isFocused && !isInProcess;
   }, [isValidTxHash, errorCase, isFocused, isInProcess]);
 
-  const processBtnImage = isActive
-    ? ProcessBtnImageActive
-    : errorCase
-      ? ProcessBtnImageError
-      : ProcessBtnImageDisabled;
+  // Button styles based on state - following Figma design exactly
+  const getButtonStyles = () => {
+    if (isActive) {
+      // Active state - blue background with light text
+      return {
+        backgroundColor: "#008BEE",
+        color: "#F8F8F8",
+        cursor: "pointer",
+        borderTop: "1px solid #A8A8A8",
+        borderLeft: "1px solid #A8A8A8",
+        borderBottom: "1px solid #5F5F5F",
+        borderRight: "1px solid #5F5F5F",
+      };
+    } else if (errorCase) {
+      // Error state - red background with gray text
+      return {
+        backgroundColor: "#FF4444",
+        color: "#E0E0E0",
+        cursor: "not-allowed",
+        borderTop: "1px solid #A8A8A8",
+        borderLeft: "1px solid #A8A8A8",
+        borderBottom: "1px solid #5F5F5F",
+        borderRight: "1px solid #5F5F5F",
+      };
+    } else {
+      // Disabled state - dark gray background with gray text
+      return {
+        backgroundColor: "#7C7C88",
+        color: "#E0E0E0",
+        cursor: "not-allowed",
+        borderTop: "1px solid #A8A8A8",
+        borderLeft: "1px solid #A8A8A8",
+        borderBottom: "1px solid #5F5F5F",
+        borderRight: "1px solid #5F5F5F",
+      };
+    }
+  };
 
   return (
     <div className="flex gap-[16px] w-full h-[59px] z-[100]">
@@ -60,17 +89,65 @@ export default function TransactionInput() {
         onChange={(e) => setTransactionHash(e.target.value)}
         onFocus={() => setIsFocused(true)}
       ></input>
-      <img
-        className="cursor-pointer"
-        src={processBtnImage}
-        alt="ProcessBtnImage"
+      <button
+        className="transition-all duration-150 ease-in-out active:scale-95"
+        style={{
+          width: "182px",
+          height: "59px",
+          fontFamily: "IBM Plex Mono",
+          fontSize: isHeroUp ? "16px" : "20px",
+          fontStyle: "normal",
+          fontWeight: "600",
+          lineHeight: "normal",
+          letterSpacing: "0.5px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          ...getButtonStyles(),
+        }}
+        onMouseEnter={(e) => {
+          if (isActive) {
+            e.currentTarget.style.backgroundColor = "#106AAB"; // Active hover - darker blue
+            e.currentTarget.style.color = "#F8F8F8"; // Keep light text color
+          } else if (errorCase) {
+            e.currentTarget.style.backgroundColor = "#DD3333"; // Error hover - darker red
+            e.currentTarget.style.color = "#E0E0E0"; // Keep gray text color
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (isActive) {
+            e.currentTarget.style.backgroundColor = "#008BEE"; // Back to original blue
+            e.currentTarget.style.color = "#F8F8F8"; // Keep light text color
+          } else if (errorCase) {
+            e.currentTarget.style.backgroundColor = "#FF4444"; // Back to original red
+            e.currentTarget.style.color = "#E0E0E0"; // Keep gray text color
+          }
+        }}
         onClick={() => {
           if (isActive) {
             setIsFocused(false);
             executeAll();
           }
         }}
-      />
+        disabled={!isActive}
+      >
+        {/* Process Icon */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={isHeroUp ? "16" : "20"}
+          height={isHeroUp ? "16" : "20"}
+          viewBox="0 0 24 24"
+          fill="none"
+          style={{ flexShrink: 0 }}
+        >
+          <path
+            d="M18 20H20V6H22V22H2V2H18V4H4V20H6V14H18V20ZM8 20H16V16H8V20ZM15 10H6V6H15V10ZM20 6H18V4H20V6"
+            fill={isActive ? "#F8F8F8" : "#E0E0E0"}
+          />
+        </svg>
+        <span>{"Process"}</span>
+      </button>
     </div>
   );
 }
