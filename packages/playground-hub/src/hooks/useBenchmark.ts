@@ -8,7 +8,6 @@ import {
 } from "../types/benchmark";
 import { getHardwareInfo } from "../utils/hardwareInfo";
 import { useCuda } from "./useCuda";
-import { useDocker } from "./useDocker";
 
 // 전역 벤치마크 세션 관리
 let globalBenchmarkSession: BenchmarkSession | null = null;
@@ -22,7 +21,6 @@ export const useBenchmark = () => {
     globalBenchmarkSession
   );
   const { cudaStatus } = useCuda();
-  const { dockerConfig } = useDocker();
   const sessionStartTime = useRef<number>(globalSessionStartTime);
 
   // 앱 시작 시 자동으로 벤치마킹 세션 초기화 (전역 세션이 없을 때만)
@@ -163,7 +161,6 @@ export const useBenchmark = () => {
         hardwareInfo,
         processes: {},
         metadata: {
-          dockerImage: dockerConfig?.imageName,
           cudaEnabled: cudaStatus.isFullySupported,
         },
       };
@@ -185,7 +182,6 @@ export const useBenchmark = () => {
         startTime,
         processes: {},
         metadata: {
-          dockerImage: dockerConfig?.imageName,
           cudaEnabled: cudaStatus.isFullySupported,
         },
       };
@@ -198,7 +194,7 @@ export const useBenchmark = () => {
       console.log("✅ Fallback global benchmark session initialized");
       return session;
     }
-  }, [dockerConfig?.imageName, cudaStatus.isFullySupported]);
+  }, [cudaStatus.isFullySupported]);
 
   // 프로세스 시작 시간 기록
   const startProcessTiming = useCallback(
@@ -348,7 +344,6 @@ export const useBenchmark = () => {
       },
       processes: activeSession.processes,
       metadata: {
-        dockerImage: activeSession.metadata.dockerImage || "unknown",
         cudaEnabled: activeSession.metadata.cudaEnabled,
         totalSessionDuration,
       },

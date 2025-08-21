@@ -5,8 +5,6 @@ import {
   ipcMain,
   Menu,
   MenuItemConstructorOptions,
-  session,
-  DownloadItem,
   screen,
   shell,
 } from "electron";
@@ -20,22 +18,10 @@ import os from "node:os";
 import { exec, spawn } from "node:child_process";
 import started from "electron-squirrel-startup";
 import * as sudo from "sudo-prompt";
-import {
-  getDockerImages,
-  runDockerContainer,
-  getDockerContainers,
-  stopDockerContainer,
-  executeCommandInContainer,
-  executeCommandInContainerWithStreaming,
-  downloadLargeFileFromContainer,
-  streamLargeFileFromContainer,
-  checkDockerStatus,
-} from "./api/docker-service";
+
 import { BinaryService } from "./services/binaryService";
 import { promisify } from "node:util";
 const execAsync = promisify(exec);
-
-let downloadItem: DownloadItem | null = null;
 
 // Initialize binary service
 let binaryService: BinaryService;
@@ -171,43 +157,6 @@ function createMenu(): void {
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
-}
-
-function resetSettings(): void {
-  dialog.showMessageBox({
-    type: "question",
-    buttons: ["Yes", "No"],
-    title: "Reset Paths",
-    message: "경로 설정을 초기화하시겠습니까?",
-  });
-  // .then((result) => {
-  //   if (result.response === 0) {
-  //     store.store = {}; // 모든 설정 초기화
-  //     // 또는 개별 속성 제거
-  //     store.store.backendPath = undefined;
-  //     store.store.qapCompilerPath = undefined;
-  //     store.store.synthesizerPath = undefined;
-  //   }
-  // });
-}
-
-function openSettingsWindow(): void {
-  const settingsWindow = new BrowserWindow({
-    width: 430,
-    height: 210,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-    },
-  });
-
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    settingsWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}#/settings`);
-  } else {
-    settingsWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-      { hash: "settings" }
-    );
-  }
 }
 
 // This method will be called when Electron has finished
@@ -359,250 +308,26 @@ async function checkCudaCompiler(): Promise<{
   }
 }
 
-async function checkDockerCudaSupport(): Promise<{
-  isSupported: boolean;
-  error?: string;
-}> {
-  try {
-    // 먼저 Docker가 실행 중인지 확인
-    const dockerStatus = await checkDockerStatus();
-    if (!dockerStatus.isInstalled || !dockerStatus.isRunning) {
-      return {
-        isSupported: false,
-        error: "Docker is not installed or not running",
-      };
-    }
-
-    // Step 1: Docker가 --gpus 옵션을 지원하는지 체크
-    try {
-      const { stdout } = await execAsync("docker run --help", {
-        timeout: 5000,
-      });
-
-      if (!stdout.includes("--gpus")) {
-        return {
-          isSupported: false,
-          error:
-            "Docker does not support --gpus option (Docker version too old)",
-        };
-      }
-    } catch (helpError) {
-      return {
-        isSupported: false,
-        error: "Could not check Docker --gpus support",
-      };
-    }
-
-    // Step 2: Docker info로 GPU 런타임 지원 확인
-    try {
-      console.log("🔍 Checking Docker info for GPU runtime support...");
-      const { stdout } = await execAsync("docker info", {
-        timeout: 10000,
-      });
-
-      // nvidia 런타임이나 GPU 관련 정보가 있는지 체크
-      const hasNvidiaRuntime =
-        stdout.toLowerCase().includes("nvidia") ||
-        stdout.toLowerCase().includes("gpu") ||
-        stdout.toLowerCase().includes("runtimes");
-
-      if (hasNvidiaRuntime) {
-        console.log("✅ Docker info shows GPU/NVIDIA runtime support");
-      } else {
-        console.log(
-          "⚠️ Docker info does not show obvious GPU support, but continuing..."
-        );
-      }
-
-      // Windows 백엔드 정보 체크
-      if (process.platform === "win32") {
-        if (stdout.toLowerCase().includes("wsl")) {
-          console.log("✅ Docker is using WSL2 backend");
-        } else if (stdout.toLowerCase().includes("hyper-v")) {
-          console.log("✅ Docker is using Hyper-V backend");
-        } else {
-          console.log("ℹ️ Docker backend type not clearly identified");
-        }
-
-        // Windows Container Runtime 체크
-        if (
-          stdout.toLowerCase().includes("windowsfilter") ||
-          stdout.toLowerCase().includes("windows")
-        ) {
-          console.log("ℹ️ Windows containers detected");
-        }
-      }
-    } catch (infoError) {
-      console.warn("❌ Could not get docker info:", infoError.message);
-    }
-
-    // Step 3: 가벼운 GPU 액세스 테스트 (실제 CUDA 이미지 없이)
-    try {
-      console.log("🔍 Testing GPU access with hello-world image...");
-      // hello-world 이미지로 --gpus 옵션이 동작하는지만 테스트
-      await execAsync("docker run --rm --gpus all hello-world", {
-        timeout: 15000,
-      });
-      console.log("✅ Docker GPU access test passed with hello-world image");
-      return { isSupported: true };
-    } catch (helloWorldError) {
-      console.log("❌ hello-world GPU test failed:", helloWorldError.message);
-
-      // Step 4: nvidia/cuda 이미지가 이미 있는지 체크
-      try {
-        console.log("🔍 Looking for existing CUDA images...");
-        const { stdout: imageList } = await execAsync(
-          "docker images nvidia/cuda --format '{{.Repository}}:{{.Tag}}'",
-          {
-            timeout: 5000,
-          }
-        );
-
-        if (imageList.trim()) {
-          console.log("✅ Found existing CUDA images:", imageList.trim());
-          // 기존 CUDA 이미지로 간단한 테스트
-          const lines = imageList.trim().split("\n");
-          const firstImage = lines[0];
-          console.log(
-            `🔍 Testing GPU access with existing image: ${firstImage}`
-          );
-          await execAsync(
-            `docker run --rm --gpus all ${firstImage} nvidia-smi`,
-            {
-              timeout: 10000,
-            }
-          );
-          console.log("✅ Docker CUDA test passed with existing image");
-          return { isSupported: true };
-        } else {
-          console.log("ℹ️ No existing CUDA images found");
-        }
-      } catch (existingImageError) {
-        console.log(
-          "❌ Existing CUDA image test failed:",
-          existingImageError.message
-        );
-      }
-    }
-
-    // 모든 테스트가 실패하면 GPU 지원 없음으로 판단
-    const isWindows = process.platform === "win32";
-    let errorMessage = "Docker GPU access not available.";
-
-    if (isWindows) {
-      errorMessage +=
-        "\n\n🔧 Windows Docker Desktop GPU 설정 방법:\n" +
-        "1. Docker Desktop 설정 열기\n" +
-        "2. Settings → General → '✅ Use the WSL 2 based engine' 활성화\n" +
-        "3. Settings → Resources → WSL Integration → '✅ Enable integration with my default WSL distro' 활성화\n" +
-        "4. Docker Desktop 재시작\n" +
-        "5. 최신 NVIDIA 드라이버 설치 확인\n\n" +
-        "📝 참고: Docker Desktop 4.15+ 버전 권장";
-    } else {
-      errorMessage += " Please install nvidia-docker or enable GPU support.";
-    }
-
-    return {
-      isSupported: false,
-      error: errorMessage,
-    };
-  } catch (error) {
-    return {
-      isSupported: false,
-      error: `Docker CUDA support check failed: ${error.message}`,
-    };
-  }
-}
-
 async function checkCudaSupport(): Promise<{
   isFullySupported: boolean;
   gpu: { isAvailable: boolean; gpuInfo?: string; error?: string };
   compiler: { isAvailable: boolean; version?: string; error?: string };
-  dockerCuda: { isSupported: boolean; error?: string };
 }> {
-  const [gpu, compiler, dockerCuda] = await Promise.all([
+  const [gpu, compiler] = await Promise.all([
     checkNvidiaGPU(),
     checkCudaCompiler(),
-    checkDockerCudaSupport(),
   ]);
 
   return {
-    isFullySupported:
-      gpu.isAvailable && compiler.isAvailable && dockerCuda.isSupported,
+    isFullySupported: gpu.isAvailable && compiler.isAvailable,
     gpu,
     compiler,
-    dockerCuda,
   };
 }
 
 // Register IPC handlers
 function setupIpcHandlers() {
   console.log("Setting up IPC handlers..."); // Debug log for IPC handler setup
-  ipcMain.handle("get-docker-images", async () => {
-    return await getDockerImages();
-  });
-
-  ipcMain.handle(
-    "run-docker-container",
-    async (event, imageName: string, options: string[] = []) => {
-      return await runDockerContainer(imageName, options);
-    }
-  );
-
-  ipcMain.handle("get-docker-containers", async () => {
-    return await getDockerContainers();
-  });
-
-  ipcMain.handle(
-    "stop-docker-container",
-    async (event, containerId: string, force?: boolean) => {
-      return await stopDockerContainer(containerId, force);
-    }
-  );
-
-  ipcMain.handle(
-    "execute-command-in-container",
-    async (event, containerId: string, command: string[]) => {
-      return await executeCommandInContainer(containerId, command);
-    }
-  );
-
-  ipcMain.handle(
-    "execute-command-in-container-with-streaming",
-    async (event, containerId: string, command: string[]) => {
-      return await executeCommandInContainerWithStreaming(
-        containerId,
-        command,
-        (data: string, isError: boolean) => {
-          // 실시간으로 렌더러 프로세스에 데이터 전송
-          event.sender.send("docker-stream-data", { data, isError });
-        }
-      );
-    }
-  );
-
-  ipcMain.handle(
-    "download-large-file-from-container",
-    async (event, containerId: string, filePath: string) => {
-      return await downloadLargeFileFromContainer(containerId, filePath);
-    }
-  );
-
-  ipcMain.handle(
-    "stream-large-file-from-container",
-    async (
-      event,
-      containerId: string,
-      containerFilePath: string,
-      localFilePath: string
-    ) => {
-      return await streamLargeFileFromContainer(
-        containerId,
-        containerFilePath,
-        localFilePath
-      );
-    }
-  );
 
   // Shell API 핸들러 추가
   ipcMain.handle("open-external-url", async (event, url: string) => {
@@ -617,283 +342,9 @@ function setupIpcHandlers() {
     }
   });
 
-  let isShowingDialog = false;
-
-  // Docker 상태 캐시 변수 추가
-  let lastDockerStatus: { isInstalled: boolean; isRunning: boolean } | null =
-    null;
-
-  ipcMain.handle(
-    "check-docker-status",
-    async (event, imageNameToCheck?: string) => {
-      const status = await checkDockerStatus(imageNameToCheck);
-
-      // 상태가 변경되었을 때만 로그 출력
-      if (
-        !lastDockerStatus ||
-        lastDockerStatus.isInstalled !== status.isInstalled ||
-        lastDockerStatus.isRunning !== status.isRunning
-      ) {
-        console.log("Docker status changed:", {
-          installed: status.isInstalled,
-          running: status.isRunning,
-        });
-        lastDockerStatus = {
-          isInstalled: status.isInstalled,
-          isRunning: status.isRunning,
-        };
-      }
-
-      if (!status.isInstalled && !isShowingDialog) {
-        isShowingDialog = true;
-
-        // 윈도우에서 더 자세한 안내 메시지
-        const isWindows = process.platform === "win32";
-        let message = "Docker is not installed on your system.";
-        let detail = "Please install Docker Desktop to use this application.";
-
-        if (isWindows) {
-          message = "Docker Desktop을 찾을 수 없습니다.";
-          detail = `Docker Desktop이 설치되어 있는지 확인해주세요.
-
-🔧 Windows에서 Docker 설치 후 문제가 지속되는 경우:
-
-1. 시스템 환경변수 PATH 확인:
-   - Docker Desktop 설치 후 시스템 재시작
-   - PATH에 Docker 경로 수동 추가 필요할 수 있음
-
-2. Docker Desktop 서비스 상태 확인:
-   - 작업 관리자에서 "Docker Desktop" 프로세스 확인
-   - Windows 서비스에서 "com.docker.service" 상태 확인
-
-3. 설치 경로 확인:
-   - 일반적 경로: C:\\Program Files\\Docker\\Docker\\
-
-4. WSL2 설정 확인:
-   - Docker Desktop 설정에서 WSL2 integration 활성화
-
-문제가 지속되면 Docker Desktop을 다시 설치해보세요.`;
-        }
-
-        dialog
-          .showMessageBox({
-            type: "warning",
-            title: isWindows
-              ? "Docker Desktop 감지 실패"
-              : "Docker Not Installed",
-            message,
-            detail,
-            buttons: ["OK"],
-            noLink: true,
-            defaultId: 0,
-            cancelId: 0,
-          })
-          .finally(() => {
-            isShowingDialog = false;
-          });
-      } else if (status.isInstalled && !status.isRunning && !isShowingDialog) {
-        isShowingDialog = true;
-        const checkDockerRunning = async () => {
-          const currentStatus = await checkDockerStatus();
-          if (currentStatus.isInstalled && !currentStatus.isRunning) {
-            dialog
-              .showMessageBox({
-                type: "warning",
-                title: "Docker Not Running",
-                message: "Docker Desktop is not running.",
-                detail: "Please start Docker Desktop to use this application.",
-                buttons: ["OK"],
-                noLink: true,
-                defaultId: 0,
-                cancelId: 0,
-              })
-              .then(async () => {
-                const updatedStatus = await checkDockerStatus();
-                if (!updatedStatus.isRunning) {
-                  if (isShowingDialog) checkDockerRunning();
-                } else {
-                  isShowingDialog = false;
-                }
-              })
-              .catch(() => {
-                isShowingDialog = false;
-              });
-          } else {
-            isShowingDialog = false;
-          }
-        };
-        checkDockerRunning();
-      }
-
-      return status;
-    }
-  );
-
   ipcMain.handle("close-settings-window", (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     if (win) win.close();
-  });
-
-  // --- 파일 다운로드 및 Docker 이미지 로드 핸들러 시작 ---
-  ipcMain.handle(
-    "download-and-load-docker-image",
-    async (event, args: { url: string; filename?: string }) => {
-      const { url, filename } = args;
-      const webContents = event.sender;
-
-      const dockerStatus = await checkDockerStatus();
-      if (!dockerStatus.isInstalled || !dockerStatus.isRunning) {
-        webContents.send("docker-load-status", {
-          stage: "failed",
-          message:
-            "Docker is not installed or not running. Please check Docker Desktop.",
-          error: "Docker not ready",
-        });
-        return {
-          success: false,
-          error: "Docker is not installed or not running.",
-        };
-      }
-
-      const defaultSavePath = path.join(
-        app.getPath("downloads"),
-        filename || "downloaded-image.tar"
-      );
-      const dialogResult = await dialog.showSaveDialog({
-        title: "Save Docker Image TAR",
-        defaultPath: defaultSavePath,
-        filters: [{ name: "TAR Archives", extensions: ["tar"] }],
-      });
-
-      if (dialogResult.canceled || !dialogResult.filePath) {
-        webContents.send("docker-load-status", {
-          stage: "failed",
-          message: "Download canceled by user.",
-        });
-        return { success: false, error: "Download canceled by user." };
-      }
-      const filePath = dialogResult.filePath;
-
-      try {
-        webContents.send("docker-load-status", {
-          stage: "downloading",
-          message: "Starting download...",
-        });
-        await new Promise<void>((resolve, reject) => {
-          session.defaultSession.removeAllListeners("will-download");
-
-          session.defaultSession.once("will-download", (_e, item) => {
-            downloadItem = item;
-            item.setSavePath(filePath);
-
-            item.on("updated", (_evt, state) => {
-              if (state === "progressing") {
-                if (item.getReceivedBytes() && item.getTotalBytes()) {
-                  const progressData = {
-                    percentage: Math.round(
-                      (item.getReceivedBytes() / item.getTotalBytes()) * 100
-                    ),
-                    downloadedSize: item.getReceivedBytes(),
-                    totalSize: item.getTotalBytes(),
-                  };
-                  webContents.send("download-progress", progressData);
-                }
-              }
-            });
-
-            item.on("done", (_evt, state) => {
-              downloadItem = null;
-              if (state === "completed") {
-                webContents.send("download-progress", {
-                  percentage: 100,
-                  downloadedSize: item.getTotalBytes(),
-                  totalSize: item.getTotalBytes(),
-                });
-                resolve();
-              } else {
-                reject(new Error(`Download failed: ${state}`));
-              }
-            });
-          });
-          session.defaultSession.downloadURL(url);
-        });
-
-        webContents.send("docker-load-status", {
-          stage: "loading",
-          message: "Download complete. Loading into Docker...",
-        });
-
-        return new Promise((resolveCmd, rejectCmd) => {
-          const command = `docker load -i "${filePath}"`;
-          exec(command, (error, stdout, stderr) => {
-            fs.unlink(filePath, (unlinkErr) => {
-              if (unlinkErr)
-                console.error(
-                  `Failed to delete tar file: ${filePath}`,
-                  unlinkErr
-                );
-            });
-
-            if (error) {
-              const errorMessage = `Docker load failed: ${error.message} (stderr: ${stderr || "N/A"})`;
-              webContents.send("docker-load-status", {
-                stage: "failed",
-                message: errorMessage,
-                error: error.message,
-              });
-              rejectCmd({ success: false, error: errorMessage });
-              return;
-            }
-            const successMessage =
-              stdout || "Docker image loaded successfully.";
-            if (stderr && !stdout.includes(stderr.trim().split("\n")[0])) {
-              console.warn(`Docker load stderr (may be warnings): ${stderr}`);
-            }
-            webContents.send("docker-load-status", {
-              stage: "completed",
-              message: successMessage,
-            });
-            resolveCmd({ success: true, message: successMessage });
-          });
-        });
-      } catch (err) {
-        webContents.send("docker-load-status", {
-          stage: "failed",
-          message: err.message || "An unknown error occurred during download.",
-          error: err.message,
-        });
-        return {
-          success: false,
-          error: err.message || "An unknown error occurred.",
-        };
-      }
-    }
-  );
-
-  ipcMain.on("pause-download", () => {
-    if (downloadItem) {
-      downloadItem.pause();
-      const win = BrowserWindow.getAllWindows()[0];
-      if (win) {
-        win.webContents.send("docker-load-status", {
-          stage: "paused",
-          message: "Download paused.",
-        });
-      }
-    }
-  });
-
-  ipcMain.on("resume-download", () => {
-    if (downloadItem) {
-      downloadItem.resume();
-      const win = BrowserWindow.getAllWindows()[0];
-      if (win) {
-        win.webContents.send("docker-load-status", {
-          stage: "downloading",
-          message: "Download resumed.",
-        });
-      }
-    }
   });
 
   ipcMain.handle(
@@ -961,8 +412,6 @@ function setupIpcHandlers() {
     }
   );
 
-  // --- 파일 다운로드 및 Docker 이미지 로드 핸들러 끝 ---
-
   ipcMain.on("request-exit-modal", () => {
     const windows = BrowserWindow.getAllWindows();
     if (windows.length > 0) {
@@ -988,10 +437,6 @@ function setupIpcHandlers() {
 
   ipcMain.handle("check-cuda-compiler", async () => {
     return await checkCudaCompiler();
-  });
-
-  ipcMain.handle("check-docker-cuda-support", async () => {
-    return await checkDockerCudaSupport();
   });
 
   // Binary Service IPC Handlers
@@ -1111,7 +556,7 @@ function setupIpcHandlers() {
               await new Promise<void>((resolve) => {
                 exec(
                   `xattr -d com.apple.quarantine "${processedCommand[0]}"`,
-                  (error: any) => {
+                  (error: Error | null) => {
                     if (error) {
                       console.warn(
                         `Failed to remove quarantine from script: ${error.message}`
@@ -1130,7 +575,7 @@ function setupIpcHandlers() {
                   await new Promise<void>((resolve) => {
                     exec(
                       `xattr -d com.apple.quarantine "${binPath}"`,
-                      (error: any) => {
+                      (error: Error | null) => {
                         if (error) {
                           console.warn(
                             `Failed to remove quarantine from binary ${binPath}: ${error.message}`
@@ -1424,7 +869,6 @@ function setupIpcHandlers() {
         hasGpuSupport: cudaSupport.isFullySupported,
         gpuInfo: cudaSupport.gpu,
         cudaInfo: cudaSupport.compiler,
-        dockerCudaInfo: cudaSupport.dockerCuda,
       };
     } catch (error) {
       console.error("Failed to get environment info:", error);
@@ -1949,7 +1393,7 @@ app.whenReady().then(async () => {
             await new Promise<void>((resolve) => {
               exec(
                 `xattr -d com.apple.quarantine "${binPath}"`,
-                (error: any) => {
+                (error: Error | null) => {
                   if (error) {
                     console.warn(
                       `Failed to remove quarantine from ${binFile}: ${error.message}`
@@ -2016,35 +1460,9 @@ app.on("before-quit", async (event) => {
 
   ipcMain.emit("request-exit-modal");
 
-  try {
-    const containers = await getDockerContainers();
-    console.log("[INFO] 현재 실행 중인 Docker 컨테이너 목록:", containers);
-
-    if (containers && containers.length > 0) {
-      const stopPromises = containers.map((container) => {
-        console.log(`[INFO] Docker 컨테이너 중지 시도: ${container.ID}`);
-        return stopDockerContainer(container.ID)
-          .then(() =>
-            console.log(`[SUCCESS] Docker 컨테이너 중지 완료: ${container.ID}`)
-          )
-          .catch((err) =>
-            console.error(
-              `[ERROR] Docker 컨테이너 ${container.ID} 중지 중 오류:`,
-              err
-            )
-          );
-      });
-
-      await Promise.all(stopPromises);
-      console.log(
-        "[INFO] 모든 확인된 Docker 컨테이너의 중지 작업이 완료되었습니다."
-      );
-    } else {
-      console.log("[INFO] 중지할 실행 중인 Docker 컨테이너가 없습니다.");
-    }
-  } catch (error) {
-    console.error("[ERROR] Docker 컨테이너 중지 과정 중 예외 발생:", error);
-  }
+  console.log(
+    "[INFO] Docker 컨테이너 정리 작업을 건너뛁니다 (Docker 사용 안 함)."
+  );
 
   // Clean up binary service
   try {

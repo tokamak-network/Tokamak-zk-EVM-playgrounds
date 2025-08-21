@@ -1,122 +1,84 @@
 import { useCallback } from "react";
-import { useDocker } from "./useDocker";
 import { useCuda } from "./useCuda";
 
 export const useBackendCommand = () => {
-  const { executeCommand, executeCommandWithStreaming } = useDocker();
   const { cudaStatus } = useCuda();
 
-  const setup = useCallback(
-    async (containerId: string) => {
-      try {
-        console.log("setup", containerId);
+  const setup = useCallback(async () => {
+    try {
+      console.log("Backend setup initiated");
 
-        // CUDA를 지원하지 않는 환경이면 성공으로 처리
-        if (!cudaStatus.isFullySupported) {
-          console.log("CUDA not available, skipping CUDA-dependent setup");
-          return Promise.resolve(true);
-        }
-
-        const result = await executeCommand(containerId, [
-          "bash",
-          "-c",
-          `cd packages/backend && 
-        cargo run -p trusted-setup`,
-        ]);
-        console.log("result", result);
-        return result;
-      } catch (error) {
-        throw new Error("Failed to execute Docker command: " + error);
+      // CUDA를 지원하지 않는 환경이면 성공으로 처리
+      if (!cudaStatus.isFullySupported) {
+        console.log("CUDA not available, skipping CUDA-dependent setup");
+        return Promise.resolve(true);
       }
-    },
-    [executeCommand, cudaStatus.isFullySupported]
-  );
 
-  const preProcess = useCallback(
-    async (containerId: string) => {
-      try {
-        console.log("preProcess", containerId);
-        const result = await executeCommand(containerId, [
-          "bash",
-          "-c",
-          `cd packages/backend && 
-        cargo run -p preprocess`,
-        ]);
-        console.log("result", result);
-        return result;
-      } catch (error) {
-        console.log("error", error);
-        throw new Error("Failed to execute Docker command: " + error);
-      }
-    },
-    [executeCommand]
-  );
+      // Binary service를 통해 setup 실행
+      const result = await window.binaryService.executeSystemCommand([
+        "bash",
+        "-c",
+        "cd packages/backend && cargo run -p trusted-setup",
+      ]);
+      console.log("Setup result:", result);
+      return result;
+    } catch (error) {
+      throw new Error("Failed to execute setup command: " + error);
+    }
+  }, [cudaStatus.isFullySupported]);
 
-  const prove = useCallback(
-    async (containerId: string) => {
-      try {
-        console.log("prove", containerId);
+  const preProcess = useCallback(async () => {
+    try {
+      console.log("Backend preProcess initiated");
+      const result = await window.binaryService.executeSystemCommand([
+        "bash",
+        "-c",
+        "cd packages/backend && cargo run -p preprocess",
+      ]);
+      console.log("PreProcess result:", result);
+      return result;
+    } catch (error) {
+      console.log("PreProcess error:", error);
+      throw new Error("Failed to execute preprocess command: " + error);
+    }
+  }, []);
 
-        const result = await executeCommand(containerId, [
-          "bash",
-          "-c",
-          `cd packages/backend && 
-        cargo run -p prove`,
-        ]);
-        console.log("result", result);
-        return result;
-      } catch (error) {
-        throw new Error("Failed to execute Docker command: " + error);
-      }
-    },
-    [executeCommand, cudaStatus.isFullySupported]
-  );
+  const prove = useCallback(async () => {
+    try {
+      console.log("Backend prove initiated");
+      const result = await window.binaryService.executeSystemCommand([
+        "bash",
+        "-c",
+        "cd packages/backend && cargo run -p prove",
+      ]);
+      console.log("Prove result:", result);
+      return result;
+    } catch (error) {
+      console.log("Prove error:", error);
+      throw new Error("Failed to execute prove command: " + error);
+    }
+  }, []);
 
-  const proveWithStreaming = useCallback(
-    async (
-      containerId: string,
-      onData?: (data: string, isError: boolean) => void
-    ) => {
-      try {
-        console.log("proveWithStreaming", containerId);
+  const synthesize = useCallback(async () => {
+    try {
+      console.log("Backend synthesize initiated");
+      const result = await window.binaryService.executeSystemCommand([
+        "bash",
+        "-c",
+        "cd packages/backend && cargo run -p synthesize",
+      ]);
+      console.log("Synthesize result:", result);
+      return result;
+    } catch (error) {
+      console.log("Synthesize error:", error);
+      throw new Error("Failed to execute synthesize command: " + error);
+    }
+  }, []);
 
-        const result = await executeCommandWithStreaming(
-          containerId,
-          [
-            "bash",
-            "-c",
-            `cd packages/backend && 
-        cargo run -p prove`,
-          ],
-          onData
-        );
-        console.log("result", result);
-        return result;
-      } catch (error) {
-        throw new Error("Failed to execute Docker command: " + error);
-      }
-    },
-    [executeCommandWithStreaming, cudaStatus.isFullySupported]
-  );
-
-  const verify = useCallback(
-    async (containerId: string) => {
-      try {
-        console.log("verify", containerId);
-        const result = await executeCommand(containerId, [
-          "bash",
-          "-c",
-          `cd packages/backend && 
-        cargo run -p verify`,
-        ]);
-        console.log("result", result);
-        return result;
-      } catch (error) {
-        throw new Error("Failed to execute Docker command: " + error);
-      }
-    },
-    [executeCommand]
-  );
-
-  return { setup, preProcess, prove, proveWithStreaming, verify };
+  return {
+    setup,
+    preProcess,
+    prove,
+    synthesize,
+  };
 };

@@ -13,10 +13,6 @@ export interface CudaStatus {
     version?: string;
     error?: string;
   };
-  dockerCuda: {
-    isSupported: boolean;
-    error?: string;
-  };
   error?: string;
 }
 
@@ -25,7 +21,6 @@ const initialCudaStatus: CudaStatus = {
   isFullySupported: false,
   gpu: { isAvailable: false },
   compiler: { isAvailable: false },
-  dockerCuda: { isSupported: false },
 };
 
 // Global CUDA status atom

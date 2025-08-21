@@ -15,10 +15,7 @@ interface CudaHook {
     version?: string;
     error?: string;
   }>;
-  checkDockerCudaSupport: () => Promise<{
-    isSupported: boolean;
-    error?: string;
-  }>;
+
   refreshCudaStatus: () => Promise<void>;
 }
 
@@ -43,7 +40,6 @@ export const useCuda = (): CudaHook => {
         isFullySupported: result.isFullySupported,
         gpu: result.gpu,
         compiler: result.compiler,
-        dockerCuda: result.dockerCuda,
       });
       setIsInitialized(true); // 수동 새로고침도 초기화 완료로 표시
     } catch (error) {
@@ -88,21 +84,6 @@ export const useCuda = (): CudaHook => {
     }
   }, []);
 
-  const checkDockerCudaSupport = useCallback(async () => {
-    try {
-      return await window.cudaAPI.checkDockerCudaSupport();
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to check Docker CUDA support";
-      return {
-        isSupported: false,
-        error: errorMessage,
-      };
-    }
-  }, []);
-
   const refreshCudaStatus = useCallback(async (): Promise<void> => {
     console.log("🔄 Refreshing CUDA status (user initiated)...");
     await checkCudaSupport();
@@ -116,7 +97,7 @@ export const useCuda = (): CudaHook => {
     checkCudaSupport,
     checkNvidiaGPU,
     checkCudaCompiler,
-    checkDockerCudaSupport,
+
     refreshCudaStatus,
   };
 };

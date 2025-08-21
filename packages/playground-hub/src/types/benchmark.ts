@@ -53,7 +53,6 @@ export interface BenchmarkData {
     verify?: ProcessTiming;
   };
   metadata: {
-    dockerImage: string;
     cudaEnabled: boolean;
     totalSessionDuration?: number; // from start to verify completion
   };
@@ -69,7 +68,6 @@ export interface BenchmarkSession {
     verify?: ProcessTiming;
   };
   metadata: {
-    dockerImage?: string;
     cudaEnabled: boolean;
   };
 }
