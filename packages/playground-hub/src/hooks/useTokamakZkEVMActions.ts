@@ -111,7 +111,7 @@ export function useTokamakZkEVMActions() {
                 );
                 const result = await window.binaryService.executeSystemCommand([
                   "bash",
-                  "src/binaries/backend/2_run-trusted-setup.sh",
+                  "src/binaries/backend/1_run-trusted-setup.sh",
                 ]);
 
                 console.log(
@@ -154,13 +154,13 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 PreProcess: Executing 3_run-preprocess.sh script..."
+                  "🔍 PreProcess: Executing 2_run-preprocess.sh script..."
                 );
 
                 // Execute the preprocess script using system bash command
                 const result = await window.binaryService.executeSystemCommand([
                   "bash",
-                  "src/binaries/backend/3_run-preprocess.sh",
+                  "src/binaries/backend/2_run-preprocess.sh",
                 ]);
 
                 console.log(
@@ -228,7 +228,7 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 ProveTransaction: Executing 4_run-prove.sh script..."
+                  "🔍 ProveTransaction: Executing 3_run-prove.sh script..."
                 );
 
                 // Set up streaming data listener for prove logs
@@ -243,7 +243,7 @@ export function useTokamakZkEVMActions() {
                 // Execute the prove script using system bash command
                 const result = await window.binaryService.executeSystemCommand([
                   "bash",
-                  "src/binaries/backend/4_run-prove.sh",
+                  "src/binaries/backend/3_run-prove.sh",
                 ]);
 
                 console.log(
@@ -288,12 +288,12 @@ export function useTokamakZkEVMActions() {
                 console.log(
                   "🔍 Verify: Starting binary-based verify action..."
                 );
-                console.log("🔍 Verify: Executing 5_run-verify.sh script...");
+                console.log("🔍 Verify: Executing 4_ruin-verify.sh script...");
 
                 // Execute the verify script using system bash command
                 const result = await window.binaryService.executeSystemCommand([
                   "bash",
-                  "src/binaries/backend/5_run-verify.sh",
+                  "src/binaries/backend/4_ruin-verify.sh",
                 ]);
 
                 console.log("🔍 Verify: Script execution completed:", result);
