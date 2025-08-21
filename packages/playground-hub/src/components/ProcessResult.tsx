@@ -190,7 +190,7 @@ const ProcessResult = () => {
       </div>
       <div className="flex w-full h-[46px] justify-between z-[100]">
         <button
-          className="w-[386px] bg-[#008BEE] cursor-pointer"
+          className="w-[386px] bg-[#008BEE] hover:bg-[#106AAB] cursor-pointer transition-colors duration-150"
           style={{
             color: "#F8F8F8",
             fontFamily: "IBM Plex Mono",
@@ -208,7 +208,7 @@ const ProcessResult = () => {
           Download Proof
         </button>
         <button
-          className="w-[386px] bg-[#773FE0] cursor-pointer"
+          className="w-[386px] bg-[#773FE0] hover:bg-[#672ED0] cursor-pointer transition-colors duration-150"
           style={{
             color: "#F8F8F8",
             fontFamily: "IBM Plex Mono",
