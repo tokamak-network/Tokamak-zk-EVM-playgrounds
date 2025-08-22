@@ -14,6 +14,61 @@ declare global {
         func: (...args: unknown[]) => void
       ) => void;
     };
+    env?: {
+      getEnvironmentInfo?: () => Promise<{
+        platform: string;
+        hasGpuSupport: boolean;
+        gpuInfo?: {
+          isAvailable: boolean;
+          gpuInfo?: string;
+          error?: string;
+        };
+        cudaInfo?: {
+          isAvailable: boolean;
+          version?: string;
+          error?: string;
+        };
+        wslInfo?: {
+          isAvailable: boolean;
+          wsl: {
+            isAvailable: boolean;
+            version?: string;
+            error?: string;
+          };
+          distribution: {
+            isAvailable: boolean;
+            distribution?: string;
+            error?: string;
+          };
+        };
+        error?: string;
+      }>;
+    };
+    wslAPI?: {
+      checkWSLSupport: () => Promise<{
+        isAvailable: boolean;
+        wsl: {
+          isAvailable: boolean;
+          version?: string;
+          error?: string;
+        };
+        distribution: {
+          isAvailable: boolean;
+          distribution?: string;
+          error?: string;
+        };
+      }>;
+      checkWSL: () => Promise<{
+        isAvailable: boolean;
+        version?: string;
+        error?: string;
+      }>;
+      checkWSLDistribution: () => Promise<{
+        isAvailable: boolean;
+        distribution?: string;
+        error?: string;
+      }>;
+    };
   }
 }
 

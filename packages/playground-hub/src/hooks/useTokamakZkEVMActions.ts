@@ -7,6 +7,7 @@ import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
 import { useCuda } from "./useCuda";
 import { useBenchmark } from "./useBenchmark";
+// useWSL removed - WSL checks handled at app startup level
 import {
   isErrorAtom,
   isFirstTimeAtom,
@@ -41,9 +42,85 @@ export function useTokamakZkEVMActions() {
     currentSession,
     globalBenchmarkSession,
   } = useBenchmark();
+  // WSL info removed - handled at app startup level
   const setIsError = useSetAtom(isErrorAtom);
   const [, setShowProcessResult] = useAtom(showProcessResultModalAtom);
   const [, setIsFirstTime] = useAtom(isFirstTimeAtom);
+
+  // ExecuteAll flow tracking removed - WSL checks handled at app startup
+
+  // Helper function to check if we should use WSL for script execution
+  const shouldUseWSL = useCallback(async (): Promise<boolean> => {
+    try {
+      // Check if we're on Windows platform - assume WSL is available if on Windows
+      if (typeof window !== "undefined" && window.env?.getEnvironmentInfo) {
+        const envInfo = await window.env.getEnvironmentInfo();
+
+        if (envInfo.platform === "win32") {
+          console.log("🔍 Platform is Windows, using WSL for script execution");
+          return true;
+        } else {
+          console.log(`🔍 Platform is ${envInfo.platform}, not using WSL`);
+          return false;
+        }
+      }
+
+      console.log("🔍 Environment info not available, not using WSL");
+      return false;
+    } catch (error) {
+      console.error("🔍 Error checking platform for WSL decision:", error);
+      return false;
+    }
+  }, []);
+
+  // Helper function to execute scripts with WSL support
+  const executeScriptWithWSLSupport = useCallback(
+    async (scriptPath: string): Promise<string> => {
+      console.log(`🔍 Executing script: ${scriptPath}`);
+
+      const useWSL = await shouldUseWSL();
+      console.log(`🔍 WSL Support Status:`, {
+        shouldUseWSLResult: useWSL,
+      });
+
+      if (useWSL) {
+        console.log("🔍 Using WSL for script execution on Windows");
+        // Add WSL-specific error handling
+        try {
+          // Use the same pattern as Synthesizer: bash -c "cd ... && ./script"
+          console.log(
+            `🔍 WSL script execution using Synthesizer pattern: ${scriptPath}`
+          );
+
+          return await window.binaryService.executeSystemCommand([
+            "bash",
+            "-c",
+            `cd ${scriptPath.replace(/\/[^\/]*$/, "")} && /usr/bin/bash ./${scriptPath.split("/").pop()}`,
+          ]);
+        } catch (error) {
+          console.error("🔍 WSL execution failed:", error);
+          // If WSL execution fails, provide helpful error message
+          if (error.message?.includes("WSL")) {
+            throw new Error(
+              `WSL execution failed: ${error.message}. ` +
+                "Please ensure WSL is properly installed and configured."
+            );
+          }
+          throw error;
+        }
+      } else {
+        console.log(
+          "🔍 Using native execution (non-Windows or WSL not available)"
+        );
+        // Use system command for native execution
+        return await window.binaryService.executeSystemCommand([
+          "bash",
+          scriptPath,
+        ]);
+      }
+    },
+    [shouldUseWSL]
+  );
 
   const executeTokamakAction = useCallback(
     async (actionType: TokamakActionType): Promise<any> => {
@@ -51,6 +128,8 @@ export function useTokamakZkEVMActions() {
       try {
         setPlaygroundStageInProcess(true);
         setShowProcessResult(false);
+
+        // WSL check removed - handled at app startup level
 
         switch (actionType) {
           case TokamakActionType.InstallDependencies:
@@ -94,6 +173,19 @@ export function useTokamakZkEVMActions() {
               console.log("🔍 RunSynthesizer: Starting synthesizer action...");
               const result = await parseTONTransfer();
               console.log("🔍 RunSynthesizer: Parse result:", result);
+
+              // Handle the new result format from synthesizer
+              if (result && typeof result === "object" && "success" in result) {
+                if (result.success) {
+                  return result;
+                } else {
+                  throw new Error(
+                    result.error || "Synthesizer execution failed"
+                  );
+                }
+              }
+
+              // Fallback for legacy result format
               return result;
             } catch (error) {
               console.error("🔍 RunSynthesizer: Error occurred:", error);
@@ -107,12 +199,11 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 SetupTrustedSetup: Executing system command..."
+                  "🔍 SetupTrustedSetup: Executing script with WSL support..."
                 );
-                const result = await window.binaryService.executeSystemCommand([
-                  "bash",
-                  "src/binaries/backend/1_run-trusted-setup.sh",
-                ]);
+                const result = await executeScriptWithWSLSupport(
+                  "src/binaries/backend/1_run-trusted-setup.sh"
+                );
 
                 console.log(
                   "🔍 SetupTrustedSetup: Command completed successfully"
@@ -154,14 +245,13 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 PreProcess: Executing 2_run-preprocess.sh script..."
+                  "🔍 PreProcess: Executing 2_run-preprocess.sh script with WSL support..."
                 );
 
-                // Execute the preprocess script using system bash command
-                const result = await window.binaryService.executeSystemCommand([
-                  "bash",
-                  "src/binaries/backend/2_run-preprocess.sh",
-                ]);
+                // Execute the preprocess script using WSL-aware helper
+                const result = await executeScriptWithWSLSupport(
+                  "src/binaries/backend/2_run-preprocess.sh"
+                );
 
                 console.log(
                   "🔍 PreProcess: Script execution completed:",
@@ -193,6 +283,38 @@ export function useTokamakZkEVMActions() {
                     error.message
                   );
                 }
+                throw error;
+              }
+            } else {
+              // Fallback: Try to execute script directly with WSL support
+              console.log(
+                "🔍 PreProcess: Binary status check failed, trying direct script execution..."
+              );
+
+              try {
+                console.log(
+                  "🔍 PreProcess: Executing 2_run-preprocess.sh script with WSL support (fallback)..."
+                );
+
+                // Execute the preprocess script using WSL-aware helper
+                const result = await executeScriptWithWSLSupport(
+                  "src/binaries/backend/2_run-preprocess.sh"
+                );
+
+                console.log(
+                  "🔍 PreProcess: Script execution completed (fallback):",
+                  result
+                );
+
+                return {
+                  success: true,
+                  result: result,
+                };
+              } catch (error) {
+                console.error(
+                  "🔍 PreProcess: Fallback execution failed:",
+                  error
+                );
                 throw error;
               }
             }
@@ -228,7 +350,7 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 ProveTransaction: Executing 3_run-prove.sh script..."
+                  "🔍 ProveTransaction: Executing 3_run-prove.sh script with WSL support..."
                 );
 
                 // Set up streaming data listener for prove logs
@@ -240,11 +362,10 @@ export function useTokamakZkEVMActions() {
                   }
                 });
 
-                // Execute the prove script using system bash command
-                const result = await window.binaryService.executeSystemCommand([
-                  "bash",
-                  "src/binaries/backend/3_run-prove.sh",
-                ]);
+                // Execute the prove script using WSL-aware helper
+                const result = await executeScriptWithWSLSupport(
+                  "src/binaries/backend/3_run-prove.sh"
+                );
 
                 console.log(
                   "🔍 ProveTransaction: Script execution completed:",
@@ -279,6 +400,38 @@ export function useTokamakZkEVMActions() {
                 // Clean up streaming listener
                 window.binaryService.removeStreamDataListener();
               }
+            } else {
+              // Fallback: Try to execute script directly with WSL support
+              console.log(
+                "🔍 ProveTransaction: Binary status check failed, trying direct script execution..."
+              );
+
+              try {
+                console.log(
+                  "🔍 ProveTransaction: Executing 3_run-prove.sh script with WSL support (fallback)..."
+                );
+
+                // Execute the prove script using WSL-aware helper
+                const result = await executeScriptWithWSLSupport(
+                  "src/binaries/backend/3_run-prove.sh"
+                );
+
+                console.log(
+                  "🔍 ProveTransaction: Script execution completed (fallback):",
+                  result
+                );
+
+                return {
+                  success: true,
+                  result: result,
+                };
+              } catch (error) {
+                console.error(
+                  "🔍 ProveTransaction: Fallback execution failed:",
+                  error
+                );
+                throw error;
+              }
             }
             throw new Error("Binary is not available or not executable");
 
@@ -288,13 +441,14 @@ export function useTokamakZkEVMActions() {
                 console.log(
                   "🔍 Verify: Starting binary-based verify action..."
                 );
-                console.log("🔍 Verify: Executing 4_run-verify.sh script...");
+                console.log(
+                  "🔍 Verify: Executing 4_run-verify.sh script with WSL support..."
+                );
 
-                // Execute the verify script using system bash command
-                const result = await window.binaryService.executeSystemCommand([
-                  "bash",
-                  "src/binaries/backend/4_run-verify.sh",
-                ]);
+                // Execute the verify script using WSL-aware helper
+                const result = await executeScriptWithWSLSupport(
+                  "src/binaries/backend/4_run-verify.sh"
+                );
 
                 console.log("🔍 Verify: Script execution completed:", result);
 
@@ -338,6 +492,67 @@ export function useTokamakZkEVMActions() {
                   rawResult: null,
                 };
               }
+            } else {
+              // Fallback: Try to execute script directly with WSL support
+              console.log(
+                "🔍 Verify: Binary status check failed, trying direct script execution..."
+              );
+
+              try {
+                console.log(
+                  "🔍 Verify: Executing 4_run-verify.sh script with WSL support (fallback)..."
+                );
+
+                // Execute the verify script using WSL-aware helper
+                const result = await executeScriptWithWSLSupport(
+                  "src/binaries/backend/4_run-verify.sh"
+                );
+
+                console.log(
+                  "🔍 Verify: Script execution completed (fallback):",
+                  result
+                );
+
+                const lines = result.trim().split("\n");
+                const lastLine = lines[lines.length - 1].trim();
+
+                if (lastLine.startsWith("Verification result:")) {
+                  const provingResultValue = lastLine.split(":")[1].trim();
+
+                  // Check true case-insensitively (true, True, TRUE, etc. all allowed)
+                  const normalizedResult = provingResultValue.toLowerCase();
+                  const isTrue =
+                    normalizedResult.includes("true") &&
+                    normalizedResult
+                      .split(",")
+                      .every((part) => part.trim().toLowerCase() === "true");
+
+                  console.log(`🔍 Verification result parsing (fallback):`, {
+                    raw: provingResultValue,
+                    normalized: normalizedResult,
+                    isTrue: isTrue,
+                  });
+
+                  return {
+                    success: isTrue,
+                    verificationResult: isTrue,
+                    rawResult: result,
+                  };
+                } else {
+                  return {
+                    success: false,
+                    error: "Verification line not found",
+                    rawResult: result,
+                  };
+                }
+              } catch (error) {
+                console.error("🔍 Verify: Fallback execution failed:", error);
+                return {
+                  success: false,
+                  error: error.message || "An unknown error occurred",
+                  rawResult: null,
+                };
+              }
             }
             throw new Error("Binary is not available or not executable");
 
@@ -362,6 +577,8 @@ export function useTokamakZkEVMActions() {
                   step: "synthesizer",
                 };
               }
+
+              // Synthesizer succeeded, continue to next step
 
               // Step 2: PreProcess
               console.log("🔍 ExecuteAll: Step 2 - Running PreProcess...");
@@ -466,7 +683,22 @@ export function useTokamakZkEVMActions() {
         });
       }
     },
-    [initializeWhenCatchError, setShowProcessResult, setIsFirstTime]
+    [
+      initializeWhenCatchError,
+      setShowProcessResult,
+      setIsFirstTime,
+      executeScriptWithWSLSupport,
+      startProcessTiming,
+      endProcessTiming,
+      initializeBenchmarkSession,
+      currentSession,
+      globalBenchmarkSession,
+      binaryStatus,
+      startBinary,
+      parseTONTransfer,
+      setPlaygroundStageInProcess,
+      setIsError,
+    ]
   );
 
   const setupEvmSpec = useCallback(() => {
@@ -511,5 +743,6 @@ export function useTokamakZkEVMActions() {
     runVerify,
     runInstallDependencies,
     executeAll,
+    shouldUseWSL,
   };
 }

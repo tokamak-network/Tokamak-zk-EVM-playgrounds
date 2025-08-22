@@ -315,6 +315,150 @@ async function checkCudaSupport(): Promise<{
   };
 }
 
+// WSL check functions
+async function checkWSL(): Promise<{
+  isAvailable: boolean;
+  version?: string;
+  error?: string;
+}> {
+  // Only check WSL on Windows platform
+  if (process.platform !== "win32") {
+    return {
+      isAvailable: false,
+      error: "Not Windows platform",
+    };
+  }
+
+  try {
+    console.log("🔍 Checking WSL availability...");
+
+    // Check if WSL is available
+    const { stdout } = await execAsync("wsl --list --verbose", {
+      timeout: 10000,
+    });
+
+    console.log("✅ WSL is available:", stdout.trim());
+
+    // Parse WSL version from output
+    const versionMatch = stdout.match(/WSL\s+(\d+)/);
+    const version = versionMatch ? versionMatch[1] : "Unknown";
+
+    return {
+      isAvailable: true,
+      version,
+    };
+  } catch (error) {
+    console.log("❌ WSL check failed:", error.message);
+    return {
+      isAvailable: false,
+      error: error.message || "WSL not available",
+    };
+  }
+}
+
+async function checkWSLDistribution(): Promise<{
+  isAvailable: boolean;
+  distribution?: string;
+  error?: string;
+}> {
+  // Only check WSL distribution on Windows platform
+  if (process.platform !== "win32") {
+    return {
+      isAvailable: false,
+      error: "Not Windows platform",
+    };
+  }
+
+  try {
+    console.log("🔍 Checking WSL distribution...");
+
+    // First try to get all available distributions (including stopped ones)
+    const { stdout: allDistros } = await execAsync("wsl --list", {
+      timeout: 5000,
+    });
+
+    console.log("WSL distributions:", allDistros.trim());
+
+    if (allDistros.trim()) {
+      const lines = allDistros.trim().split("\n");
+      if (lines.length > 1) {
+        // Skip header line and get first distribution
+        // Remove special characters and get clean distribution name
+        let distribution = lines[1].replace(/[^\w-]/g, "").trim();
+
+        // If the first line contains "docker-desktop", try to find Ubuntu or other Linux distro
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].replace(/[^\w-]/g, "").trim();
+          if (line && !line.toLowerCase().includes("docker")) {
+            distribution = line;
+            break;
+          }
+        }
+
+        if (distribution) {
+          console.log("✅ WSL distribution found:", distribution);
+          return {
+            isAvailable: true,
+            distribution,
+          };
+        }
+      }
+    }
+
+    // Try to get running distributions as fallback
+    try {
+      const { stdout: runningDistros } = await execAsync(
+        "wsl --list --running",
+        {
+          timeout: 5000,
+        }
+      );
+
+      if (runningDistros.trim()) {
+        const lines = runningDistros.trim().split("\n");
+        if (lines.length > 0) {
+          const distribution = lines[0].split(/\s+/)[0];
+          console.log("✅ WSL running distribution found:", distribution);
+          return {
+            isAvailable: true,
+            distribution,
+          };
+        }
+      }
+    } catch (runningError) {
+      console.log("No running WSL distributions found");
+    }
+
+    return {
+      isAvailable: false,
+      error: "No WSL distribution found",
+    };
+  } catch (error) {
+    console.log("❌ WSL distribution check failed:", error.message);
+    return {
+      isAvailable: false,
+      error: error.message || "WSL distribution not available",
+    };
+  }
+}
+
+async function checkWSLSupport(): Promise<{
+  isAvailable: boolean;
+  wsl: { isAvailable: boolean; version?: string; error?: string };
+  distribution: { isAvailable: boolean; distribution?: string; error?: string };
+}> {
+  const [wsl, distribution] = await Promise.all([
+    checkWSL(),
+    checkWSLDistribution(),
+  ]);
+
+  return {
+    isAvailable: wsl.isAvailable && distribution.isAvailable,
+    wsl,
+    distribution,
+  };
+}
+
 // Register IPC handlers
 function setupIpcHandlers() {
   console.log("Setting up IPC handlers..."); // Debug log for IPC handler setup
@@ -429,6 +573,19 @@ function setupIpcHandlers() {
     return await checkCudaCompiler();
   });
 
+  // WSL 체크 핸들러들
+  ipcMain.handle("check-wsl-support", async () => {
+    return await checkWSLSupport();
+  });
+
+  ipcMain.handle("check-wsl", async () => {
+    return await checkWSL();
+  });
+
+  ipcMain.handle("check-wsl-distribution", async () => {
+    return await checkWSLDistribution();
+  });
+
   // Binary Service IPC Handlers
   ipcMain.handle("binary-get-info", async () => {
     return await binaryService.getBinaryInfo();
@@ -474,6 +631,38 @@ function setupIpcHandlers() {
   ipcMain.handle("system-execute-command", async (event, command: string[]) => {
     try {
       console.log("Executing system command:", command);
+
+      // Check if we're on Windows and should use WSL
+      const isWindows = process.platform === "win32";
+      let shouldUseWSL = false;
+
+      let wslSupportInfo = null;
+
+      if (isWindows) {
+        try {
+          // Use the WSL support check function
+          wslSupportInfo = await checkWSLSupport();
+
+          shouldUseWSL = wslSupportInfo.isAvailable;
+          console.log("WSL support check result:", wslSupportInfo);
+
+          // If WSL is not available on Windows, provide helpful guidance
+          if (!shouldUseWSL) {
+            console.warn(
+              "WSL is not available on Windows. Attempting to run command natively, " +
+                "but this may fail for Linux binaries."
+            );
+            // Don't throw error, let it try native execution as fallback
+            shouldUseWSL = false;
+          }
+        } catch (wslError) {
+          console.error("WSL support check failed:", wslError);
+          console.warn(
+            "Failed to check WSL support. Attempting native execution as fallback."
+          );
+          shouldUseWSL = false;
+        }
+      }
 
       // Process command arguments to handle path resolution
       const workingDirectory = app.isPackaged
@@ -647,10 +836,122 @@ function setupIpcHandlers() {
           }
         }
 
-        const childProcess = spawn(
-          processedCommand[0],
-          processedCommand.slice(1),
-          {
+        let childProcess;
+
+        if (shouldUseWSL) {
+          console.log("🔍 Using WSL for command execution on Windows");
+
+          // Use the WSL support info we already gathered
+          let targetDistribution = "Ubuntu"; // Default to Ubuntu
+
+          if (
+            wslSupportInfo &&
+            wslSupportInfo.distribution.isAvailable &&
+            wslSupportInfo.distribution.distribution
+          ) {
+            targetDistribution = wslSupportInfo.distribution.distribution;
+          }
+
+          console.log("🔍 Using WSL distribution:", targetDistribution);
+
+          // WSL will automatically start the distribution when needed
+          console.log("🔍 WSL will auto-start the distribution if needed");
+
+          // Convert Windows paths to WSL paths (use /mnt/host/ structure)
+          // Determine the correct working directory based on the command
+          let actualWorkingDir = scriptWorkingDirectory;
+
+          // Check if this is a synthesizer command
+          if (
+            processedCommand[0] === "bash" &&
+            processedCommand[1] === "-c" &&
+            processedCommand[2].includes("synthesizer")
+          ) {
+            // For synthesizer commands, use the synthesizer directory
+            actualWorkingDir = actualWorkingDir.replace(
+              /src\\binaries\\backend$/,
+              "src\\binaries\\synthesizer"
+            );
+          }
+
+          const wslWorkingDir = actualWorkingDir
+            .replace(/\\/g, "/")
+            .replace(
+              /^([A-Za-z]):/,
+              (match, drive) => `/mnt/${drive.toLowerCase()}`
+            );
+
+          // Convert command to WSL-compatible format
+          let wslCommand;
+          if (processedCommand[0] === "bash" && processedCommand[1] === "-c") {
+            // For bash -c commands, extract the actual command and remove directory changes
+            let actualCommand = processedCommand[2];
+
+            // Remove any cd commands since we're already in the correct directory
+            actualCommand = actualCommand.replace(
+              /cd src\/binaries\/\w+\s*&&\s*/g,
+              ""
+            );
+
+            // The command should run from the WSL working directory
+            wslCommand = actualCommand;
+          } else {
+            // For other commands, join them
+            wslCommand = processedCommand.join(" ");
+          }
+
+          const fullWSLCommand = `cd "${wslWorkingDir}" && ${wslCommand}`;
+          console.log("🔍 WSL full command:", fullWSLCommand);
+
+          // Use direct WSL execution without shell mode
+          console.log("🔍 Executing command via WSL...");
+
+          // Try direct WSL execution without shell wrapper
+          // Parse the command to extract cd path and executable
+          const commandParts = fullWSLCommand.split(" && ");
+          const cdPart = commandParts[0]; // cd "/mnt/e/..."
+          const execPart = commandParts[1]; // ./synthesizer-final parse ...
+
+          // Extract the directory path from cd command
+          const workingDir = cdPart.replace(/^cd\s+"([^"]+)"$/, "$1");
+
+          // Split the executable command
+          const execArgs = execPart.split(" ");
+          const executable = execArgs[0]; // ./synthesizer-final
+          const args = execArgs.slice(1); // parse -r ... --output-dir ...
+
+          console.log("🔍 WSL direct execution:", {
+            workingDir,
+            executable,
+            args,
+          });
+
+          childProcess = spawn(
+            "wsl",
+            [
+              "-d",
+              targetDistribution,
+              "--",
+              "/bin/bash",
+              "-c",
+              `cd "${workingDir}" && ${executable} ${args.join(" ")}`,
+            ],
+            {
+              stdio: ["pipe", "pipe", "pipe"],
+              env: {
+                ...process.env,
+                WSLENV: "PATH/l:LD_LIBRARY_PATH/l:DYLD_LIBRARY_PATH/l",
+              },
+            }
+          );
+
+          console.log("🔍 Using WSL with direct bash execution");
+        } else {
+          console.log(
+            "🔍 Using native execution (non-Windows or WSL not available)"
+          );
+
+          childProcess = spawn(processedCommand[0], processedCommand.slice(1), {
             stdio: ["pipe", "pipe", "pipe"],
             env: {
               ...process.env,
@@ -661,8 +962,8 @@ function setupIpcHandlers() {
                 process.platform !== "darwin" ? "/opt/icicle/lib" : undefined,
             },
             cwd: scriptWorkingDirectory, // Set working directory to backend directory
-          }
-        );
+          });
+        }
 
         let output = "";
         let errorOutput = "";
@@ -670,7 +971,10 @@ function setupIpcHandlers() {
         childProcess.stdout?.on("data", (data: Buffer) => {
           const text = data.toString();
           output += text;
-          console.log("System command stdout:", text);
+          console.log(
+            shouldUseWSL ? "WSL stdout:" : "System command stdout:",
+            text
+          );
           event.sender.send("system-stream-data", {
             data: text,
             isError: false,
@@ -680,7 +984,10 @@ function setupIpcHandlers() {
         childProcess.stderr?.on("data", (data: Buffer) => {
           const text = data.toString();
           errorOutput += text;
-          console.error("System command stderr:", text);
+          console.error(
+            shouldUseWSL ? "WSL stderr:" : "System command stderr:",
+            text
+          );
           event.sender.send("system-stream-data", {
             data: text,
             isError: true,
@@ -688,20 +995,25 @@ function setupIpcHandlers() {
         });
 
         childProcess.on("close", (code: number) => {
-          console.log(`System command exited with code: ${code}`);
+          console.log(
+            `${shouldUseWSL ? "WSL" : "System"} command exited with code: ${code}`
+          );
           if (code === 0) {
             resolve(output);
           } else {
             reject(
               new Error(
-                `System command failed with code ${code}: ${errorOutput}`
+                `${shouldUseWSL ? "WSL" : "System"} command failed with code ${code}: ${errorOutput}`
               )
             );
           }
         });
 
         childProcess.on("error", (error: Error) => {
-          console.error("System command error:", error);
+          console.error(
+            shouldUseWSL ? "WSL command error:" : "System command error:",
+            error
+          );
           reject(error);
         });
       });

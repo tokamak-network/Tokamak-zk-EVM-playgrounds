@@ -68,9 +68,47 @@ declare global {
         gpuInfo?: { isAvailable: boolean; gpuInfo?: string; error?: string };
         cudaInfo?: { isAvailable: boolean; version?: string; error?: string };
         dockerCudaInfo?: { isSupported: boolean; error?: string };
+        wslInfo?: {
+          isAvailable: boolean;
+          wsl: {
+            isAvailable: boolean;
+            version?: string;
+            error?: string;
+          };
+          distribution: {
+            isAvailable: boolean;
+            distribution?: string;
+            error?: string;
+          };
+        };
         error?: string;
       }>;
     };
     cudaAPI: CudaAPI;
+    wslAPI: {
+      checkWSLSupport: () => Promise<{
+        isAvailable: boolean;
+        wsl: {
+          isAvailable: boolean;
+          version?: string;
+          error?: string;
+        };
+        distribution: {
+          isAvailable: boolean;
+          distribution?: string;
+          error?: string;
+        };
+      }>;
+      checkWSL: () => Promise<{
+        isAvailable: boolean;
+        version?: string;
+        error?: string;
+      }>;
+      checkWSLDistribution: () => Promise<{
+        isAvailable: boolean;
+        distribution?: string;
+        error?: string;
+      }>;
+    };
   }
 }
