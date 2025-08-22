@@ -301,35 +301,19 @@ export function useTokamakZkEVMActions() {
                 const lines = result.trim().split("\n");
                 const lastLine = lines[lines.length - 1].trim();
 
-                if (lastLine.startsWith("Verification result:")) {
-                  const provingResultValue = lastLine.split(":")[1].trim();
+                // Check if the result is "true" (case-insensitive)
+                const isTrue = lastLine.toLowerCase() === "true";
 
-                  // Check true case-insensitively (true, True, TRUE, etc. all allowed)
-                  const normalizedResult = provingResultValue.toLowerCase();
-                  const isTrue =
-                    normalizedResult.includes("true") &&
-                    normalizedResult
-                      .split(",")
-                      .every((part) => part.trim().toLowerCase() === "true");
+                console.log(`🔍 Verification result parsing:`, {
+                  raw: lastLine,
+                  isTrue: isTrue,
+                });
 
-                  console.log(`🔍 Verification result parsing:`, {
-                    raw: provingResultValue,
-                    normalized: normalizedResult,
-                    isTrue: isTrue,
-                  });
-
-                  return {
-                    success: isTrue,
-                    verificationResult: isTrue,
-                    rawResult: result,
-                  };
-                } else {
-                  return {
-                    success: false,
-                    error: "Verification line not found",
-                    rawResult: result,
-                  };
-                }
+                return {
+                  success: isTrue,
+                  verificationResult: isTrue,
+                  rawResult: result,
+                };
               } catch (error) {
                 console.error("🔍 Verify: Error occurred:", error);
                 return {
