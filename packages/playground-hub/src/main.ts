@@ -32,19 +32,9 @@ if (started) {
 }
 
 const createWindow = () => {
-  // Default window size
-  let width = 1200;
-  let height = 800;
-
-  // Try to get screen size if available
-  try {
-    const { width: screenWidth, height: screenHeight } =
-      screen.getPrimaryDisplay().workAreaSize;
-    width = screenWidth;
-    height = screenHeight;
-  } catch (error) {
-    console.warn("Could not get screen size, using default:", error);
-  }
+  // Set fixed window size to 1200x910
+  const width = 1200;
+  const height = 910;
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({

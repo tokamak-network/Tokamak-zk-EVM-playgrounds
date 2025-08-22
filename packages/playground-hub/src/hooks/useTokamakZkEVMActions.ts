@@ -288,12 +288,12 @@ export function useTokamakZkEVMActions() {
                 console.log(
                   "🔍 Verify: Starting binary-based verify action..."
                 );
-                console.log("🔍 Verify: Executing 4_ruin-verify.sh script...");
+                console.log("🔍 Verify: Executing 4_run-verify.sh script...");
 
                 // Execute the verify script using system bash command
                 const result = await window.binaryService.executeSystemCommand([
                   "bash",
-                  "src/binaries/backend/4_ruin-verify.sh",
+                  "src/binaries/backend/4_run-verify.sh",
                 ]);
 
                 console.log("🔍 Verify: Script execution completed:", result);
