@@ -326,7 +326,7 @@ export function useTokamakZkEVMActions() {
                     "preprocess",
                     preprocessStartTime,
                     false,
-                    error.message
+                    error instanceof Error ? error.message : String(error)
                   );
                 }
                 throw error;
@@ -414,7 +414,7 @@ export function useTokamakZkEVMActions() {
                     "prove",
                     proveStartTime,
                     false,
-                    error.message,
+                    error instanceof Error ? error.message : String(error),
                     proveLogData
                   );
                 }
@@ -447,41 +447,23 @@ export function useTokamakZkEVMActions() {
                 const lines = result.trim().split("\n");
                 const lastLine = lines[lines.length - 1].trim();
 
-                if (lastLine.startsWith("Verification result:")) {
-                  setProvingIsDone(true);
-                  const provingResultValue = lastLine.split(":")[1].trim();
+                setProvingIsDone(true);
 
-                  // Check true case-insensitively (true, True, TRUE, etc. all allowed)
-                  const normalizedResult = provingResultValue.toLowerCase();
-                  const isTrue =
-                    normalizedResult.includes("true") &&
-                    normalizedResult
-                      .split(",")
-                      .every((part) => part.trim().toLowerCase() === "true");
+                // Check if the result is "true" (case-insensitive)
+                const isTrue = lastLine.toLowerCase() === "true";
 
-                  console.log(`🔍 Verification result parsing:`, {
-                    raw: provingResultValue,
-                    normalized: normalizedResult,
-                    isTrue: isTrue,
-                  });
+                console.log(`🔍 Verification result parsing:`, {
+                  raw: lastLine,
+                  isTrue: isTrue,
+                });
 
-                  setProvingResult(isTrue);
+                setProvingResult(isTrue);
 
-                  return {
-                    success: isTrue,
-                    verificationResult: isTrue,
-                    rawResult: result,
-                  };
-                } else {
-                  setProvingIsDone(true);
-                  setProvingResult(false);
-
-                  return {
-                    success: false,
-                    error: "Verification line not found",
-                    rawResult: result,
-                  };
-                }
+                return {
+                  success: isTrue,
+                  verificationResult: isTrue,
+                  rawResult: result,
+                };
               } catch (error) {
                 console.error("🔍 Verify: Error occurred:", error);
                 setProvingIsDone(true);
@@ -489,7 +471,10 @@ export function useTokamakZkEVMActions() {
 
                 return {
                   success: false,
-                  error: error.message || "An unknown error occurred",
+                  error:
+                    error instanceof Error
+                      ? error.message
+                      : "An unknown error occurred",
                   rawResult: null,
                 };
               } finally {
@@ -510,7 +495,10 @@ export function useTokamakZkEVMActions() {
         initializeWhenCatchError();
         return Promise.resolve({
           success: false,
-          error: error.message || "An unknown error occurred",
+          error:
+            error instanceof Error
+              ? error.message
+              : "An unknown error occurred",
         });
       } finally {
         await new Promise<void>((resolve) => {
