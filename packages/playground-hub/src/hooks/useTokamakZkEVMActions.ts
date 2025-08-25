@@ -500,20 +500,21 @@ export function useTokamakZkEVMActions() {
                 const lines = result.trim().split("\n");
                 const lastLine = lines[lines.length - 1].trim();
 
-                if (lastLine.startsWith("Verification result:")) {
-                  const provingResultValue = lastLine.split(":")[1].trim();
+                console.log(`🔍 Verification result parsing (fallback):`, {
+                  allLines: lines,
+                  lastLine: lastLine,
+                  lastLineLength: lastLine.length,
+                });
 
-                  // Check true case-insensitively (true, True, TRUE, etc. all allowed)
-                  const normalizedResult = provingResultValue.toLowerCase();
-                  const isTrue =
-                    normalizedResult.includes("true") &&
-                    normalizedResult
-                      .split(",")
-                      .every((part) => part.trim().toLowerCase() === "true");
+                // Check if the last line is simply "true" or "false"
+                if (
+                  lastLine.toLowerCase() === "true" ||
+                  lastLine.toLowerCase() === "false"
+                ) {
+                  const isTrue = lastLine.toLowerCase() === "true";
 
-                  console.log(`🔍 Verification result parsing (fallback):`, {
-                    raw: provingResultValue,
-                    normalized: normalizedResult,
+                  console.log(`🔍 Simple verification result:`, {
+                    raw: lastLine,
                     isTrue: isTrue,
                   });
 
@@ -522,13 +523,18 @@ export function useTokamakZkEVMActions() {
                     verificationResult: isTrue,
                     rawResult: result,
                   };
-                } else {
-                  return {
-                    success: false,
-                    error: "Verification line not found",
-                    rawResult: result,
-                  };
                 }
+
+                console.log(`🔍 Verification result format not recognized:`, {
+                  lastLine: lastLine,
+                  allLines: lines,
+                });
+
+                return {
+                  success: false,
+                  error: "Verification line not found or unrecognized format",
+                  rawResult: result,
+                };
               } catch (error) {
                 console.error("🔍 Verify: Fallback execution failed:", error);
                 return {
