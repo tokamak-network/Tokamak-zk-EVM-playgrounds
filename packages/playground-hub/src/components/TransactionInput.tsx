@@ -98,7 +98,7 @@ export default function TransactionInput() {
           if (isError) {
             setIsError(false);
             setTransactionHash("");
-            setIsFirstTime(true);
+            // setIsFirstTime(true);
           }
           setIsFocused(true);
         }}
@@ -144,7 +144,7 @@ export default function TransactionInput() {
             executeAll();
           }
         }}
-        disabled={!isActive}
+        disabled={!isActive && !errorCase}
       >
         {/* Process Icon */}
         <svg

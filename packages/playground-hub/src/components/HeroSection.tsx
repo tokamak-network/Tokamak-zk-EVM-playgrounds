@@ -1,7 +1,8 @@
-import { useAtomValue } from "jotai";
-import { isFirstTimeAtom } from "../atoms/ui";
+import { useUI } from "../hooks/useUI";
+import { useViewport } from "../hooks/useMediaView";
 
 const HeroSectionFirstTime = () => {
+  const { isOverBreakpoint } = useViewport();
   return (
     <div
       className="flex flex-col gap-y-[24px]"
@@ -13,12 +14,12 @@ const HeroSectionFirstTime = () => {
           textAlign: "center",
           textShadow: "0 2px 0 #006CD8",
           fontFamily: "'Jersey 10', cursive",
-          fontSize: "84px",
+          fontSize: isOverBreakpoint ? "84px" : "56px",
           fontStyle: "normal",
           fontWeight: "400",
           letterSpacing: "5.46px",
-          height: "49px",
-          lineHeight: "50px",
+          height: isOverBreakpoint ? "49px" : "30px",
+          lineHeight: isOverBreakpoint ? "49px" : "30px",
         }}
       >
         ZK Proofs. One Click.
@@ -29,12 +30,12 @@ const HeroSectionFirstTime = () => {
           textAlign: "center",
           textShadow: "0 6px 0 #0E3260",
           fontFamily: "'Jersey 10', cursive",
-          fontSize: "156px",
+          fontSize: isOverBreakpoint ? "156px" : "103px",
           fontStyle: "normal",
           fontWeight: "400",
           letterSpacing: "10.92px",
-          height: "100px",
-          lineHeight: "100px",
+          height: isOverBreakpoint ? "100px" : "62px",
+          lineHeight: isOverBreakpoint ? "100px" : "62px",
           verticalAlign: "bottom",
         }}
       >
@@ -65,7 +66,7 @@ const HeroSectionNotFirstTime = () => {
 };
 
 export default function HeroSection() {
-  const isFirstTime = useAtomValue(isFirstTimeAtom);
+  const { isFirstTime } = useUI();
 
   if (isFirstTime) return <HeroSectionFirstTime />;
 

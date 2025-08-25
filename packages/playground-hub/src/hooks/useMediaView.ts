@@ -6,8 +6,8 @@ type ViewportConfig = {
 };
 
 export const useViewport = ({
-  minWidth = 960,
-  minHeight = 540,
+  minWidth = 900,
+  minHeight = 768,
 }: ViewportConfig = {}) => {
   const [requiredMinimumWidth, setRequiredMinimumWidth] = useState(false);
   const [requiredMinimumHeight, setRequiredMinimumHeight] = useState(false);
@@ -39,7 +39,7 @@ export const useViewport = ({
   }, [minWidth, minHeight]);
 
   const isOverBreakpoint = useMemo(() => {
-    return window.innerWidth > 1099;
+    return window.innerWidth > 1024;
   }, [window.innerWidth]);
 
   const isViewportSatisfied = requiredMinimumWidth && requiredMinimumHeight;
