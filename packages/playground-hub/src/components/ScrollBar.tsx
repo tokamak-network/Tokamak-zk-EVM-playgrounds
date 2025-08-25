@@ -1,4 +1,5 @@
 import { ReactNode, useRef, useState, useEffect } from "react";
+import { useViewport } from "../hooks/useMediaView";
 
 interface ScrollBarProps {
   children: ReactNode;
@@ -9,6 +10,8 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
   const [scrollTop, setScrollTop] = useState(0);
   const [scrollHeight, setScrollHeight] = useState(0);
   const [clientHeight, setClientHeight] = useState(0);
+  const [dynamicHeight, setDynamicHeight] = useState("40vh");
+  const { height } = useViewport();
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -17,6 +20,30 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
       setClientHeight(container.clientHeight);
     }
   }, [children]);
+
+  // Dynamic height calculation based on viewport height from useViewport hook
+  useEffect(() => {
+    const calculateDynamicHeight = () => {
+      // Use minHeight from useViewport (768px) as the baseline for 40vh
+      const minWindowHeight = 768; // minHeight from useViewport
+      const maxWindowHeight = 1200; // Maximum height for 60vh
+      const minVh = 40;
+      const maxVh = 60;
+
+      const clampedHeight = Math.max(
+        minWindowHeight,
+        Math.min(maxWindowHeight, height)
+      );
+      const ratio =
+        (clampedHeight - minWindowHeight) / (maxWindowHeight - minWindowHeight);
+      const calculatedVh = minVh + ratio * (maxVh - minVh);
+
+      setDynamicHeight(`${calculatedVh}vh`);
+    };
+
+    // Calculate when height changes
+    calculateDynamicHeight();
+  }, [height]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -86,7 +113,7 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
         <div
           className="relative w-[790px] bg-[#bdbdbd] border-[1px] border-[#bdbdbd] p-[8px]"
           style={{
-            height: "50vh",
+            height: dynamicHeight,
             borderBottom: "1px solid #5F5F5F",
             borderLeft: "1px solid #5F5F5F",
             borderRight: "1px solid #5F5F5F",

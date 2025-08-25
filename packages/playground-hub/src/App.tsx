@@ -7,8 +7,6 @@ import Header from "@/components/Header";
 import RainbowImage from "@/components/RainbowImage";
 import MainBanner from "@/components/MainBanner";
 import TransactionInput from "@/components/TransactionInput";
-import { useAtomValue } from "jotai";
-import { isStartedAtom } from "./atoms/ui";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ProcessResult from "./components/ProcessResult";
 import HeroSection from "./components/HeroSection";
@@ -17,8 +15,7 @@ import { useUI } from "./hooks/useUI";
 const MainContent = () => {
   // Responsive design hook
   const { isOverBreakpoint } = useViewport();
-  const isStarted = useAtomValue(isStartedAtom);
-  const { isInProcess, isFirstTime, isHeroUp, isError } = useUI();
+  const { isInProcess, isFirstTime, isHeroUp, isError, isStarted } = useUI();
 
   return (
     <div

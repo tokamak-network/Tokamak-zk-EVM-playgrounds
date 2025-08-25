@@ -2,6 +2,7 @@ import { useAtomValue } from "jotai";
 import {
   isErrorAtom,
   isFirstTimeAtom,
+  isStartedAtom,
   showProcessResultModalAtom,
 } from "../atoms/ui";
 import { playgroundStageInProcessAtom } from "../atoms/playgroundStage";
@@ -13,9 +14,9 @@ export const useUI = () => {
   const showProcessResultModal = useAtomValue(showProcessResultModalAtom);
   const isInProcess = useAtomValue(playgroundStageInProcessAtom);
   const isError = useAtomValue(isErrorAtom);
+  const isStarted = useAtomValue(isStartedAtom);
 
   const isHeroUp = useMemo(() => {
-    // return true;
     return !isFirstTime;
   }, [isFirstTime]);
 
@@ -25,5 +26,6 @@ export const useUI = () => {
     isInProcess,
     isHeroUp,
     isError,
+    isStarted,
   };
 };
