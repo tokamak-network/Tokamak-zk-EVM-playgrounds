@@ -1,9 +1,54 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import planetSvg from "../../assets/planet.svg";
+import { PixelAnimation } from "./PixelAnimation";
+import { usePixelAnimation } from "../../hooks/usePixelAnimation";
 
 export const LoadingModal: React.FC = () => {
-  const isOpen = true;
-  const message = "Please, wait";
+  // Internal state management
+  const [isOpen] = useState(true);
+  const [loadingStage, setLoadingStage] = useState(6);
+  const [message] = useState("Please, wait");
+
+  // Auto-progression for testing (in actual use, controlled externally)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLoadingStage((prev) => {
+        if (prev < 5) {
+          return prev + 1;
+        } else {
+          clearInterval(timer);
+          return prev; // Stay at stage 5 (complete) to keep image visible
+        }
+      });
+    }, 4000); // Move to next stage every 4 seconds (doubled for half speed)
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleComplete = useCallback(() => {
+    console.log("Pixel animation completed!");
+    // Post-completion processing logic
+  }, []);
+
+  const [showPixelAnimation, setShowPixelAnimation] = useState(false);
+
+  const {
+    visiblePixels,
+    isLoading: pixelDataLoading,
+    error: pixelError,
+  } = usePixelAnimation({
+    svgUrl: planetSvg,
+    loadingStage,
+    onComplete: handleComplete,
+  });
+
+  // Start animation when pixel data is loaded
+  useEffect(() => {
+    if (!pixelDataLoading && !pixelError && loadingStage > 0) {
+      setShowPixelAnimation(true);
+    }
+  }, [pixelDataLoading, pixelError, loadingStage]);
+
   if (!isOpen) return null;
 
   return (
@@ -90,18 +135,39 @@ export const LoadingModal: React.FC = () => {
             }}
           ></div>
 
-          {/* Planet image */}
-          <img
-            src={planetSvg}
-            alt="Planet"
+          {/* Planet Animation Area */}
+          <div
             style={{
               position: "absolute",
               top: "49px", // 16px + 33px
               right: "21px", // 8px + 299px from left = 307px, so right = 400-307-80 = 13px + 8px padding
-              width: "80px",
-              height: "50px",
+              width: "76px", // Original size
+              height: "48px", // Original size
             }}
-          />
+          >
+            {showPixelAnimation ? (
+              <PixelAnimation
+                pixels={visiblePixels}
+                containerWidth={76}
+                containerHeight={48}
+                pixelSize={2}
+                showTrail={true}
+              />
+            ) : (
+              // Show original image while pixel data is loading or animation is waiting
+              <img
+                src={planetSvg}
+                alt="Planet"
+                style={{
+                  width: "76px",
+                  height: "48px",
+                  opacity: loadingStage === 0 ? 1 : 0.3, // Dim before animation starts
+                  imageRendering: "pixelated",
+                  backgroundColor: "#BDBDBD", // 모달 배경색과 동일
+                }}
+              />
+            )}
+          </div>
 
           {/* Message text */}
           <div
