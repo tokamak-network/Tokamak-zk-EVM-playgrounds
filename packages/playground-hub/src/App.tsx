@@ -46,7 +46,7 @@ const MainContent = () => {
         <div
           className={`flex flex-col justify-center items-center ${isInProcess && isFirstTime ? "mt-[2`3px]" : ""} ${
             isInProcess && !isFirstTime ? "h-full" : ""
-          } ${isError ? "h-full" : ""}`}
+          } ${isHeroUp ? "h-full" : ""}`}
         >
           <LoadingSpinner />
           <ProcessResult />
