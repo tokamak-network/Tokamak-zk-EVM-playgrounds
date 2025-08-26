@@ -1,7 +1,9 @@
 import React from "react";
+import planetSvg from "../../assets/planet.svg";
 
-export const WSLInstallModal: React.FC = () => {
-  const isOpen = false;
+export const LoadingModal: React.FC = () => {
+  const isOpen = true;
+  const message = "Please, wait";
   if (!isOpen) return null;
 
   return (
@@ -60,7 +62,7 @@ export const WSLInstallModal: React.FC = () => {
                 margin: 0,
               }}
             >
-              Install WSL to get started
+              Loading
             </h2>
           </div>
         </div>
@@ -72,13 +74,43 @@ export const WSLInstallModal: React.FC = () => {
             flexDirection: "column",
             gap: "12px",
             padding: "16px 8px",
+            height: "151px",
+            position: "relative",
           }}
         >
+          {/* Background decoration */}
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
+              position: "absolute",
+              top: "16px",
+              left: "8px",
+              width: "2px",
+              height: "2px",
+              backgroundColor: "#D9D9D9",
+            }}
+          ></div>
+
+          {/* Planet image */}
+          <img
+            src={planetSvg}
+            alt="Planet"
+            style={{
+              position: "absolute",
+              top: "49px", // 16px + 33px
+              right: "21px", // 8px + 299px from left = 307px, so right = 400-307-80 = 13px + 8px padding
+              width: "80px",
+              height: "50px",
+            }}
+          />
+
+          {/* Message text */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "21px", // 16px + 5px from bottom of text area
+              left: "16px", // 8px + 8px
+              width: "101px",
+              height: "23px",
             }}
           >
             <p
@@ -87,64 +119,14 @@ export const WSLInstallModal: React.FC = () => {
                 fontWeight: 400,
                 fontSize: "14px",
                 lineHeight: "1.64",
-                letterSpacing: "-0.02em",
                 color: "#222222",
                 margin: 0,
+                position: "absolute",
+                top: "5px",
               }}
             >
-              This app needs WSL to run on Windows.
+              {message}
             </p>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                gap: "8px",
-              }}
-            >
-              <button
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: "2px 4px",
-                  background: "#BDBDBD",
-                  border: "1px solid",
-                  borderTopColor: "#A8A8A8",
-                  borderLeftColor: "#A8A8A8",
-                  borderRightColor: "#5F5F5F",
-                  borderBottomColor: "#5F5F5F",
-                  cursor: "pointer",
-                  width: "100%",
-                }}
-                onClick={onInstall}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#CACACA";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#BDBDBD";
-                }}
-                onMouseDown={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ADADAD";
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.backgroundColor = "#CACACA";
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "IBM Plex Mono, monospace",
-                    fontWeight: 400,
-                    fontSize: "13px",
-                    lineHeight: "1.3",
-                    color: "#222222",
-                  }}
-                >
-                  Install WSL
-                </span>
-              </button>
-            </div>
           </div>
         </div>
       </div>

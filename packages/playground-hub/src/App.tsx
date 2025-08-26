@@ -11,7 +11,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import ProcessResult from "./components/ProcessResult";
 import HeroSection from "./components/HeroSection";
 import { useUI } from "./hooks/useUI";
-import { WSLInstallModal } from "./components/modals";
+import { Modals } from "./components/modals";
 
 const MainContent = () => {
   // Responsive design hook
@@ -52,11 +52,7 @@ const MainContent = () => {
           <LoadingSpinner />
           <ProcessResult />
         </div>
-        <WSLInstallModal
-          isOpen={true}
-          onClose={() => {}}
-          onInstall={() => {}}
-        />
+        <Modals />
       </div>
 
       {/* Rainbow animation at bottom */}
