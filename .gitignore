@@ -69,5 +69,6 @@ node_modules/
 # tasks.json
 # tasks/ 
 
-#Cursor
-./.cursor/mcp.json
+# Cursor IDE - MCP configuration with API keys
+.cursor/mcp.json
+.cursor/settings.json

@@ -11,11 +11,12 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import ProcessResult from "./components/ProcessResult";
 import HeroSection from "./components/HeroSection";
 import { useUI } from "./hooks/useUI";
+import { WSLInstallModal } from "./components/modals";
 
 const MainContent = () => {
   // Responsive design hook
   const { isOverBreakpoint } = useViewport();
-  const { isInProcess, isFirstTime, isHeroUp, isError, isStarted } = useUI();
+  const { isInProcess, isFirstTime, isHeroUp, isStarted } = useUI();
 
   return (
     <div
@@ -51,6 +52,11 @@ const MainContent = () => {
           <LoadingSpinner />
           <ProcessResult />
         </div>
+        <WSLInstallModal
+          isOpen={true}
+          onClose={() => {}}
+          onInstall={() => {}}
+        />
       </div>
 
       {/* Rainbow animation at bottom */}
