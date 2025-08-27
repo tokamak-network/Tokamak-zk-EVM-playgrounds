@@ -11,6 +11,7 @@ import { useBenchmark } from "./useBenchmark";
 import {
   isErrorAtom,
   isFirstTimeAtom,
+  loadingStageAtom,
   showProcessResultModalAtom,
 } from "../atoms/ui";
 
@@ -46,6 +47,7 @@ export function useTokamakZkEVMActions() {
   const setIsError = useSetAtom(isErrorAtom);
   const [, setShowProcessResult] = useAtom(showProcessResultModalAtom);
   const [, setIsFirstTime] = useAtom(isFirstTimeAtom);
+  const [, setLoadingStage] = useAtom(loadingStageAtom);
 
   // ExecuteAll flow tracking removed - WSL checks handled at app startup
 
@@ -357,6 +359,20 @@ export function useTokamakZkEVMActions() {
                 window.binaryService.onStreamData(({ data, isError }) => {
                   if (!isError) {
                     console.log("Prove log:", data);
+
+                    // Check if prove2 stage is running
+                    if (data.includes("Running prove0...")) {
+                      setLoadingStage(2);
+                    }
+
+                    if (data.includes("Running prove2...")) {
+                      setLoadingStage(3);
+                    }
+
+                    if (data.includes("Running prove4...")) {
+                      setLoadingStage(4);
+                    }
+
                     // Collect log data
                     proveLogData += data + "\n";
                   }
@@ -550,6 +566,8 @@ export function useTokamakZkEVMActions() {
             try {
               console.log("🚀 ExecuteAll: Starting integrated execution...");
 
+              setLoadingStage(0);
+
               // Step 1: Run Synthesizer
               console.log("🔍 ExecuteAll: Step 1 - Running Synthesizer...");
               const synthesizerResult = await executeTokamakAction(
@@ -592,6 +610,7 @@ export function useTokamakZkEVMActions() {
               console.log(
                 "🔍 ExecuteAll: Step 3 - Running Prove Transaction..."
               );
+              setLoadingStage(1);
               const proveResult = await executeTokamakAction(
                 TokamakActionType.ProveTransaction
               );
@@ -630,6 +649,8 @@ export function useTokamakZkEVMActions() {
               // Show ProcessResult modal on successful completion
               setShowProcessResult(true);
               setIsFirstTime(false);
+
+              setLoadingStage(5);
 
               return {
                 success: true,

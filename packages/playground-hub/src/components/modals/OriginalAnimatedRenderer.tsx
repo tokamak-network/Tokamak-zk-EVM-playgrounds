@@ -29,7 +29,6 @@ export const OriginalAnimatedRenderer: React.FC<
     null
   );
 
-
   const animationRef = useRef<NodeJS.Timeout | null>(null);
   const currentStageRef = useRef<number>(-1);
   const stageStartTimeRef = useRef<number>(0);
@@ -38,15 +37,11 @@ export const OriginalAnimatedRenderer: React.FC<
   useEffect(() => {
     if (allPixels.length > 0) return; // Skip if already loaded
 
-    console.log("OriginalAnimatedRenderer: Loading and processing image");
-
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.src = planetSvg;
 
     img.onload = () => {
-      console.log("OriginalAnimatedRenderer: Image loaded, extracting pixels");
-
       // Create temporary canvas to extract pixel data
       const tempCanvas = document.createElement("canvas");
       const tempCtx = tempCanvas.getContext("2d");
@@ -104,11 +99,6 @@ export const OriginalAnimatedRenderer: React.FC<
         }
       }
 
-      console.log(
-        "OriginalAnimatedRenderer: Extracted",
-        pixels.length,
-        "pixels"
-      );
       setAllPixels(pixels);
       setOriginalImage(img); // Store original image for final rendering
       setIsLoading(false);
@@ -123,8 +113,6 @@ export const OriginalAnimatedRenderer: React.FC<
   // Handle stage changes with pixel animation
   useEffect(() => {
     if (isLoading || allPixels.length === 0) return;
-
-    console.log("OriginalAnimatedRenderer: Stage changed to", loadingStage);
 
     // Clear previous animation
     if (animationRef.current) {
@@ -149,29 +137,27 @@ export const OriginalAnimatedRenderer: React.FC<
         return elapsed > pixel.animationDelay;
       });
 
-      console.log(
-        `OriginalAnimatedRenderer: Stage ${loadingStage}, showing ${activePixels.length}/${currentStagePixels.length} pixels`
-      );
-
       setVisiblePixels(activePixels);
 
-      // Restart animation when all pixels of current stage are visible (infinite loop)
-      if (activePixels.length >= currentStagePixels.length) {
-        console.log(
-          "OriginalAnimatedRenderer: Animation complete for stage",
-          loadingStage,
-          "- restarting"
-        );
-        
-        // Restart the animation for this stage after a brief pause
-        setTimeout(() => {
-          stageStartTimeRef.current = Date.now(); // Reset start time
-        }, 500); // 500ms pause before restarting
+      // Check if all pixels have completed their flight animation
+      const allPixelsCompleted = currentStagePixels.every((pixel) => {
+        const pixelElapsed = elapsed - pixel.animationDelay;
+        const animationDuration = 1000; // Same as in render function
+        return pixelElapsed >= animationDuration;
+      });
+
+      // Restart animation when all pixels have completed their flight
+      if (
+        activePixels.length >= currentStagePixels.length &&
+        allPixelsCompleted
+      ) {
+        // Restart the animation immediately for smooth loop
+        stageStartTimeRef.current = Date.now(); // Reset start time immediately
       }
     };
 
     // Start animation
-    animationRef.current = setInterval(updateVisiblePixels, 50); // 20fps
+    animationRef.current = setInterval(updateVisiblePixels, 100); // 10fps (2x slower)
     updateVisiblePixels(); // Initial call
 
     return () => {
@@ -190,11 +176,12 @@ export const OriginalAnimatedRenderer: React.FC<
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // 고품질 렌더링 설정
+    // Extended canvas size to show pixels flying from outside
+    const extendedWidth = 384; // Fixed 384px width for the canvas area
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = containerWidth * dpr;
+    canvas.width = extendedWidth * dpr;
     canvas.height = containerHeight * dpr;
-    canvas.style.width = `${containerWidth}px`;
+    canvas.style.width = `${extendedWidth}px`;
     canvas.style.height = `${containerHeight}px`;
     ctx.scale(dpr, dpr);
 
@@ -206,59 +193,52 @@ export const OriginalAnimatedRenderer: React.FC<
     (ctx as any).msImageSmoothingEnabled = true;
     (ctx as any).oImageSmoothingEnabled = true;
 
-    console.log(
-      "OriginalAnimatedRenderer: Rendering",
-      visiblePixels.length,
-      "pixels (Particles)"
-    );
-
-    // Clear canvas
-    ctx.clearRect(0, 0, containerWidth, containerHeight);
+    // Clear extended canvas
+    ctx.clearRect(0, 0, extendedWidth, containerHeight);
 
     if (originalImage) {
-      // Mixed rendering: completed stages as original image + current stage as particles
-
-      // First, draw the original image for completed stages
+      // First, draw the original image for completed stages (stages below current)
       const stageHeight = containerHeight / 5;
       const completedHeight = loadingStage * stageHeight;
 
       if (completedHeight > 0) {
-        // Draw completed stages as original image
+        // Draw completed stages as original image (offset to right side of 384px canvas)
+        const offsetX = 384 - containerWidth; // Position at right side of 384px canvas
         ctx.save();
         ctx.beginPath();
-        ctx.rect(0, 0, containerWidth, completedHeight);
+        ctx.rect(offsetX, 0, containerWidth, completedHeight);
         ctx.clip();
-        ctx.drawImage(originalImage, 0, 0, containerWidth, containerHeight);
-        ctx.restore();
-
-        console.log(
-          `OriginalAnimatedRenderer: Drew completed stages (0-${loadingStage - 1}) as original image, height: ${completedHeight}px`
+        ctx.drawImage(
+          originalImage,
+          offsetX,
+          0,
+          containerWidth,
+          containerHeight
         );
+        ctx.restore();
       }
 
       // Then, render current stage as animated particles
       const currentTime = Date.now();
       const stageElapsed = currentTime - stageStartTimeRef.current;
 
-      // Only render pixels for the current stage
-      const currentStagePixels = visiblePixels.filter(
-        (pixel) => pixel.stage === loadingStage
-      );
-
-      currentStagePixels.forEach((pixel) => {
+      // Render all visible pixels (only current stage pixels)
+      visiblePixels.forEach((pixel) => {
         const pixelElapsed = stageElapsed - pixel.animationDelay;
 
         if (pixelElapsed > 0) {
           // Calculate flying animation for this pixel
-          const animationDuration = 500; // 500ms flight time
+          const animationDuration = 1000; // 1000ms flight time (2x slower)
           const progress = Math.min(pixelElapsed / animationDuration, 1);
 
           // Easing function for smooth animation
           const easeOut = 1 - Math.pow(1 - progress, 3);
 
-          // Calculate current position (flying from left - outside component border)
-          const startX = -250; // Start 250px to the left (outside component)
-          const currentX = startX + (pixel.x - startX) * easeOut;
+          // Calculate current position (flying from left to right side of 384px canvas)
+          const startX = 0; // Start from left edge of canvas
+          const offsetX = 384 - containerWidth; // Right side position
+          const targetX = offsetX + pixel.x; // Target position at right side
+          const currentX = startX + (targetX - startX) * easeOut;
           const currentY = pixel.y;
 
           // Set pixel color
@@ -268,10 +248,6 @@ export const OriginalAnimatedRenderer: React.FC<
           ctx.fillRect(Math.round(currentX), Math.round(currentY), 1, 1);
         }
       });
-
-      console.log(
-        `OriginalAnimatedRenderer: Drew ${currentStagePixels.length} particles for current stage ${loadingStage}`
-      );
     }
   }, [
     visiblePixels,
@@ -299,30 +275,43 @@ export const OriginalAnimatedRenderer: React.FC<
   }
 
   return (
-    <canvas
-      ref={canvasRef}
+    <div
       style={{
         width: `${containerWidth}px`,
         height: `${containerHeight}px`,
-        // 원본 이미지 품질 유지 (True와 동일한 설정)
-        imageRendering: "auto",
-        imageRendering: "high-quality" as any,
-        imageRendering: "-webkit-optimize-contrast" as any,
-
-        // 브라우저 스무딩 활성화 (원본 품질)
-        WebkitFontSmoothing: "antialiased" as any,
-        MozOsxFontSmoothing: "grayscale" as any,
-        fontSmooth: "always" as any,
-
-        // 하드웨어 가속
-        transform: "translateZ(0)",
-        backfaceVisibility: "hidden",
-        willChange: "transform",
-
-        display: "block",
-        border: "1px solid #FF5722", // Red-orange border to distinguish
-        outline: "none",
+        position: "relative",
+        overflow: "visible", // Allow pixels to be visible outside the container
       }}
-    />
+    >
+      <canvas
+        ref={canvasRef}
+        style={{
+          width: "384px", // Fixed 384px width
+          height: `${containerHeight}px`,
+          position: "absolute",
+          left: "0px", // Offset to align right side with container (384-76=308)
+          top: "0",
+
+          // 원본 이미지 품질 유지 (True와 동일한 설정)
+          imageRendering: "auto",
+          imageRendering: "high-quality" as any,
+          imageRendering: "-webkit-optimize-contrast" as any,
+
+          // 브라우저 스무딩 활성화 (원본 품질)
+          WebkitFontSmoothing: "antialiased" as any,
+          MozOsxFontSmoothing: "grayscale" as any,
+          fontSmooth: "always" as any,
+
+          // 하드웨어 가속
+          transform: "translateZ(0)",
+          backfaceVisibility: "hidden",
+          willChange: "transform",
+
+          display: "block",
+          border: "none",
+          outline: "none",
+        }}
+      />
+    </div>
   );
 };

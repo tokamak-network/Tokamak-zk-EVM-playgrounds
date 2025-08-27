@@ -10,7 +10,7 @@ import JSZip from "jszip";
 const Logs = () => {
   const { logGroups: test } = useSynthesizerResult();
 
-  const logGroups = [...test, ...test, ...test, ...test, ...test, ...test];
+  const logGroups = test;
 
   return logGroups && logGroups.length > 0 ? (
     logGroups.map((logGroup, index) => (
