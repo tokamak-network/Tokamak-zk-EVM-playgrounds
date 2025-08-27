@@ -162,7 +162,7 @@ This dialog will remain open and automatically close when WSL is detected.`;
     alert(instructions);
   };
 
-  // if (!isOpen) return null;
+  if (!isOpen) return null;
 
   return (
     <div
