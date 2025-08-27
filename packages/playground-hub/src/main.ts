@@ -5,7 +5,6 @@ import {
   ipcMain,
   Menu,
   MenuItemConstructorOptions,
-  screen,
   shell,
 } from "electron";
 
@@ -323,6 +322,7 @@ async function checkWSL(): Promise<{
 }> {
   // Only check WSL on Windows platform
   if (process.platform !== "win32") {
+    console.log("🔍 Platform is not Windows:", process.platform);
     return {
       isAvailable: false,
       error: "Not Windows platform",
@@ -330,19 +330,42 @@ async function checkWSL(): Promise<{
   }
 
   try {
-    console.log("🔍 Checking WSL availability...");
+    console.log("🔍 Checking WSL availability using cmd...");
 
-    // Check if WSL is available
-    const { stdout } = await execAsync("wsl --list --verbose", {
+    // Use cmd to check if wsl command works
+    const { stdout } = await execAsync("cmd /c wsl --list --verbose", {
       timeout: 10000,
     });
 
-    console.log("✅ WSL is available:", stdout.trim());
+    console.log("✅ WSL command executed successfully via cmd:", stdout.trim());
 
-    // Parse WSL version from output
-    const versionMatch = stdout.match(/WSL\s+(\d+)/);
-    const version = versionMatch ? versionMatch[1] : "Unknown";
+    // Check if there are any distributions installed
+    if (
+      !stdout.trim() ||
+      stdout.includes("There are no installed distributions")
+    ) {
+      console.log("❌ No WSL distributions installed");
+      return {
+        isAvailable: false,
+        error: "WSL is installed but no distributions are available",
+      };
+    }
 
+    // Parse WSL version from output (look for VERSION column)
+    const lines = stdout.trim().split("\n");
+    let version = "Unknown";
+
+    // Look for version in the header or distribution lines
+    for (const line of lines) {
+      const versionMatch =
+        line.match(/VERSION\s+(\d+)/) || line.match(/\s+(\d+)\s+/);
+      if (versionMatch && versionMatch[1]) {
+        version = versionMatch[1];
+        break;
+      }
+    }
+
+    console.log("✅ WSL is available with version:", version);
     return {
       isAvailable: true,
       version,
@@ -363,6 +386,10 @@ async function checkWSLDistribution(): Promise<{
 }> {
   // Only check WSL distribution on Windows platform
   if (process.platform !== "win32") {
+    console.log(
+      "🔍 Platform is not Windows for distribution check:",
+      process.platform
+    );
     return {
       isAvailable: false,
       error: "Not Windows platform",
@@ -370,74 +397,118 @@ async function checkWSLDistribution(): Promise<{
   }
 
   try {
-    console.log("🔍 Checking WSL distribution...");
+    console.log("🔍 Checking WSL distributions...");
 
     // First try to get all available distributions (including stopped ones)
-    const { stdout: allDistros } = await execAsync("wsl --list", {
+    const { stdout: allDistros } = await execAsync("cmd /c wsl --list", {
       timeout: 5000,
     });
 
-    console.log("WSL distributions:", allDistros.trim());
+    console.log("🔍 WSL distributions output:", allDistros.trim());
 
-    if (allDistros.trim()) {
-      const lines = allDistros.trim().split("\n");
-      if (lines.length > 1) {
-        // Skip header line and get first distribution
-        // Remove special characters and get clean distribution name
-        let distribution = lines[1].replace(/[^\w-]/g, "").trim();
+    if (
+      !allDistros.trim() ||
+      allDistros.includes("There are no installed distributions")
+    ) {
+      console.log("❌ No WSL distributions found");
+      return {
+        isAvailable: false,
+        error: "No WSL distributions installed",
+      };
+    }
 
-        // If the first line contains "docker-desktop", try to find Ubuntu or other Linux distro
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].replace(/[^\w-]/g, "").trim();
-          if (line && !line.toLowerCase().includes("docker")) {
-            distribution = line;
+    const lines = allDistros.trim().split("\n");
+    console.log("🔍 Processing distribution lines:", lines);
+
+    if (lines.length > 1) {
+      // Skip header line and process distributions
+      let foundDistribution = null;
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        // Clean up the line - remove special characters but keep alphanumeric, hyphens, and underscores
+        const cleanLine = line.replace(/[^\w\-\s]/g, "").trim();
+        console.log(`🔍 Processing line ${i}: "${line}" -> "${cleanLine}"`);
+
+        // Extract distribution name (first word after cleaning)
+        const parts = cleanLine.split(/\s+/);
+        const distroName = parts[0];
+
+        if (distroName && distroName.length > 0) {
+          // Skip Docker Desktop distributions, prefer Linux distributions
+          if (!distroName.toLowerCase().includes("docker")) {
+            foundDistribution = distroName;
+            console.log("✅ Found non-Docker distribution:", foundDistribution);
             break;
+          } else if (!foundDistribution) {
+            // Keep Docker as fallback if no other distribution found
+            foundDistribution = distroName;
+            console.log(
+              "🔍 Found Docker distribution as fallback:",
+              foundDistribution
+            );
           }
         }
+      }
 
-        if (distribution) {
-          console.log("✅ WSL distribution found:", distribution);
-          return {
-            isAvailable: true,
-            distribution,
-          };
-        }
+      if (foundDistribution) {
+        console.log("✅ WSL distribution selected:", foundDistribution);
+        return {
+          isAvailable: true,
+          distribution: foundDistribution,
+        };
       }
     }
 
-    // Try to get running distributions as fallback
+    // Try to get running distributions as additional fallback
     try {
+      console.log("🔍 Trying to find running distributions...");
       const { stdout: runningDistros } = await execAsync(
-        "wsl --list --running",
+        "cmd /c wsl --list --running",
         {
           timeout: 5000,
         }
       );
 
-      if (runningDistros.trim()) {
-        const lines = runningDistros.trim().split("\n");
-        if (lines.length > 0) {
-          const distribution = lines[0].split(/\s+/)[0];
-          console.log("✅ WSL running distribution found:", distribution);
-          return {
-            isAvailable: true,
-            distribution,
-          };
+      console.log("🔍 Running distributions output:", runningDistros.trim());
+
+      if (
+        runningDistros.trim() &&
+        !runningDistros.includes("There are no running distributions")
+      ) {
+        const runningLines = runningDistros.trim().split("\n");
+        if (runningLines.length > 1) {
+          const cleanLine = runningLines[1].replace(/[^\w\-\s]/g, "").trim();
+          const distroName = cleanLine.split(/\s+/)[0];
+
+          if (distroName) {
+            console.log("✅ WSL running distribution found:", distroName);
+            return {
+              isAvailable: true,
+              distribution: distroName,
+            };
+          }
         }
       }
     } catch (runningError) {
-      console.log("No running WSL distributions found");
+      console.log(
+        "🔍 No running WSL distributions found:",
+        runningError.message
+      );
     }
 
+    console.log("❌ No usable WSL distribution found");
     return {
       isAvailable: false,
-      error: "No WSL distribution found",
+      error: "No usable WSL distribution found",
     };
   } catch (error) {
     console.log("❌ WSL distribution check failed:", error.message);
     return {
       isAvailable: false,
-      error: error.message || "WSL distribution not available",
+      error: error.message || "WSL distribution check failed",
     };
   }
 }
@@ -1166,11 +1237,14 @@ function setupIpcHandlers() {
   ipcMain.handle("get-environment-info", async () => {
     try {
       const cudaSupport = await checkCudaSupport();
+      const wslSupport = await checkWSLSupport();
+
       return {
         platform: process.platform,
         hasGpuSupport: cudaSupport.isFullySupported,
         gpuInfo: cudaSupport.gpu,
         cudaInfo: cudaSupport.compiler,
+        wslInfo: wslSupport,
       };
     } catch (error) {
       console.error("Failed to get environment info:", error);

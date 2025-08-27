@@ -45,10 +45,10 @@ contextBridge.exposeInMainWorld("electron", {
 });
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  on: (channel: string, func: (...args: any[]) => void) => {
+  on: (channel: string, func: (...args: unknown[]) => void) => {
     ipcRenderer.on(channel, (event, ...args) => func(...args));
   },
-  removeListener: (channel: string, func: (...args: any[]) => void) => {
+  removeListener: (channel: string, func: (...args: unknown[]) => void) => {
     ipcRenderer.removeListener(channel, func);
   },
   getSystemInfo: () => ipcRenderer.invoke("get-system-info"),
@@ -82,4 +82,11 @@ contextBridge.exposeInMainWorld("cudaAPI", {
   checkCudaSupport: () => ipcRenderer.invoke("check-cuda-support"),
   checkNvidiaGPU: () => ipcRenderer.invoke("check-nvidia-gpu"),
   checkCudaCompiler: () => ipcRenderer.invoke("check-cuda-compiler"),
+});
+
+// WSL API
+contextBridge.exposeInMainWorld("wslAPI", {
+  checkWSLSupport: () => ipcRenderer.invoke("check-wsl-support"),
+  checkWSL: () => ipcRenderer.invoke("check-wsl"),
+  checkWSLDistribution: () => ipcRenderer.invoke("check-wsl-distribution"),
 });

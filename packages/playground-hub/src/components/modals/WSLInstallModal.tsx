@@ -1,7 +1,72 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useWSL } from "../../hooks/useWSL";
 
 export const WSLInstallModal: React.FC = () => {
-  const isOpen = false;
+  const { wslInfo, isLoading } = useWSL();
+  const [isOpen, setIsOpen] = useState(false);
+
+  console.log('wslInfo', wslInfo)
+
+  // Determine if modal should be shown
+  useEffect(() => {
+    console.log("🎭 WSLInstallModal: Modal visibility check", {
+      isLoading,
+      wslInfo,
+      currentModalState: isOpen
+    });
+
+    // Don't show modal while still loading WSL info
+    if (isLoading) {
+      console.log("🎭 WSLInstallModal: Still loading, hiding modal");
+      setIsOpen(false);
+      return;
+    }
+
+    // Show modal only if:
+    // 1. WSL info is available
+    // 2. WSL is not available (not installed or not working)
+    // 3. We're on Windows (implied by wslInfo being available and platform check)
+    if (wslInfo) {
+      if (!wslInfo.isAvailable) {
+        console.log("🎭 WSLInstallModal: WSL not available, showing modal");
+        setIsOpen(true);
+      } else {
+        console.log("🎭 WSLInstallModal: WSL is available, hiding modal");
+        setIsOpen(false);
+      }
+    } else {
+      console.log("🎭 WSLInstallModal: No WSL info available, hiding modal");
+      setIsOpen(false);
+    }
+  }, [wslInfo, isLoading]);
+
+  // Handle WSL installation
+  const handleInstall = async () => {
+    try {
+      // For now, provide manual installation instructions
+      // In the future, this could be enhanced with automatic installation
+      const instructions = `To install WSL, please follow these steps:
+
+1. Open PowerShell as Administrator
+2. Run: wsl --install
+3. Restart your computer when prompted
+4. Set up your Linux username and password
+
+Alternatively, you can install WSL from the Microsoft Store.
+
+The app will automatically detect WSL once it's installed.`;
+
+      alert(instructions);
+      
+      // Optionally, you could open the Microsoft Store WSL page
+      // if (typeof window !== "undefined" && window.shell?.openExternal) {
+      //   window.shell.openExternal("ms-windows-store://pdp/?ProductId=9P9TQF7MRM4R");
+      // }
+    } catch (err) {
+      console.error("Failed to show WSL installation instructions:", err);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -93,6 +158,14 @@ export const WSLInstallModal: React.FC = () => {
               }}
             >
               This app needs WSL to run on Windows.
+              {wslInfo && !wslInfo.wsl.isAvailable && (
+                <>
+                  <br />
+                  <span style={{ fontSize: "12px", color: "#666666" }}>
+                    WSL is not installed or not working properly.
+                  </span>
+                </>
+              )}
             </p>
             <div
               style={{
@@ -118,7 +191,7 @@ export const WSLInstallModal: React.FC = () => {
                   cursor: "pointer",
                   width: "100%",
                 }}
-                onClick={onInstall}
+                onClick={handleInstall}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#CACACA";
                 }}
