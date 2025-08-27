@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Pixel, generatePixelGrid } from "../utils/imageToPixels";
+import { Pixel, svgToPixels } from "../utils/imageToPixels";
 
 export enum AnimationState {
   IDLE = "idle",
@@ -8,6 +8,12 @@ export enum AnimationState {
   STAGE_3 = "stage_3",
   STAGE_4 = "stage_4",
   COMPLETE = "complete",
+}
+
+export interface LoadingStage {
+  stage: number;
+  pixels: Pixel[];
+  isComplete: boolean;
 }
 
 interface UsePixelAnimationProps {
@@ -39,50 +45,64 @@ export const usePixelAnimation = ({
 
   // Initial pixel data loading
   useEffect(() => {
-    try {
-      setIsLoading(true);
-      setError(null);
+    const loadPixelData = async () => {
+      try {
+        // console.log("Starting pixel data loading for SVG:", svgUrl);
+        setIsLoading(true);
+        setError(null);
 
-      // Generate pixel grid instead of loading from SVG
-      const pixelData = generatePixelGrid(76, 48, 2);
+        // Extract actual pixel colors from SVG with background replacement
+        const pixelData = await svgToPixels(svgUrl, 76, 48, 2);
+        // console.log("Loaded pixel data:", pixelData.length, "pixels");
 
-      // Convert to stages format
-      const pixelStages = [
-        {
-          stage: 0,
-          pixels: pixelData.filter((p) => p.stage === 0),
-          isComplete: false,
-        },
-        {
-          stage: 1,
-          pixels: pixelData.filter((p) => p.stage === 1),
-          isComplete: false,
-        },
-        {
-          stage: 2,
-          pixels: pixelData.filter((p) => p.stage === 2),
-          isComplete: false,
-        },
-        {
-          stage: 3,
-          pixels: pixelData.filter((p) => p.stage === 3),
-          isComplete: false,
-        },
-        {
-          stage: 4,
-          pixels: pixelData.filter((p) => p.stage === 4),
-          isComplete: false,
-        },
-      ];
+        // Convert to stages format
+        const pixelStages = [
+          {
+            stage: 0,
+            pixels: pixelData.filter((p) => p.stage === 0),
+            isComplete: false,
+          },
+          {
+            stage: 1,
+            pixels: pixelData.filter((p) => p.stage === 1),
+            isComplete: false,
+          },
+          {
+            stage: 2,
+            pixels: pixelData.filter((p) => p.stage === 2),
+            isComplete: false,
+          },
+          {
+            stage: 3,
+            pixels: pixelData.filter((p) => p.stage === 3),
+            isComplete: false,
+          },
+          {
+            stage: 4,
+            pixels: pixelData.filter((p) => p.stage === 4),
+            isComplete: false,
+          },
+        ];
 
-      setStages(pixelStages);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to generate pixel grid"
-      );
-    } finally {
-      setIsLoading(false);
-    }
+        // console.log(
+        //   "Pixel stages created:",
+        //   pixelStages.map((s) => ({
+        //     stage: s.stage,
+        //     pixelCount: s.pixels.length,
+        //   }))
+        // );
+        setStages(pixelStages);
+      } catch (err) {
+        console.error("Error loading pixel data:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load pixel data"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPixelData();
   }, [svgUrl]);
 
   // Update animation state according to loading stage changes
@@ -98,20 +118,31 @@ export const usePixelAnimation = ({
       }));
 
       // Process completion up to current stage
-      for (let i = 0; i < 4; i++) {
-        if (loadingStage >= 4) {
+      for (let i = 0; i < 5; i++) {
+        if (loadingStage >= 5) {
           // When animation is complete, mark all stages as complete
           newStages[i].isComplete = true;
           newStages[i].isActive = false;
-        } else if (i < loadingStage - 1) {
+        } else if (i < loadingStage) {
           newStages[i].isComplete = true;
           newStages[i].isActive = false;
-        } else if (i === loadingStage - 1 && loadingStage > 0) {
+        } else if (i === loadingStage) {
           newStages[i].isActive = true;
           newStages[i].isComplete = false;
+          // Reset start time when stage becomes active
+          delete (newStages[i] as any).startTime;
         }
       }
 
+      console.log(
+        `LoadingStage: ${loadingStage}, Stages:`,
+        newStages.map((s) => ({
+          stage: s.stage,
+          active: s.isActive,
+          complete: s.isComplete,
+          pixelCount: s.pixels.length,
+        }))
+      );
       return newStages;
     });
 
@@ -152,54 +183,82 @@ export const usePixelAnimation = ({
     const visible: Pixel[] = [];
     const currentStages = stagesRef.current;
 
-    currentStages.forEach((stage) => {
+    console.log(
+      "Updating visible pixels, stages:",
+      currentStages.map((s) => ({
+        stage: s.stage,
+        active: s.isActive,
+        complete: s.isComplete,
+        pixelCount: s.pixels.length,
+      }))
+    );
+
+    currentStages.forEach((stage, index) => {
       if (stage.isComplete) {
-        // Show all pixels of completed stage
+        // Show all pixels of completed stage immediately
+        console.log(
+          `Stage ${stage.stage} is complete, adding ${stage.pixels.length} pixels`
+        );
         visible.push(...stage.pixels);
       } else if (stage.isActive) {
-        // Show pixels of active stage progressively over time
+        // For active stage, show pixels progressively with simplified timing
         const currentTime = Date.now();
-        const stageStartTime = currentTime - 2000; // Assume started 2 seconds ago (doubled for half speed)
 
-        stage.pixels.forEach((pixel) => {
-          const pixelShowTime = stageStartTime + pixel.delay;
-          if (currentTime >= pixelShowTime) {
-            visible.push(pixel);
-          }
-        });
+        // Use a stage-specific start time that gets set when stage becomes active
+        if (!(stage as any).startTime) {
+          (stage as any).startTime = currentTime;
+        }
+
+        const stageStartTime = (stage as any).startTime;
+        const elapsed = currentTime - stageStartTime;
+
+        // Show pixels based on elapsed time, ignoring original delay calculation
+        const pixelsToShow = Math.min(
+          stage.pixels.length,
+          Math.floor(elapsed / 50) // Show 1 pixel every 50ms
+        );
+
+        for (let i = 0; i < pixelsToShow; i++) {
+          visible.push(stage.pixels[i]);
+        }
+
+        console.log(
+          `Stage ${stage.stage} is active, showing ${pixelsToShow}/${stage.pixels.length} pixels progressively (elapsed: ${elapsed}ms)`
+        );
       }
     });
 
+    console.log("Total visible pixels:", visible.length);
     setVisiblePixels(visible);
   }, []); // Empty dependency array
 
-  // Animation frame update
+  // Animation update using setInterval instead of requestAnimationFrame
   useEffect(() => {
-    if (animationState === AnimationState.IDLE) {
-      updateVisiblePixels(); // Update for idle state
-      return;
-    }
+    console.log("Animation update, current state:", animationState);
 
-    if (animationState === AnimationState.COMPLETE) {
-      updateVisiblePixels(); // Update for complete state - keep all pixels visible
-      return;
-    }
-
-    let animationId: number;
-
-    const animate = () => {
+    if (
+      animationState === AnimationState.IDLE ||
+      animationState === AnimationState.COMPLETE
+    ) {
+      console.log(
+        "Animation state is IDLE or COMPLETE, updating visible pixels once"
+      );
       updateVisiblePixels();
-      animationId = requestAnimationFrame(animate);
-    };
+      return;
+    }
 
-    animationId = requestAnimationFrame(animate);
+    // For active animation states, use setInterval instead of requestAnimationFrame
+    console.log("Starting interval animation for state:", animationState);
+
+    const intervalId = setInterval(() => {
+      updateVisiblePixels();
+    }, 100); // Update every 100ms
 
     return () => {
-      if (animationId) {
-        cancelAnimationFrame(animationId);
-      }
+      console.log("Cleaning up interval for state:", animationState);
+      clearInterval(intervalId);
     };
-  }, [animationState, updateVisiblePixels]); // Add updateVisiblePixels dependency (but safe since empty array)
+  }, [animationState]); // Only depend on animationState
 
   return {
     stages,

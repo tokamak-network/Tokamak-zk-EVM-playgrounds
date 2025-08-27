@@ -1,29 +1,64 @@
 import React, { useState, useEffect, useCallback } from "react";
 import planetSvg from "../../assets/planet.svg";
-import { PixelAnimation } from "./PixelAnimation";
+import { CanvasPixelRenderer } from "./CanvasPixelRenderer";
+import { ImageDataPixelRenderer } from "./ImageDataPixelRenderer";
+import { GridPixelRenderer } from "./GridPixelRenderer";
+import { SVGPixelRenderer } from "./SVGPixelRenderer";
+import { CodePenStyleRenderer } from "./CodePenStyleRenderer";
+import { PixelPerfectRenderer } from "./PixelPerfectRenderer";
+import { TrueNativeRenderer } from "./TrueNativeRenderer";
+import { ParticleCanvasRenderer } from "./ParticleCanvasRenderer";
+import { CSSPixelatedRenderer } from "./CSSPixelatedRenderer";
+import { SimplePixelRenderer } from "./SimplePixelRenderer";
+import { SimpleTestRenderer } from "./SimpleTestRenderer";
+import { SafeAnimationRenderer } from "./SafeAnimationRenderer";
+import { ImprovedCodePenRenderer } from "./ImprovedCodePenRenderer";
+import { AnimatedCodePenRenderer } from "./AnimatedCodePenRenderer";
+import { OriginalAnimatedRenderer } from "./OriginalAnimatedRenderer";
 import { usePixelAnimation } from "../../hooks/usePixelAnimation";
 
 export const LoadingModal: React.FC = () => {
   // Internal state management
   const [isOpen] = useState(true);
-  const [loadingStage, setLoadingStage] = useState(6);
+  const [loadingStage, setLoadingStage] = useState(3); // 애니메이션 시작
   const [message] = useState("Please, wait");
 
-  // Auto-progression for testing (in actual use, controlled externally)
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setLoadingStage((prev) => {
-        if (prev < 5) {
-          return prev + 1;
-        } else {
-          clearInterval(timer);
-          return prev; // Stay at stage 5 (complete) to keep image visible
-        }
-      });
-    }, 4000); // Move to next stage every 4 seconds (doubled for half speed)
+  // 렌더러 테스트용 상태
+  const [rendererType, setRendererType] = useState<
+    | "canvas"
+    | "imagedata"
+    | "grid"
+    | "svg"
+    | "codepen"
+    | "original"
+    | "perfect"
+    | "native"
+    | "truenative"
+    | "particle"
+    | "csspixel"
+    | "simple"
+    | "test"
+    | "safe"
+    | "improved"
+    | "animated"
+    | "original-animated"
+  >("safe");
 
-    return () => clearInterval(timer);
-  }, []);
+  // 애니메이션 자동 진행 - 임시 비활성화 (수동 테스트용)
+  // useEffect(() => {
+  //   const timer = setInterval(() => {
+  //     setLoadingStage((prev) => {
+  //       if (prev < 5) {
+  //         return prev + 1;
+  //       } else {
+  //         clearInterval(timer);
+  //         return prev; // Stay at stage 5 (complete) to keep image visible
+  //       }
+  //     });
+  //   }, 4000); // Move to next stage every 4 seconds (doubled for half speed)
+
+  //   return () => clearInterval(timer);
+  // }, []);
 
   const handleComplete = useCallback(() => {
     console.log("Pixel animation completed!");
@@ -42,9 +77,15 @@ export const LoadingModal: React.FC = () => {
     onComplete: handleComplete,
   });
 
+  // 디버깅용 로그
+  console.log("LoadingModal - visiblePixels count:", visiblePixels.length);
+  console.log("LoadingModal - loadingStage:", loadingStage);
+  console.log("LoadingModal - pixelDataLoading:", pixelDataLoading);
+  console.log("LoadingModal - pixelError:", pixelError);
+
   // Start animation when pixel data is loaded
   useEffect(() => {
-    if (!pixelDataLoading && !pixelError && loadingStage > 0) {
+    if (!pixelDataLoading && !pixelError && loadingStage >= 0) {
       setShowPixelAnimation(true);
     }
   }, [pixelDataLoading, pixelError, loadingStage]);
@@ -141,18 +182,454 @@ export const LoadingModal: React.FC = () => {
               position: "absolute",
               top: "49px", // 16px + 33px
               right: "21px", // 8px + 299px from left = 307px, so right = 400-307-80 = 13px + 8px padding
-              width: "76px", // Original size
-              height: "48px", // Original size
+              width: "76px", // Original resolution container
+              height: "48px", // Original resolution container
+
+              // 픽셀 퍼펙트 렌더링 강화
+              imageRendering: "pixelated",
+
+              // 브라우저 스무딩 완전 비활성화
+              WebkitFontSmoothing: "none" as any,
+              MozOsxFontSmoothing: "unset" as any,
+              fontSmooth: "never" as any,
+
+              // 하드웨어 가속 및 선명도
+              backfaceVisibility: "hidden",
+              willChange: "transform",
             }}
           >
             {showPixelAnimation ? (
-              <PixelAnimation
-                pixels={visiblePixels}
-                containerWidth={76}
-                containerHeight={48}
-                pixelSize={2}
-                showTrail={true}
-              />
+              <>
+                {/* 렌더러 선택 버튼들 */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "-80px",
+                    left: "0",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "5px",
+                    fontSize: "10px",
+                  }}
+                >
+                  {/* 첫 번째 줄 - 원본/기본 렌더러들 */}
+                  <div style={{ display: "flex", gap: "5px" }}>
+                    <button
+                      onClick={() => setRendererType("original")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "original" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      Original
+                    </button>
+                    <button
+                      onClick={() => setRendererType("native")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "native" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      Native
+                    </button>
+                    <button
+                      onClick={() => setRendererType("truenative")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "truenative" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      True
+                    </button>
+                    <button
+                      onClick={() => setRendererType("simple")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "simple" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      Simple
+                    </button>
+                    <button
+                      onClick={() => setRendererType("test")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "test" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      Test
+                    </button>
+                    <button
+                      onClick={() => setRendererType("safe")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "safe" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      Safe
+                    </button>
+                    <button
+                      onClick={() => setRendererType("csspixel")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "csspixel" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      CSS
+                    </button>
+                  </div>
+
+                  {/* 두 번째 줄 - 고급 렌더러들 */}
+                  <div style={{ display: "flex", gap: "5px" }}>
+                    <button
+                      onClick={() => setRendererType("particle")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "particle" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      Particle
+                    </button>
+                    <button
+                      onClick={() => setRendererType("perfect")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "perfect" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      Perfect
+                    </button>
+                    <button
+                      onClick={() => setRendererType("codepen")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "codepen" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      CodePen
+                    </button>
+                    <button
+                      onClick={() => setRendererType("improved")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "improved" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      Improved
+                    </button>
+                    <button
+                      onClick={() => setRendererType("animated")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "animated" ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      Animated
+                    </button>
+                    <button
+                      onClick={() => setRendererType("original-animated")}
+                      style={{
+                        backgroundColor:
+                          rendererType === "original-animated"
+                            ? "#007acc"
+                            : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      True+Anim
+                    </button>
+                  </div>
+
+                  {/* 세 번째 줄 - 애니메이션 제어 */}
+                  <div style={{ display: "flex", gap: "5px" }}>
+                    <button
+                      onClick={() => setLoadingStage(0)}
+                      style={{
+                        backgroundColor:
+                          loadingStage === 0 ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      S0
+                    </button>
+                    <button
+                      onClick={() => setLoadingStage(1)}
+                      style={{
+                        backgroundColor:
+                          loadingStage === 1 ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      S1
+                    </button>
+                    <button
+                      onClick={() => setLoadingStage(2)}
+                      style={{
+                        backgroundColor:
+                          loadingStage === 2 ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      S2
+                    </button>
+                    <button
+                      onClick={() => setLoadingStage(3)}
+                      style={{
+                        backgroundColor:
+                          loadingStage === 3 ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      S3
+                    </button>
+                    <button
+                      onClick={() => setLoadingStage(4)}
+                      style={{
+                        backgroundColor:
+                          loadingStage === 4 ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      S4
+                    </button>
+                    <button
+                      onClick={() => setLoadingStage(5)}
+                      style={{
+                        backgroundColor:
+                          loadingStage === 5 ? "#007acc" : "#666",
+                        color: "white",
+                        border: "none",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                      }}
+                    >
+                      S5
+                    </button>
+                  </div>
+                </div>
+
+                {/* 선택된 렌더러 */}
+                {rendererType === "canvas" && (
+                  <CanvasPixelRenderer
+                    pixels={visiblePixels}
+                    containerWidth={76}
+                    containerHeight={48}
+                    pixelSize={2}
+                  />
+                )}
+                {rendererType === "imagedata" && (
+                  <ImageDataPixelRenderer
+                    pixels={visiblePixels}
+                    containerWidth={76}
+                    containerHeight={48}
+                    pixelSize={2}
+                  />
+                )}
+                {rendererType === "grid" && (
+                  <GridPixelRenderer
+                    pixels={visiblePixels}
+                    containerWidth={76}
+                    containerHeight={48}
+                    pixelSize={2}
+                  />
+                )}
+                {rendererType === "svg" && (
+                  <SVGPixelRenderer
+                    pixels={visiblePixels}
+                    containerWidth={76}
+                    containerHeight={48}
+                    pixelSize={2}
+                  />
+                )}
+                {rendererType === "codepen" && (
+                  <CodePenStyleRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                    pixelSize={2}
+                  />
+                )}
+                {rendererType === "original" && (
+                  <img
+                    src={planetSvg}
+                    alt="Original Planet"
+                    style={{
+                      width: "76px",
+                      height: "48px",
+                      // 원본 SVG의 선명도를 최대한 유지
+                      imageRendering: "pixelated",
+
+                      // 브라우저 스무딩 비활성화
+                      WebkitFontSmoothing: "none" as any,
+                      MozOsxFontSmoothing: "unset" as any,
+                      fontSmooth: "never" as any,
+
+                      // 하드웨어 가속
+                      transform: "translateZ(0)",
+                      backfaceVisibility: "hidden",
+                      willChange: "transform",
+
+                      display: "block",
+                      border: "none",
+                      outline: "none",
+                    }}
+                  />
+                )}
+                {rendererType === "perfect" && (
+                  <PixelPerfectRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                    pixelSize={1}
+                  />
+                )}
+                {rendererType === "native" && (
+                  <img
+                    src={planetSvg}
+                    alt="Native Size Planet"
+                    style={{
+                      width: "80px", // SVG 원본 크기
+                      height: "50px", // SVG 원본 크기
+                      // 스케일링 없이 원본 크기로 표시
+                      imageRendering: "pixelated",
+
+                      // 브라우저 스무딩 완전 비활성화
+                      WebkitFontSmoothing: "none" as any,
+                      MozOsxFontSmoothing: "unset" as any,
+                      fontSmooth: "never" as any,
+
+                      // 하드웨어 가속
+                      transform: "translateZ(0)",
+                      backfaceVisibility: "hidden",
+                      willChange: "transform",
+
+                      display: "block",
+                      border: "none",
+                      outline: "none",
+                    }}
+                  />
+                )}
+                {rendererType === "truenative" && <TrueNativeRenderer />}
+                {rendererType === "particle" && (
+                  <ParticleCanvasRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                    pixelSize={1}
+                  />
+                )}
+                {rendererType === "csspixel" && (
+                  <CSSPixelatedRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                    pixelSize={4}
+                  />
+                )}
+                {rendererType === "simple" && (
+                  <SimplePixelRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                  />
+                )}
+                {rendererType === "test" && (
+                  <SimpleTestRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                  />
+                )}
+                {rendererType === "safe" && (
+                  <SafeAnimationRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                    loadingStage={loadingStage}
+                  />
+                )}
+                {rendererType === "improved" && (
+                  <ImprovedCodePenRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                    loadingStage={loadingStage}
+                  />
+                )}
+                {rendererType === "animated" && (
+                  <AnimatedCodePenRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                    pixelSize={2}
+                    loadingStage={loadingStage}
+                  />
+                )}
+                {rendererType === "original-animated" && (
+                  <OriginalAnimatedRenderer
+                    containerWidth={76}
+                    containerHeight={48}
+                    loadingStage={loadingStage}
+                  />
+                )}
+              </>
             ) : (
               // Show original image while pixel data is loading or animation is waiting
               <img
@@ -161,7 +638,6 @@ export const LoadingModal: React.FC = () => {
                 style={{
                   width: "76px",
                   height: "48px",
-                  opacity: loadingStage === 0 ? 1 : 0.3, // Dim before animation starts
                   imageRendering: "pixelated",
                   backgroundColor: "#BDBDBD", // 모달 배경색과 동일
                 }}

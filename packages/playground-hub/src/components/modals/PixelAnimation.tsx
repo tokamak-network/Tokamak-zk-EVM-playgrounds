@@ -25,25 +25,27 @@ const PixelComponent: React.FC<PixelComponentProps> = ({
   containerWidth,
   containerHeight,
 }) => {
-  const [isFlying, setIsFlying] = React.useState(true);
+  // 애니메이션 비활성화 - 모든 픽셀을 즉시 최종 위치에 표시
+  const [isFlying, setIsFlying] = React.useState(false); // 즉시 착지 상태
   const [hasLanded, setHasLanded] = React.useState(false);
 
-  React.useEffect(() => {
-    // 픽셀이 생성되면 잠시 후 날아가기 시작
-    const flyTimer = setTimeout(() => {
-      setIsFlying(false);
-    }, pixel.delay);
+  // 애니메이션 효과 완전 비활성화
+  // React.useEffect(() => {
+  //   // 픽셀이 생성되면 잠시 후 날아가기 시작
+  //   const flyTimer = setTimeout(() => {
+  //     setIsFlying(false);
+  //   }, pixel.delay);
 
-    // 날아간 후 착지 효과
-    const landTimer = setTimeout(() => {
-      setHasLanded(true);
-    }, pixel.delay + 300); // 300ms는 비행 시간
+  //   // 날아간 후 착지 효과
+  //   const landTimer = setTimeout(() => {
+  //     setHasLanded(true);
+  //   }, pixel.delay + 300); // 300ms는 비행 시간
 
-    return () => {
-      clearTimeout(flyTimer);
-      clearTimeout(landTimer);
-    };
-  }, [pixel.delay]);
+  //   return () => {
+  //     clearTimeout(flyTimer);
+  //     clearTimeout(landTimer);
+  //   };
+  // }, [pixel.delay]);
 
   // 픽셀 위치에 따른 z-index 계산 (겹침 방지)
   const zIndex = pixel.stage * 100 + pixel.y * 10 + pixel.x;
@@ -55,17 +57,30 @@ const PixelComponent: React.FC<PixelComponentProps> = ({
     width: `${pixelSize}px`,
     height: `${pixelSize}px`,
     overflow: "hidden",
-    transition: "transform 300ms ease-out, box-shadow 200ms ease-in-out",
-    transform: isFlying ? "translateX(-120px) translateZ(0)" : "translateZ(0)",
+    // 픽셀을 즉시 최종 위치에 고정 (애니메이션 비활성화)
+    transform: "translate3d(0,0,0)",
     zIndex: zIndex,
 
-    // 완전한 픽셀 퍼펙트 렌더링
+    // 완전한 픽셀 퍼펙트 렌더링 (강화)
     imageRendering: "pixelated",
     imageRendering: "-moz-crisp-edges" as any,
     imageRendering: "-webkit-crisp-edges" as any,
     imageRendering: "crisp-edges" as any,
+    imageRendering: "-webkit-optimize-contrast" as any,
 
-    // 하드웨어 가속 및 정확한 픽셀 배치
+    // 모든 스무딩 완전 비활성화
+    WebkitFontSmoothing: "none" as any,
+    MozOsxFontSmoothing: "unset" as any,
+    fontSmooth: "never" as any,
+
+    // 브라우저 줌/스케일링 보정
+    zoom: 1,
+    filter: "none",
+
+    // 픽셀 경계 강화
+    border: "0.5px solid transparent",
+
+    // 하드웨어 가속
     backfaceVisibility: "hidden",
     willChange: "transform",
 
@@ -77,63 +92,17 @@ const PixelComponent: React.FC<PixelComponentProps> = ({
     padding: "0",
   };
 
-  // 트레일 효과
-  if (showTrail && !isFlying && !hasLanded) {
-    baseStyle.boxShadow = `
-      -2px 0 2px rgba(255, 255, 255, 0.3),
-      -4px 0 4px rgba(255, 255, 255, 0.2),
-      -6px 0 6px rgba(255, 255, 255, 0.1)
-    `;
-  }
-
-  // 착지 반짝임 효과
-  if (hasLanded) {
-    baseStyle.boxShadow = `
-      0 0 4px rgba(255, 255, 255, 0.8),
-      0 0 8px rgba(255, 255, 255, 0.4)
-    `;
-
-    // 반짝임 제거
-    setTimeout(() => {
-      setHasLanded(false);
-    }, 200);
-  }
+  // 박스 쉐도우 효과 완전 제거
+  // 트레일 효과와 착지 반짝임 효과를 모두 비활성화
 
   return (
-    <div style={baseStyle}>
-      {/* 원본 이미지를 클립하여 해당 픽셀 영역만 보이게 함 */}
-      <img
-        src={planetSvg}
-        alt=""
-        style={{
-          position: "absolute",
-          left: `-${pixel.x}px`,
-          top: `-${pixel.y}px`,
-          width: `${containerWidth}px`,
-          height: `${containerHeight}px`,
-
-          // 픽셀 퍼펙트 렌더링
-          imageRendering: "pixelated",
-          imageRendering: "-moz-crisp-edges" as any,
-          imageRendering: "-webkit-crisp-edges" as any,
-          imageRendering: "crisp-edges" as any,
-
-          // 스무딩 완전 비활성화
-          WebkitFontSmoothing: "none" as any,
-          MozOsxFontSmoothing: "unset" as any,
-          fontSmooth: "never" as any,
-
-          // 배경색 처리 - 모달 배경색과 동일하게
-          backgroundColor: "#BDBDBD",
-
-          // CSS 필터로 흰색/밝은 색상 조정
-          filter: "contrast(1.1) brightness(0.95)",
-
-          // 혼합 모드로 배경 투명화 (실험적)
-          mixBlendMode: "multiply" as any,
-        }}
-      />
-    </div>
+    <div
+      style={{
+        ...baseStyle,
+        // 각 픽셀의 실제 색상 사용 (배경 픽셀은 제외됨)
+        backgroundColor: pixel.color,
+      }}
+    />
   );
 };
 
@@ -152,19 +121,23 @@ export const PixelAnimation: React.FC<PixelAnimationProps> = ({
         height: `${containerHeight}px`,
         overflow: "hidden",
 
-        // 컨테이너 픽셀 퍼펙트 렌더링
+        // 컨테이너 픽셀 퍼펙트 렌더링 (CodePen 스타일)
         imageRendering: "pixelated",
         imageRendering: "-moz-crisp-edges" as any,
         imageRendering: "-webkit-crisp-edges" as any,
         imageRendering: "crisp-edges" as any,
+        imageRendering: "-webkit-optimize-contrast" as any,
 
         // 스무딩 완전 비활성화
         WebkitFontSmoothing: "none" as any,
         MozOsxFontSmoothing: "unset" as any,
         fontSmooth: "never" as any,
 
-        // 하드웨어 가속
-        transform: "translateZ(0)",
+        // 텍스트 렌더링 최적화
+        textRendering: "optimizeSpeed" as any,
+
+        // 하드웨어 가속 및 픽셀 정렬
+        transform: "translate3d(0,0,0)",
         backfaceVisibility: "hidden",
         willChange: "transform",
       }}
