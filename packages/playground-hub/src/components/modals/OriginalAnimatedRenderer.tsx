@@ -28,7 +28,7 @@ export const OriginalAnimatedRenderer: React.FC<
   const [originalImage, setOriginalImage] = useState<HTMLImageElement | null>(
     null
   );
-  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+
 
   const animationRef = useRef<NodeJS.Timeout | null>(null);
   const currentStageRef = useRef<number>(-1);
@@ -136,19 +136,12 @@ export const OriginalAnimatedRenderer: React.FC<
     currentStageRef.current = loadingStage;
     stageStartTimeRef.current = Date.now();
 
-    // Calculate visible pixels for this stage
+    // Calculate visible pixels for this stage (only current stage, no completed stages)
     const updateVisiblePixels = () => {
       const currentTime = Date.now();
       const elapsed = currentTime - stageStartTimeRef.current;
 
-      // Get all pixels for completed stages
-      const completedPixels: PixelData[] = [];
-      for (let stage = 0; stage < loadingStage; stage++) {
-        const stagePixels = allPixels.filter((p) => p.stage === stage);
-        completedPixels.push(...stagePixels);
-      }
-
-      // Get progressive pixels for current stage
+      // Get progressive pixels for current stage only
       const currentStagePixels = allPixels.filter(
         (p) => p.stage === loadingStage
       );
@@ -156,35 +149,24 @@ export const OriginalAnimatedRenderer: React.FC<
         return elapsed > pixel.animationDelay;
       });
 
-      const totalVisible = [...completedPixels, ...activePixels];
-
       console.log(
-        `OriginalAnimatedRenderer: Stage ${loadingStage}, showing ${activePixels.length}/${currentStagePixels.length} pixels, total: ${totalVisible.length}`
+        `OriginalAnimatedRenderer: Stage ${loadingStage}, showing ${activePixels.length}/${currentStagePixels.length} pixels`
       );
 
-      setVisiblePixels(totalVisible);
+      setVisiblePixels(activePixels);
 
-      // Stop animation when all pixels of current stage are visible
+      // Restart animation when all pixels of current stage are visible (infinite loop)
       if (activePixels.length >= currentStagePixels.length) {
-        if (animationRef.current) {
-          clearInterval(animationRef.current);
-          animationRef.current = null;
-        }
         console.log(
           "OriginalAnimatedRenderer: Animation complete for stage",
-          loadingStage
+          loadingStage,
+          "- restarting"
         );
-
-        // Check if all stages are complete (stage 4 is the last stage)
-        if (loadingStage >= 4) {
-          // Add a delay before switching to final image
-          setTimeout(() => {
-            console.log(
-              "OriginalAnimatedRenderer: All animations complete, switching to final image"
-            );
-            setIsAnimationComplete(true);
-          }, 1000); // 1 second delay to see the final particles
-        }
+        
+        // Restart the animation for this stage after a brief pause
+        setTimeout(() => {
+          stageStartTimeRef.current = Date.now(); // Reset start time
+        }, 500); // 500ms pause before restarting
       }
     };
 
@@ -227,23 +209,43 @@ export const OriginalAnimatedRenderer: React.FC<
     console.log(
       "OriginalAnimatedRenderer: Rendering",
       visiblePixels.length,
-      "pixels",
-      isAnimationComplete ? "(Final Image)" : "(Particles)"
+      "pixels (Particles)"
     );
 
     // Clear canvas
     ctx.clearRect(0, 0, containerWidth, containerHeight);
 
-    if (isAnimationComplete && originalImage) {
-      // Animation complete - render final high-quality image
-      console.log("OriginalAnimatedRenderer: Drawing final high-quality image");
-      ctx.drawImage(originalImage, 0, 0, containerWidth, containerHeight);
-    } else {
-      // Animation in progress - render individual pixels
+    if (originalImage) {
+      // Mixed rendering: completed stages as original image + current stage as particles
+
+      // First, draw the original image for completed stages
+      const stageHeight = containerHeight / 5;
+      const completedHeight = loadingStage * stageHeight;
+
+      if (completedHeight > 0) {
+        // Draw completed stages as original image
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, containerWidth, completedHeight);
+        ctx.clip();
+        ctx.drawImage(originalImage, 0, 0, containerWidth, containerHeight);
+        ctx.restore();
+
+        console.log(
+          `OriginalAnimatedRenderer: Drew completed stages (0-${loadingStage - 1}) as original image, height: ${completedHeight}px`
+        );
+      }
+
+      // Then, render current stage as animated particles
       const currentTime = Date.now();
       const stageElapsed = currentTime - stageStartTimeRef.current;
 
-      visiblePixels.forEach((pixel) => {
+      // Only render pixels for the current stage
+      const currentStagePixels = visiblePixels.filter(
+        (pixel) => pixel.stage === loadingStage
+      );
+
+      currentStagePixels.forEach((pixel) => {
         const pixelElapsed = stageElapsed - pixel.animationDelay;
 
         if (pixelElapsed > 0) {
@@ -254,8 +256,8 @@ export const OriginalAnimatedRenderer: React.FC<
           // Easing function for smooth animation
           const easeOut = 1 - Math.pow(1 - progress, 3);
 
-          // Calculate current position (flying from left)
-          const startX = -50; // Start 50px to the left
+          // Calculate current position (flying from left - outside component border)
+          const startX = -250; // Start 250px to the left (outside component)
           const currentX = startX + (pixel.x - startX) * easeOut;
           const currentY = pixel.y;
 
@@ -266,13 +268,17 @@ export const OriginalAnimatedRenderer: React.FC<
           ctx.fillRect(Math.round(currentX), Math.round(currentY), 1, 1);
         }
       });
+
+      console.log(
+        `OriginalAnimatedRenderer: Drew ${currentStagePixels.length} particles for current stage ${loadingStage}`
+      );
     }
   }, [
     visiblePixels,
     containerWidth,
     containerHeight,
-    isAnimationComplete,
     originalImage,
+    loadingStage,
   ]);
 
   if (isLoading) {
