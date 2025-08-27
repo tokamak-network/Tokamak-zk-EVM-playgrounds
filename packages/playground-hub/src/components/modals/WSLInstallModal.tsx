@@ -3,16 +3,17 @@ import { useWSL } from "../../hooks/useWSL";
 
 export const WSLInstallModal: React.FC = () => {
   const { wslInfo, isLoading } = useWSL();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
+  const [isCheckingWSL, setIsCheckingWSL] = useState(false);
 
-  console.log('wslInfo', wslInfo)
+  console.log("wslInfo", wslInfo);
 
   // Determine if modal should be shown
   useEffect(() => {
     console.log("🎭 WSLInstallModal: Modal visibility check", {
       isLoading,
       wslInfo,
-      currentModalState: isOpen
+      currentModalState: isOpen,
     });
 
     // Don't show modal while still loading WSL info
@@ -40,34 +41,128 @@ export const WSLInstallModal: React.FC = () => {
     }
   }, [wslInfo, isLoading]);
 
+  // Periodically check WSL status after installation attempt
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    // Start checking WSL status if modal is open and WSL is not available
+    if (isOpen && wslInfo && !wslInfo.isAvailable && !isLoading) {
+      console.log("🔄 Starting periodic WSL status check...");
+
+      intervalId = setInterval(async () => {
+        try {
+          setIsCheckingWSL(true);
+          console.log("🔍 Checking WSL status...");
+
+          // Check WSL status using the API
+          if (typeof window !== "undefined" && window.wslAPI?.checkWSLSupport) {
+            const currentWSLStatus = await window.wslAPI.checkWSLSupport();
+            console.log("🔍 Current WSL status:", currentWSLStatus);
+
+            // If WSL is now available, the useWSL hook will update and modal will close
+            if (currentWSLStatus.isAvailable) {
+              console.log("✅ WSL detected! Modal will close automatically.");
+              if (intervalId) {
+                clearInterval(intervalId);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("❌ Error checking WSL status:", error);
+        } finally {
+          setIsCheckingWSL(false);
+        }
+      }, 5000); // Check every 5 seconds
+    }
+
+    // Cleanup interval on unmount or when modal closes
+    return () => {
+      if (intervalId) {
+        console.log("🛑 Stopping WSL status check");
+        clearInterval(intervalId);
+      }
+    };
+  }, [isOpen, wslInfo, isLoading]);
+
   // Handle WSL installation
   const handleInstall = async () => {
     try {
-      // For now, provide manual installation instructions
-      // In the future, this could be enhanced with automatic installation
-      const instructions = `To install WSL, please follow these steps:
+      console.log("🔗 Opening Microsoft Store WSL page...");
 
+      // Open Microsoft Store WSL page
+      if (typeof window !== "undefined" && window.electron?.openExternalUrl) {
+        const wslStoreUrl =
+          "https://apps.microsoft.com/detail/9PDXGNCFSCZV?hl=neutral&gl=KR&ocid=pdpshare";
+        const result = await window.electron.openExternalUrl(wslStoreUrl);
+
+        if (result.success) {
+          console.log("✅ Successfully opened WSL installation page");
+
+          // Show additional instructions after opening the store
+          const instructions = `Microsoft Store is opening to install WSL.
+
+After WSL installation:
+1. Restart your computer when prompted
+2. Go back to Microsoft Store and search for "Ubuntu"
+3. Install Ubuntu (or any Linux distribution you prefer)
+4. Open Ubuntu from Start menu to complete setup
+5. Create your Linux username and password when prompted
+6. The app will automatically detect WSL once setup is complete
+
+This dialog will remain open and automatically close when WSL is detected.
+
+Alternative method (for advanced users):
 1. Open PowerShell as Administrator
 2. Run: wsl --install
-3. Restart your computer when prompted
-4. Set up your Linux username and password
+3. Follow the setup prompts`;
 
-Alternatively, you can install WSL from the Microsoft Store.
-
-The app will automatically detect WSL once it's installed.`;
-
-      alert(instructions);
-      
-      // Optionally, you could open the Microsoft Store WSL page
-      // if (typeof window !== "undefined" && window.shell?.openExternal) {
-      //   window.shell.openExternal("ms-windows-store://pdp/?ProductId=9P9TQF7MRM4R");
-      // }
+          alert(instructions);
+        } else {
+          console.error(
+            "❌ Failed to open WSL installation page:",
+            result.error
+          );
+          // Fallback to manual instructions
+          showManualInstructions();
+        }
+      } else {
+        console.warn(
+          "⚠️ External URL API not available, showing manual instructions"
+        );
+        showManualInstructions();
+      }
     } catch (err) {
-      console.error("Failed to show WSL installation instructions:", err);
+      console.error("❌ Failed to handle WSL installation:", err);
+      showManualInstructions();
     }
   };
 
-  if (!isOpen) return null;
+  // Fallback manual instructions
+  const showManualInstructions = () => {
+    const instructions = `To install WSL, please follow these steps:
+
+Method 1 (Recommended for beginners):
+1. Go to Microsoft Store and install WSL
+2. Restart your computer when prompted
+3. Go back to Microsoft Store and search for "Ubuntu"
+4. Install Ubuntu (or any Linux distribution you prefer)
+5. Open Ubuntu from Start menu to complete setup
+6. Create your Linux username and password when prompted
+
+Method 2 (For advanced users):
+1. Open PowerShell as Administrator
+2. Run: wsl --install
+3. Follow the setup prompts
+
+Microsoft Store WSL link:
+https://apps.microsoft.com/detail/9PDXGNCFSCZV
+
+This dialog will remain open and automatically close when WSL is detected.`;
+
+    alert(instructions);
+  };
+
+  // if (!isOpen) return null;
 
   return (
     <div
@@ -162,7 +257,20 @@ The app will automatically detect WSL once it's installed.`;
                 <>
                   <br />
                   <span style={{ fontSize: "12px", color: "#666666" }}>
-                    WSL is not installed or not working properly.
+                    {wslInfo.wsl.error?.includes("initial setup") ||
+                    wslInfo.wsl.error?.includes("user account")
+                      ? "WSL is installed but needs initial setup. Please complete the user account configuration."
+                      : wslInfo.wsl.error?.includes("not properly configured")
+                        ? "WSL is installed but not properly configured. Please complete the setup."
+                        : "WSL is not installed or not working properly."}
+                  </span>
+                </>
+              )}
+              {isCheckingWSL && (
+                <>
+                  <br />
+                  <span style={{ fontSize: "12px", color: "#0066CC" }}>
+                    🔍 Checking for WSL installation...
                   </span>
                 </>
               )}

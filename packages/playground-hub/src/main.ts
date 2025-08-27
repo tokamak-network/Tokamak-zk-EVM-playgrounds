@@ -365,11 +365,52 @@ async function checkWSL(): Promise<{
       }
     }
 
-    console.log("✅ WSL is available with version:", version);
-    return {
-      isAvailable: true,
-      version,
-    };
+    // Additional check: Try to run a simple command in WSL to verify it's actually usable
+    try {
+      console.log("🔍 Testing WSL functionality with simple command...");
+      const { stdout: testOutput } = await execAsync("cmd /c wsl echo test", {
+        timeout: 10000,
+      });
+
+      if (testOutput.trim() === "test") {
+        console.log("✅ WSL is fully functional");
+        return {
+          isAvailable: true,
+          version,
+        };
+      } else {
+        console.log("❌ WSL command test failed - output:", testOutput.trim());
+        return {
+          isAvailable: false,
+          error:
+            "WSL is installed but not properly configured. Please complete the initial setup.",
+        };
+      }
+    } catch (testError) {
+      console.log("❌ WSL functionality test failed:", testError.message);
+
+      // Check if it's a setup-related error
+      if (
+        testError.message.includes("installation is incomplete") ||
+        testError.message.includes(
+          "Please create a default UNIX user account"
+        ) ||
+        testError.message.includes("setup") ||
+        testError.message.includes("user account")
+      ) {
+        return {
+          isAvailable: false,
+          error:
+            "WSL is installed but initial setup is incomplete. Please complete the user account setup.",
+        };
+      }
+
+      return {
+        isAvailable: false,
+        error:
+          "WSL is installed but not working properly. Please check your WSL installation.",
+      };
+    }
   } catch (error) {
     console.log("❌ WSL check failed:", error.message);
     return {
