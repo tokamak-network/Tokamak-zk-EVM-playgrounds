@@ -8,6 +8,44 @@ export const useSynthesizer = () => {
   const transactionHash = useAtomValue(transactionHashAtom);
   const { wslInfo, isWSLSupported } = useWSL();
 
+  // Helper function to get the correct paths for packaged vs development environment
+  const getPaths = useCallback(async () => {
+    try {
+      // Check if we're in a packaged environment
+      const isPackaged =
+        typeof window !== "undefined" && window.env?.isPackaged
+          ? await window.env.isPackaged()
+          : false;
+
+      console.log("🔍 Synthesizer: Environment check:", { isPackaged });
+
+      if (isPackaged) {
+        return {
+          synthesizerDir: "resources/binaries/synthesizer",
+          outputDir: "resources/binaries/backend/resource/synthesizer/outputs",
+          synthesizerBinary: "./synthesizer-final",
+        };
+      } else {
+        return {
+          synthesizerDir: "src/binaries/synthesizer",
+          outputDir: "src/binaries/backend/resource/synthesizer/outputs",
+          synthesizerBinary: "./synthesizer-final",
+        };
+      }
+    } catch (error) {
+      console.warn(
+        "🔍 Synthesizer: Failed to check packaged status, using development paths:",
+        error
+      );
+      // Fallback to development paths
+      return {
+        synthesizerDir: "src/binaries/synthesizer",
+        outputDir: "src/binaries/backend/resource/synthesizer/outputs",
+        synthesizerBinary: "./synthesizer-final",
+      };
+    }
+  }, []);
+
   // Helper function to check if we should use WSL for synthesizer execution
   const shouldUseWSL = useCallback(async (): Promise<boolean> => {
     try {
@@ -96,10 +134,11 @@ export const useSynthesizer = () => {
 
         try {
           // Execute synthesizer via WSL using the correct synthesizer path
+          const paths = await getPaths();
           result = await window.binaryService.executeSystemCommand([
             "bash",
             "-c",
-            `cd src/binaries/synthesizer && ./synthesizer-final parse -r ${RPC_URL} -t ${transactionHash} --output-dir ../backend/resource/synthesizer/outputs`,
+            `cd ${paths.synthesizerDir} && ${paths.synthesizerBinary} parse -r ${RPC_URL} -t ${transactionHash} --output-dir ../backend/resource/synthesizer/outputs`,
           ]);
         } catch (wslError) {
           console.error("🔍 Synthesizer: WSL execution failed:", wslError);
@@ -115,6 +154,7 @@ export const useSynthesizer = () => {
         );
 
         try {
+          const paths = await getPaths();
           result = await window.binaryService.executeDirectCommand([
             "parse",
             "-r",
@@ -122,7 +162,7 @@ export const useSynthesizer = () => {
             "-t",
             transactionHash,
             "--output-dir",
-            "src/binaries/backend/resource/synthesizer/outputs",
+            paths.outputDir,
           ]);
         } catch (directError) {
           console.log(
@@ -148,10 +188,11 @@ export const useSynthesizer = () => {
 
           // Fallback to system command for non-Windows platforms
           console.log("🔍 Synthesizer: Trying system command fallback");
+          const paths = await getPaths();
           result = await window.binaryService.executeSystemCommand([
             "bash",
             "-c",
-            `cd src/binaries/synthesizer && ./synthesizer-final parse -r ${RPC_URL} -t ${transactionHash} --output-dir ../backend/resource/synthesizer/outputs`,
+            `cd ${paths.synthesizerDir} && ${paths.synthesizerBinary} parse -r ${RPC_URL} -t ${transactionHash} --output-dir ../backend/resource/synthesizer/outputs`,
           ]);
         }
       }
@@ -165,7 +206,7 @@ export const useSynthesizer = () => {
         error: error.message || "An unknown error occurred",
       };
     }
-  }, [transactionHash, shouldUseWSL, isWSLSupported]);
+  }, [transactionHash, shouldUseWSL, isWSLSupported, getPaths]);
 
   return { parseTONTransfer };
 };

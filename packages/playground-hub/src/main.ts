@@ -979,11 +979,23 @@ function setupIpcHandlers() {
             processedCommand[1] === "-c" &&
             processedCommand[2].includes("synthesizer")
           ) {
-            // For synthesizer commands, use the synthesizer directory
-            actualWorkingDir = actualWorkingDir.replace(
-              /src\\binaries\\backend$/,
-              "src\\binaries\\synthesizer"
-            );
+            // For synthesizer commands, determine the correct directory based on packaged status
+            if (app.isPackaged) {
+              // In packaged app, synthesizer is in resources/binaries/synthesizer
+              actualWorkingDir = path.join(
+                process.resourcesPath,
+                "binaries",
+                "synthesizer"
+              );
+            } else {
+              // In development, synthesizer is in src/binaries/synthesizer
+              actualWorkingDir = path.join(
+                app.getAppPath(),
+                "src",
+                "binaries",
+                "synthesizer"
+              );
+            }
           }
 
           const wslWorkingDir = actualWorkingDir
@@ -1001,7 +1013,7 @@ function setupIpcHandlers() {
 
             // Remove any cd commands since we're already in the correct directory
             actualCommand = actualCommand.replace(
-              /cd src\/binaries\/\w+\s*&&\s*/g,
+              /cd (src\/binaries\/\w+|resources\/binaries\/\w+|binaries\/\w+)\s*&&\s*/g,
               ""
             );
 
@@ -1272,6 +1284,11 @@ function setupIpcHandlers() {
       console.error("Failed to execute direct binary command:", error);
       throw error;
     }
+  });
+
+  // Check if app is packaged
+  ipcMain.handle("get-is-packaged", () => {
+    return app.isPackaged;
   });
 
   // 환경 정보 제공 핸들러

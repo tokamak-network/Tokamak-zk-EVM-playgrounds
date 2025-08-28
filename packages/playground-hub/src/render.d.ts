@@ -62,6 +62,7 @@ declare global {
       getEnvVars: () => Promise<{
         RPC_URL: string;
       }>;
+      isPackaged: () => Promise<boolean>;
       getEnvironmentInfo: () => Promise<{
         platform: string;
         hasGpuSupport: boolean;

@@ -57,6 +57,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 contextBridge.exposeInMainWorld("env", {
   getEnvVars: () => ipcRenderer.invoke("get-env-vars"),
   getEnvironmentInfo: () => ipcRenderer.invoke("get-environment-info"),
+  isPackaged: () => ipcRenderer.invoke("get-is-packaged"),
 });
 
 contextBridge.exposeInMainWorld("fileDownloaderAPI", {

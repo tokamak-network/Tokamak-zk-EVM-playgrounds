@@ -6,8 +6,6 @@ export const WSLInstallModal: React.FC = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isCheckingWSL, setIsCheckingWSL] = useState(false);
 
-  console.log("wslInfo", wslInfo);
-
   // Determine if modal should be shown
   useEffect(() => {
     console.log("🎭 WSLInstallModal: Modal visibility check", {
