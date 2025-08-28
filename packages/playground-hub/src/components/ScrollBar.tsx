@@ -67,6 +67,9 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
     }
   };
 
+  // Check if scrollbar is needed
+  const isScrollbarNeeded = scrollHeight > clientHeight;
+
   // Calculate scrollbar handle position and size
   const actualTrackHeight = clientHeight > 40 ? clientHeight - 40 : 200; // Subtract button heights
   const trackHeight = actualTrackHeight;
@@ -123,84 +126,86 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className="hide-scrollbar overflow-y-auto h-full pr-[25px]"
+            className={`hide-scrollbar overflow-y-auto h-full ${isScrollbarNeeded ? "pr-[25px]" : "pr-[8px]"}`}
           >
             {children}
           </div>
 
-          {/* Custom Scrollbar */}
-          <div
-            className="absolute right-[12px] top-[8px] w-[20px] bg-[#DFDFDF]"
-            style={{ height: "calc(100% - 8px)" }}
-          >
-            {/* Top Button */}
-            <button
-              onClick={scrollToTop}
-              className="w-[20px] h-[20px] bg-[#BDBDBD] border-0 cursor-pointer flex items-center justify-center"
-              style={{
-                borderTop: "1px solid #A8A8A8",
-                borderLeft: "1px solid #A8A8A8",
-                borderRight: "1px solid #5F5F5F",
-                borderBottom: "1px solid #5F5F5F",
-              }}
+          {/* Custom Scrollbar - Only show when needed */}
+          {isScrollbarNeeded && (
+            <div
+              className="absolute right-[12px] top-[8px] w-[20px] bg-[#DFDFDF]"
+              style={{ height: "calc(100% - 8px)" }}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-              >
-                <path
-                  d="M8.66602 5.3335H7.33301V6.6665H8.66602V5.3335ZM7.33301 6.6665H6V7.99951H7.33301V6.6665ZM10 6.6665H8.66602V7.99951H10V6.6665ZM6 7.99951H4.66602V9.3335H6V7.99951ZM11.333 7.99951H10V9.3335H11.333V7.99951ZM4.66602 9.3335H3.33301V10.6665H4.66602V9.3335ZM12.666 9.3335H11.333V10.6665H12.666V9.3335Z"
-                  fill="#222222"
-                />
-              </svg>
-            </button>
-
-            {/* Track */}
-            <div className="relative" style={{ height: `calc(100% - 40px)` }}>
-              {/* Handle */}
-              <div
-                className="absolute left-0 w-[20px] bg-[#BDBDBD]"
+              {/* Top Button */}
+              <button
+                onClick={scrollToTop}
+                className="w-[20px] h-[20px] bg-[#BDBDBD] border-0 cursor-pointer flex items-center justify-center"
                 style={{
-                  height: `${handleHeight}px`,
-                  transform: `translateY(${handleTop}px)`,
                   borderTop: "1px solid #A8A8A8",
                   borderLeft: "1px solid #A8A8A8",
                   borderRight: "1px solid #5F5F5F",
                   borderBottom: "1px solid #5F5F5F",
-                  transition: "transform 0.1s ease",
                 }}
-              />
-            </div>
-
-            {/* Bottom Button */}
-            <button
-              onClick={scrollToBottom}
-              className="w-[20px] h-[20px] bg-[#BDBDBD] border-0 cursor-pointer flex items-center justify-center"
-              style={{
-                borderTop: "1px solid #A8A8A8",
-                borderLeft: "1px solid #A8A8A8",
-                borderRight: "1px solid #5F5F5F",
-                borderBottom: "1px solid #5F5F5F",
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                style={{ transform: "rotate(180deg)" }}
               >
-                <path
-                  d="M8.66602 5.3335H7.33301V6.6665H8.66602V5.3335ZM7.33301 6.6665H6V7.99951H7.33301V6.6665ZM10 6.6665H8.66602V7.99951H10V6.6665ZM6 7.99951H4.66602V9.3335H6V7.99951ZM11.333 7.99951H10V9.3335H11.333V7.99951ZM4.66602 9.3335H3.33301V10.6665H4.66602V9.3335ZM12.666 9.3335H11.333V10.6665H12.666V9.3335Z"
-                  fill="#222222"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                >
+                  <path
+                    d="M8.66602 5.3335H7.33301V6.6665H8.66602V5.3335ZM7.33301 6.6665H6V7.99951H7.33301V6.6665ZM10 6.6665H8.66602V7.99951H10V6.6665ZM6 7.99951H4.66602V9.3335H6V7.99951ZM11.333 7.99951H10V9.3335H11.333V7.99951ZM4.66602 9.3335H3.33301V10.6665H4.66602V9.3335ZM12.666 9.3335H11.333V10.6665H12.666V9.3335Z"
+                    fill="#222222"
+                  />
+                </svg>
+              </button>
+
+              {/* Track */}
+              <div className="relative" style={{ height: `calc(100% - 40px)` }}>
+                {/* Handle */}
+                <div
+                  className="absolute left-0 w-[20px] bg-[#BDBDBD]"
+                  style={{
+                    height: `${handleHeight}px`,
+                    transform: `translateY(${handleTop}px)`,
+                    borderTop: "1px solid #A8A8A8",
+                    borderLeft: "1px solid #A8A8A8",
+                    borderRight: "1px solid #5F5F5F",
+                    borderBottom: "1px solid #5F5F5F",
+                    transition: "transform 0.1s ease",
+                  }}
                 />
-              </svg>
-            </button>
-          </div>
+              </div>
+
+              {/* Bottom Button */}
+              <button
+                onClick={scrollToBottom}
+                className="w-[20px] h-[20px] bg-[#BDBDBD] border-0 cursor-pointer flex items-center justify-center"
+                style={{
+                  borderTop: "1px solid #A8A8A8",
+                  borderLeft: "1px solid #A8A8A8",
+                  borderRight: "1px solid #5F5F5F",
+                  borderBottom: "1px solid #5F5F5F",
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  style={{ transform: "rotate(180deg)" }}
+                >
+                  <path
+                    d="M8.66602 5.3335H7.33301V6.6665H8.66602V5.3335ZM7.33301 6.6665H6V7.99951H7.33301V6.6665ZM10 6.6665H8.66602V7.99951H10V6.6665ZM6 7.99951H4.66602V9.3335H6V7.99951ZM11.333 7.99951H10V9.3335H11.333V7.99951ZM4.66602 9.3335H3.33301V10.6665H4.66602V9.3335ZM12.666 9.3335H11.333V10.6665H12.666V9.3335Z"
+                    fill="#222222"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>
