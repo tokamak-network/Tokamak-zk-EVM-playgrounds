@@ -1,11 +1,11 @@
 # Tokamak-zk-evm-playground User Guide
 
-Hello! This document guides you on how to install and run **Tokamak-zk-evm-playground** on your computer. It might seem a bit unfamiliar, but if you follow the steps carefully, it won't be difficult! 😊
+Welcome to **Tokamak-zk-evm-playground**! 🚀 Ready to turn any Ethereum transaction into a zk-EVM proof? Let's get started!
 
 ## 1. What is this program?
 
+- **With just one click, you can easily convert any Ethereum transaction into a zk-EVM proof**, making complex cryptographic processes accessible to everyone.
 - Tokamak-zk-evm-playground is a program that helps you understand and experience the overall flow of Tokamak zk-EVM easily and enjoyably without requiring difficult technical knowledge.
-- It's like looking inside and tinkering with a complex machine, allowing you to simulate the key processes of Tokamak zk-EVM step by step.
 
 ## 2. Before you start: Optional enhancements! ⚡
 
