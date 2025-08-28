@@ -206,7 +206,8 @@ export const OriginalAnimatedRenderer: React.FC<
         const offsetX = 384 - containerWidth; // Position at right side of 384px canvas
         ctx.save();
         ctx.beginPath();
-        ctx.rect(offsetX, 0, containerWidth, completedHeight);
+        // Extend clipping area slightly to eliminate border lines
+        ctx.rect(offsetX, 0, containerWidth, completedHeight + 1);
         ctx.clip();
         ctx.drawImage(
           originalImage,
@@ -244,8 +245,8 @@ export const OriginalAnimatedRenderer: React.FC<
           // Set pixel color
           ctx.fillStyle = `rgba(${pixel.r}, ${pixel.g}, ${pixel.b}, ${pixel.a / 255})`;
 
-          // Draw pixel (1x1 for maximum sharpness)
-          ctx.fillRect(Math.round(currentX), Math.round(currentY), 1, 1);
+          // Draw pixel (1x1 for maximum sharpness) with precise positioning
+          ctx.fillRect(Math.floor(currentX), Math.floor(currentY), 1, 1);
         }
       });
     }
