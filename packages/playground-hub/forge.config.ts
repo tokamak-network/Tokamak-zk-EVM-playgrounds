@@ -10,8 +10,13 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    // Default icon (will be overridden by platform-specific icons)
-    icon: "src/assets/icons/favicon.ico",
+    // Platform-specific icon configuration
+    ...(process.platform === "win32" && {
+      icon: "src/assets/icons/favicon.ico",
+    }),
+    ...(process.platform === "darwin" && {
+      icon: "src/assets/icons/app-icon.icns",
+    }),
     // Windows-specific settings
     win32metadata: {
       CompanyName: "Tokamak Network",

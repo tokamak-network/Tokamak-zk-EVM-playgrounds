@@ -1,3 +1,4 @@
+import React, { useEffect } from "react";
 import ScrollBar from "./ScrollBar";
 import { add0xPrefix, hexToDecimal } from "../utils/helpers";
 import { useSynthesizerResult } from "../hooks/useSynthesizerResult";
@@ -8,7 +9,9 @@ import { useBenchmark } from "../hooks/useBenchmark";
 import JSZip from "jszip";
 
 const Logs = () => {
-  const { logGroups } = useSynthesizerResult();
+  const { logGroups: logData } = useSynthesizerResult();
+
+  const logGroups = [...logData];
 
   return logGroups && logGroups.length > 0 ? (
     logGroups.map((logGroup, index) => (
@@ -96,6 +99,13 @@ const ProcessResult = () => {
   const { downloadSynthesizerFiles, downloadProveFiles } =
     useBinaryFileDownload();
   const { generateBenchmarkData } = useBenchmark();
+
+  // Automatically refresh log data when ProcessResult becomes visible
+  useEffect(() => {
+    if (showProcessResult) {
+      console.log("🔄 ProcessResult visible, refreshing log data...");
+    }
+  }, [showProcessResult]);
 
   // Combined download handler for proof and benchmark files
   const handleDownloadCombined = async () => {
