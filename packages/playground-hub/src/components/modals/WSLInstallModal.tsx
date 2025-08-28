@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useWSL } from "../../hooks/useWSL";
 
 export const WSLInstallModal: React.FC = () => {
-  const { wslInfo, isLoading } = useWSL();
-  const [isOpen, setIsOpen] = useState(true);
+  const { wslInfo, isLoading, isWindows } = useWSL();
+  const [isOpen, setIsOpen] = useState(false);
   const [isCheckingWSL, setIsCheckingWSL] = useState(false);
 
   // Determine if modal should be shown
@@ -11,6 +11,7 @@ export const WSLInstallModal: React.FC = () => {
     console.log("🎭 WSLInstallModal: Modal visibility check", {
       isLoading,
       wslInfo,
+      isWindows,
       currentModalState: isOpen,
     });
 
@@ -21,30 +22,49 @@ export const WSLInstallModal: React.FC = () => {
       return;
     }
 
+    // Only show modal on Windows platform
+    if (isWindows === false) {
+      console.log("🎭 WSLInstallModal: Not on Windows, hiding modal");
+      setIsOpen(false);
+      return;
+    }
+
     // Show modal only if:
-    // 1. WSL info is available
-    // 2. WSL is not available (not installed or not working)
-    // 3. We're on Windows (implied by wslInfo being available and platform check)
-    if (wslInfo) {
+    // 1. We're on Windows platform (isWindows === true)
+    // 2. WSL info is available
+    // 3. WSL is not available (not installed or not working)
+    if (isWindows === true && wslInfo) {
       if (!wslInfo.isAvailable) {
-        console.log("🎭 WSLInstallModal: WSL not available, showing modal");
+        console.log(
+          "🎭 WSLInstallModal: WSL not available on Windows, showing modal"
+        );
         setIsOpen(true);
       } else {
-        console.log("🎭 WSLInstallModal: WSL is available, hiding modal");
+        console.log(
+          "🎭 WSLInstallModal: WSL is available on Windows, hiding modal"
+        );
         setIsOpen(false);
       }
     } else {
-      console.log("🎭 WSLInstallModal: No WSL info available, hiding modal");
+      console.log(
+        "🎭 WSLInstallModal: No WSL info available or not Windows, hiding modal"
+      );
       setIsOpen(false);
     }
-  }, [wslInfo, isLoading]);
+  }, [wslInfo, isLoading, isWindows]);
 
   // Periodically check WSL status after installation attempt
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
 
-    // Start checking WSL status if modal is open and WSL is not available
-    if (isOpen && wslInfo && !wslInfo.isAvailable && !isLoading) {
+    // Start checking WSL status if modal is open, we're on Windows, and WSL is not available
+    if (
+      isOpen &&
+      isWindows === true &&
+      wslInfo &&
+      !wslInfo.isAvailable &&
+      !isLoading
+    ) {
       console.log("🔄 Starting periodic WSL status check...");
 
       intervalId = setInterval(async () => {
@@ -80,7 +100,7 @@ export const WSLInstallModal: React.FC = () => {
         clearInterval(intervalId);
       }
     };
-  }, [isOpen, wslInfo, isLoading]);
+  }, [isOpen, wslInfo, isLoading, isWindows]);
 
   // Handle WSL installation
   const handleInstall = async () => {

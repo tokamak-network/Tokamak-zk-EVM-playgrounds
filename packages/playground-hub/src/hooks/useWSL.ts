@@ -18,6 +18,7 @@ export const useWSL = () => {
   const [wslInfo, setWslInfo] = useState<WSLInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isWindows, setIsWindows] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkWSLSupport = async () => {
@@ -39,7 +40,24 @@ export const useWSL = () => {
           typeof window !== "undefined" && !!window.env?.getEnvironmentInfo
         );
 
-        // Check if we're on Windows first
+        // First, check if we're on Windows platform
+        let platformCheck = false;
+        if (typeof window !== "undefined" && window.env?.getEnvironmentInfo) {
+          const envInfo = await window.env.getEnvironmentInfo();
+          console.log("🔍 useWSL: Environment info:", envInfo);
+          platformCheck = envInfo.platform === "win32";
+          setIsWindows(platformCheck);
+        }
+
+        // Only proceed with WSL checks if we're on Windows
+        if (!platformCheck) {
+          console.log("🔍 useWSL: Not on Windows platform, skipping WSL check");
+          setWslInfo(null); // Set to null for non-Windows platforms
+          setIsWindows(false);
+          return;
+        }
+
+        // We're on Windows, now check WSL support
         if (typeof window !== "undefined" && window.wslAPI?.checkWSLSupport) {
           // Use dedicated WSL API if available
           console.log("🔍 useWSL: Using dedicated WSL API");
@@ -55,47 +73,30 @@ export const useWSL = () => {
           const envInfo = await window.env.getEnvironmentInfo();
           console.log("🔍 useWSL: Environment info:", envInfo);
 
-          if (envInfo.platform === "win32") {
-            console.log("🔍 useWSL: Platform is Windows, checking WSL info...");
-            if (envInfo.wslInfo) {
-              console.log(
-                "🔍 useWSL: WSL info found in environment:",
-                envInfo.wslInfo
-              );
-              setWslInfo(envInfo.wslInfo);
-            } else {
-              console.log(
-                "🔍 useWSL: No WSL info in environment, setting as unavailable"
-              );
-              setWslInfo({
-                isAvailable: false,
-                wsl: {
-                  isAvailable: false,
-                  error: "WSL info not available in environment",
-                },
-                distribution: {
-                  isAvailable: false,
-                  error: "WSL info not available in environment",
-                },
-              });
-            }
-          } else {
-            // Not Windows or no WSL info available
+          if (envInfo.wslInfo) {
             console.log(
-              "🔍 useWSL: Platform is not Windows:",
-              envInfo.platform
+              "🔍 useWSL: WSL info found in environment:",
+              envInfo.wslInfo
+            );
+            setWslInfo(envInfo.wslInfo);
+          } else {
+            console.log(
+              "🔍 useWSL: No WSL info in environment, setting as unavailable"
             );
             setWslInfo({
               isAvailable: false,
-              wsl: { isAvailable: false, error: "Not Windows platform" },
+              wsl: {
+                isAvailable: false,
+                error: "WSL info not available in environment",
+              },
               distribution: {
                 isAvailable: false,
-                error: "Not Windows platform",
+                error: "WSL info not available in environment",
               },
             });
           }
         } else {
-          // Fallback for non-Electron environment
+          // Fallback for non-Electron environment on Windows
           console.log("🔍 useWSL: No APIs available, setting as unavailable");
           setWslInfo({
             isAvailable: false,
@@ -132,5 +133,6 @@ export const useWSL = () => {
     isLoading,
     error,
     isWSLSupported,
+    isWindows,
   };
 };
