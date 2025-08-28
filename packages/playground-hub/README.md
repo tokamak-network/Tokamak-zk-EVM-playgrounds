@@ -42,9 +42,8 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 1. If the program runs successfully, you will see a screen like this.
    ![Program Initial Screen](./assets/images/5-1.png)
 
-**Note for Windows users:** If you see a WSL installation modal when you first open the app, please follow our [WSL Setup Guide](./WSL_SETUP.md) to install Windows Subsystem for Linux through Microsoft Store.
-
-![WSL install modal](./assets/images/5-1-1.png)
+   **Note for Windows users:** If you see a WSL installation modal when you first open the app, please follow our [WSL Setup Guide](./WSL_SETUP.md) to install Windows Subsystem for Linux through Microsoft Store.
+   ![WSL install modal](./assets/images/5-1-1.png)
 
 2. Click on the area with the "Turn your Ethereum transaction..." message, and you will see a screen where you can input the transaction hash as shown below.
    ![Transaction Input Modal](./assets/images/5-2.png)
