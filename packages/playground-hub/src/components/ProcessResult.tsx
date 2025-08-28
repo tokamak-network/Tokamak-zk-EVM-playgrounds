@@ -96,6 +96,7 @@ const Logs = () => {
 
 const ProcessResult = () => {
   const showProcessResult = useAtomValue(showProcessResultModalAtom);
+  const { refetchInstance } = useSynthesizerResult();
 
   const { downloadSynthesizerFiles, downloadProveFiles } =
     useBinaryFileDownload();
@@ -105,8 +106,9 @@ const ProcessResult = () => {
   useEffect(() => {
     if (showProcessResult) {
       console.log("🔄 ProcessResult visible, refreshing log data...");
+      refetchInstance();
     }
-  }, [showProcessResult]);
+  }, [showProcessResult, refetchInstance]);
 
   // Combined download handler for proof and benchmark files
   const handleDownloadCombined = async () => {

@@ -46,6 +46,7 @@ const HeroSectionFirstTime = () => {
 };
 
 const HeroSectionNotFirstTime = () => {
+  const { isOverBreakpoint } = useViewport();
   return (
     <div
       style={{
@@ -53,7 +54,7 @@ const HeroSectionNotFirstTime = () => {
         textAlign: "center",
         textShadow: "0 2px 0 #0E3260",
         fontFamily: "Jersey 10",
-        fontSize: "50px",
+        fontSize: isOverBreakpoint ? "50px" : "36px",
         fontStyle: "normal",
         fontWeight: "400",
         lineHeight: "normal",
