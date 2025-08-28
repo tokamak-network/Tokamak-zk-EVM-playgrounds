@@ -10,25 +10,73 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
   const [scrollTop, setScrollTop] = useState(0);
   const [scrollHeight, setScrollHeight] = useState(0);
   const [clientHeight, setClientHeight] = useState(0);
-  const [dynamicHeight, setDynamicHeight] = useState("40vh");
+  const [maxHeight, setMaxHeight] = useState(0);
   const { height } = useViewport();
 
+  // Update scroll dimensions when children change or component mounts
   useEffect(() => {
+    const updateScrollDimensions = () => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        setScrollHeight(container.scrollHeight);
+        setClientHeight(container.clientHeight);
+        setScrollTop(container.scrollTop);
+      }
+    };
+
+    // Initial calculation with a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(updateScrollDimensions, 0);
+
+    // Set up ResizeObserver to watch for content changes
     const container = scrollContainerRef.current;
+    let resizeObserver: ResizeObserver | null = null;
+
     if (container) {
-      setScrollHeight(container.scrollHeight);
-      setClientHeight(container.clientHeight);
+      resizeObserver = new ResizeObserver(() => {
+        updateScrollDimensions();
+      });
+      resizeObserver.observe(container);
     }
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
   }, [children]);
 
-  // Dynamic height calculation based on viewport height from useViewport hook
+  // Additional effect to ensure initial state is set correctly on mount
   useEffect(() => {
-    const calculateDynamicHeight = () => {
+    const updateInitialState = () => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        setScrollHeight(container.scrollHeight);
+        setClientHeight(container.clientHeight);
+        setScrollTop(container.scrollTop);
+      }
+    };
+
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    const rafId = requestAnimationFrame(() => {
+      updateInitialState();
+      // Double-check after a short delay in case content is still loading
+      setTimeout(updateInitialState, 100);
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+    };
+  }, []); // Empty dependency array - only run on mount
+
+  // Calculate maximum height based on viewport height
+  useEffect(() => {
+    const calculateMaxHeight = () => {
       // Use minHeight from useViewport (768px) as the baseline for 40vh
       const minWindowHeight = 768; // minHeight from useViewport
       const maxWindowHeight = 1200; // Maximum height for 60vh
       const minVh = 40;
-      const maxVh = 60;
+      const maxVh = 75; // Increased from 60vh to 75vh to allow more content
 
       const clampedHeight = Math.max(
         minWindowHeight,
@@ -38,12 +86,54 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
         (clampedHeight - minWindowHeight) / (maxWindowHeight - minWindowHeight);
       const calculatedVh = minVh + ratio * (maxVh - minVh);
 
-      setDynamicHeight(`${calculatedVh}vh`);
+      // Convert vh to pixels for max height calculation
+      const maxHeightPx = (calculatedVh / 100) * height;
+      setMaxHeight(maxHeightPx);
     };
 
     // Calculate when height changes
-    calculateDynamicHeight();
+    calculateMaxHeight();
   }, [height]);
+
+  // Calculate maximum height for overflow situations
+  const getMaxHeight = () => {
+    // Calculate available space more intelligently
+    // Consider the space taken by buttons (46px) and margins/gaps (around 64px total)
+    const buttonHeight = 46;
+    const marginsAndGaps = 64; // Approximate space for margins and gaps
+    const tabHeight = 40; // Height of the "Logs" tab
+    const availableHeight = height - buttonHeight - marginsAndGaps - tabHeight;
+
+    // Use the smaller of calculated max height or available viewport height
+    const effectiveMaxHeight = Math.min(maxHeight, availableHeight);
+
+    return effectiveMaxHeight;
+  };
+
+  // Get container style based on whether scrolling is needed
+  const getContainerStyle = () => {
+    const maxHeightPx = getMaxHeight();
+
+    if (isScrollbarNeeded) {
+      // When scrollbar is needed, use fixed height to prevent overflow
+      return {
+        height: `${maxHeightPx}px`,
+        maxHeight: `${maxHeightPx}px`,
+        borderBottom: "1px solid #5F5F5F",
+        borderLeft: "1px solid #5F5F5F",
+        borderRight: "1px solid #5F5F5F",
+      };
+    } else {
+      // When no scrollbar needed, allow natural height with max limit
+      return {
+        height: "auto",
+        maxHeight: `${maxHeightPx}px`,
+        borderBottom: "1px solid #5F5F5F",
+        borderLeft: "1px solid #5F5F5F",
+        borderRight: "1px solid #5F5F5F",
+      };
+    }
+  };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement;
@@ -67,8 +157,10 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
     }
   };
 
-  // Check if scrollbar is needed
-  const isScrollbarNeeded = scrollHeight > clientHeight;
+  // Check if scrollbar is needed - ensure both values are properly initialized
+  // Also consider if content height exceeds the effective available space
+  const isScrollbarNeeded =
+    scrollHeight > 0 && clientHeight > 0 && scrollHeight > clientHeight;
 
   // Calculate scrollbar handle position and size
   const actualTrackHeight = clientHeight > 40 ? clientHeight - 40 : 200; // Subtract button heights
@@ -115,18 +207,17 @@ const ScrollBar = ({ children }: ScrollBarProps) => {
         {/* Main Container */}
         <div
           className="relative w-[790px] bg-[#bdbdbd] border-[1px] border-[#bdbdbd] p-[8px]"
-          style={{
-            height: dynamicHeight,
-            borderBottom: "1px solid #5F5F5F",
-            borderLeft: "1px solid #5F5F5F",
-            borderRight: "1px solid #5F5F5F",
-          }}
+          style={getContainerStyle()}
         >
           {/* Content Area */}
           <div
             ref={scrollContainerRef}
             onScroll={handleScroll}
-            className={`hide-scrollbar overflow-y-auto h-full ${isScrollbarNeeded ? "pr-[25px]" : "pr-[8px]"}`}
+            className={`hide-scrollbar overflow-y-auto ${isScrollbarNeeded ? "pr-[25px]" : "pr-[8px]"}`}
+            style={{
+              height: "100%", // Take full height of parent container
+              maxHeight: "inherit", // Inherit max height from parent
+            }}
           >
             {children}
           </div>

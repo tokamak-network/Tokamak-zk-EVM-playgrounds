@@ -79,7 +79,8 @@ const Logs = () => {
                 .map(([categoryKey, category]) => (
                   <div key={categoryKey} className="mb-1">
                     <span className="block p-[5px_8px] bg-[#F2F2F2] border-t border-l border-[#5f5f5f] border-r border-b border-r-[#dfdfdf] border-b-[#dfdfdf] min-h-[16px] break-all font-ibm-mono text-[16px]">
-                      {categoryKey}: {hexToDecimal(category.valueHex)}
+                      {categoryKey.match(/\d+/)?.[0] || categoryKey}:{" "}
+                      {hexToDecimal(category.valueHex)}
                     </span>
                   </div>
                 ))}
