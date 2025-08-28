@@ -7,54 +7,14 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 - Tokamak-zk-evm-playground is a program that helps you understand and experience the overall flow of Tokamak zk-EVM easily and enjoyably without requiring difficult technical knowledge.
 - It's like looking inside and tinkering with a complex machine, allowing you to simulate the key processes of Tokamak zk-EVM step by step.
 
-## 2. Before you start: Optionally install "CUDA" for better performance! ⚡
+## 2. Before you start: Optional enhancements! ⚡
 
-- **What about CUDA? (Optional but Recommended for NVIDIA GPU users) ⚡**
-  - **What is CUDA?**
-    - CUDA is NVIDIA's technology that allows the GPU (graphics card) to help with computational work, making processes much faster.
-  - **Why is it helpful?**
-    - If you have an NVIDIA GPU and CUDA installed, Tokamak-zk-EVM can use GPU acceleration to run significantly faster, especially during the setup and proving phases.
-    - Don't worry if you don't have NVIDIA GPU or CUDA - the program works perfectly fine with just CPU processing, it will just take a bit longer.
-  - **Do I need it?**
-    - **Optional but recommended:** CUDA (only if you have an NVIDIA GPU and want faster performance)
+- **For NVIDIA GPU users:** Want faster performance? See our [CUDA Setup Guide](./CUDA_SETUP.md) to enable GPU acceleration (completely optional!)
+- **For Developers:** Want to use the CLI interface? Visit the main [Tokamak-zk-EVM repository](https://github.com/tokamak-network/Tokamak-zk-EVM) to experience the full development environment
 
 ## 3. Installation Process (Step-by-Step Guide) 🛠️
 
-### 3.1. Installing CUDA (Optional but Very Recommended - for NVIDIA GPU users) ⚡
-
-**Note:** This step is completely optional. Skip this section if you don't have an NVIDIA GPU or prefer to use CPU-only processing.
-
-- **Check if you have an NVIDIA GPU:**
-  - **Windows:** Right-click on desktop → "Display settings" → "Advanced display settings" → Check if NVIDIA GPU is listed
-  - **Alternative:** Open Device Manager → "Display adapters" → Look for NVIDIA graphics card
-- **CUDA Installation:**
-
-  1. **Download CUDA Toolkit:**
-     - Visit [NVIDIA CUDA Downloads](https://developer.nvidia.com/cuda-downloads)
-     - Select your operating system (Windows -> x86_64 -> version 11 -> exe local)
-     - Download the CUDA Toolkit installer (recommended: latest stable version)
-  2. **Install CUDA:**
-     - Run the downloaded installer (`cuda_X.X.X_windows.exe`)
-     - Follow the installation wizard (keep default settings)
-     - The installer will automatically install necessary drivers if needed
-  3. **Verify CUDA Installation:**
-     - Open Command Prompt (cmd) or PowerShell
-     - Type: `nvcc --version`
-     - If CUDA is installed correctly, you'll see version information
-     - You may need to restart your computer after installation
-
-- **Benefits of CUDA:**
-
-  - ⚡ **Faster Processing:** GPU-accelerated computations can be 5-10x faster than CPU-only
-  - 🚀 **Better Experience:** Shorter waiting times during backend phases
-  - 🔧 **Automatic Detection:** The playground automatically detects and uses CUDA if available
-
-- **What if CUDA installation fails?**
-  - Don't worry! The playground works perfectly without CUDA
-  - You can always install CUDA later if you want to try GPU acceleration
-  - Make sure your NVIDIA drivers are up to date before installing CUDA
-
-### 3.2. Downloading and Preparing Tokamak-zk-evm-playground
+### Downloading and Preparing Tokamak-zk-evm-playground
 
 - **Download:**
   - [Download the latest version](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/releases/tag/0.0.1-alpha)
@@ -117,9 +77,9 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 
 - **Performance is slower than expected:**
 
-  - **With NVIDIA GPU:** Make sure CUDA is properly installed and GPU acceleration is working
-  - **Without NVIDIA GPU:** This is normal - CPU processing takes longer but works perfectly fine
-  - Close other resource-intensive applications during proving/setup phases
+  - This is normal - the playground works perfectly fine, typically completing within 5 minutes on average computer specifications, or at most 10 minutes
+  - For faster performance, consider installing CUDA if you have an NVIDIA GPU (see [CUDA Setup Guide](./CUDA_SETUP.md))
+  - Close other resource-intensive applications during processing
 
 - **If you need more help, leave an issue on the [GitHub Issues page](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/issues):**
 
@@ -128,8 +88,5 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 - **Uninstalling Tokamak-zk-evm-playground:**
   - Exit the `Tokamak-zk-evm-playground` program.
   - Delete the entire folder where the program is installed (or extracted) or just the executable file. (No separate uninstaller is needed!)
-- **Uninstalling CUDA (optional - if you no longer need GPU acceleration):**
-  - **Windows:** Go to `Settings` > `Apps` > `Installed Apps` list, find entries starting with "NVIDIA CUDA" and remove them.
-  - **Alternative:** Use the NVIDIA Control Panel to uninstall CUDA components.
-  - (Be cautious when removing CUDA, as other GPU-accelerated applications may need it!)
-  - (You can always reinstall CUDA later if needed for other applications or future use.)
+- **Uninstalling CUDA (if installed):**
+  - See the [CUDA Setup Guide](./CUDA_SETUP.md) for detailed uninstallation instructions.
