@@ -1,13 +1,10 @@
 import { useCallback } from "react";
 import { useBinary } from "./useBinary";
 import { useSynthesizer } from "./useSynthesizer";
-import { useBackendCommand } from "./useBackend";
 import { useAtom, useSetAtom } from "jotai";
 import { useResetStage } from "./useResetStage";
 import { usePlaygroundStage } from "./usePlaygroundStage";
-import { useCuda } from "./useCuda";
 import { useBenchmark } from "./useBenchmark";
-// useWSL removed - WSL checks handled at app startup level
 import {
   isErrorAtom,
   isFirstTimeAtom,
@@ -29,13 +26,12 @@ export enum TokamakActionType {
 }
 
 export function useTokamakZkEVMActions() {
-  const { startBinary, currentProcess, executeCommand, binaryStatus } =
+  const { startBinary, binaryStatus } =
     useBinary();
   const { parseTONTransfer } = useSynthesizer();
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
-  const { cudaStatus } = useCuda();
-  const isCudaSupported = cudaStatus.isFullySupported;
+
   const {
     startProcessTiming,
     endProcessTiming,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { OriginalAnimatedRenderer } from "./modals/OriginalAnimatedRenderer";
 import { usePlaygroundStage } from "../hooks/usePlaygroundStage";
 import { useAtom } from "jotai";
@@ -6,9 +6,17 @@ import { loadingStageAtom } from "../atoms/ui";
 
 export default function LoadingSpinner() {
   // Atom state management for loading stage
-  const [loadingStage, setLoadingStage] = useAtom(loadingStageAtom);
-  const [message] = useState("Please, wait");
+  const [loadingStage] = useAtom(loadingStageAtom);
   const { playgroundStageInProcess } = usePlaygroundStage();
+
+  const message = useMemo(() => {
+    if (loadingStage === 0) return "Collecting stardust";
+    if (loadingStage === 1) return "Aligning tiny particles";
+    if (loadingStage === 2) return "Taking shape, looks like a planet";
+    if (loadingStage === 3) return "Adding the final sparkles";
+    if (loadingStage === 4) return "Almost there, hang tight";
+    return undefined;
+  }, [loadingStage]);
 
   // Debug logs
   console.log("LoadingSpinner - loadingStage:", loadingStage);
@@ -126,7 +134,7 @@ export default function LoadingSpinner() {
             position: "absolute",
             bottom: "21px", // 16px + 5px from bottom of text area
             left: "16px", // 8px + 8px
-            width: "101px",
+            width: "100%",
             height: "23px",
           }}
         >
