@@ -108,10 +108,9 @@ export const WSLInstallModal: React.FC = () => {
     try {
       console.log("🔗 Opening Microsoft Store WSL page...");
 
-      // Open Microsoft Store WSL page
+      // Open Microsoft Store WSL page directly in Store app
       if (typeof window !== "undefined" && window.electron?.openExternalUrl) {
-        const wslStoreUrl =
-          "https://apps.microsoft.com/detail/9PDXGNCFSCZV?hl=neutral&gl=KR&ocid=pdpshare";
+        const wslStoreUrl = "ms-windows-store://pdp/?ProductId=9PDXGNCFSCZV";
         const result = await window.electron.openExternalUrl(wslStoreUrl);
 
         if (result.success) {

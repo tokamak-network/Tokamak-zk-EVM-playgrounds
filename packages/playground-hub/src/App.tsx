@@ -12,6 +12,7 @@ import ProcessResult from "./components/ProcessResult";
 import HeroSection from "./components/HeroSection";
 import { useUI } from "./hooks/useUI";
 import { Modals } from "./components/modals";
+import ErrorResult from "./components/ErrorResult";
 
 const MainContent = () => {
   // Responsive design hook
@@ -53,6 +54,7 @@ const MainContent = () => {
         >
           <LoadingSpinner />
           <ProcessResult />
+          <ErrorResult />
         </div>
         <Modals />
       </div>

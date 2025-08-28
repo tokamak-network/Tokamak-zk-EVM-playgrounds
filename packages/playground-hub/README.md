@@ -44,6 +44,8 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 
 **Note for Windows users:** If you see a WSL installation modal when you first open the app, please follow our [WSL Setup Guide](./WSL_SETUP.md) to install Windows Subsystem for Linux through Microsoft Store.
 
+![WSL install modal](./assets/images/5-1-1.png)
+
 2. Click on the area with the "Turn your Ethereum transaction..." message, and you will see a screen where you can input the transaction hash as shown below.
    ![Transaction Input Modal](./assets/images/5-2.png)
 
@@ -63,6 +65,14 @@ Hello! This document guides you on how to install and run **Tokamak-zk-evm-playg
 
 5. Click the Process button to start the Tokamak-zk-EVM operation. Based on average computer specifications, it takes a few minutes to complete, and you can watch the planet gradually form as the process progresses.
    ![Processing Animation](./assets/images/5-5.png)
+
+   5-1. Error Case: Transaction Processing Failure ⚠️
+
+   If the Tokamak-zk-EVM encounters a transaction that exceeds the current processing specifications, an error screen will appear as shown below, and transaction processing will be halted. We recommend trying again with a lighter transaction than the one currently selected.
+
+   ![Error Screen](./assets/images/5-5-2.png)
+
+   You can estimate transaction complexity by checking the data length in the logs tab on Etherscan. Try selecting a simpler transaction with less data when you encounter this error.
 
 6. When the process is complete, you will see log messages from the Tokamak-zk-EVM analysis of the transaction, along with download buttons to access materials such as Proof data.
    ![Completion Results](./assets/images/5-6.png)
