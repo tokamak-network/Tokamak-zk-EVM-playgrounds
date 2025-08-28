@@ -34,7 +34,9 @@ const MainContent = () => {
       <div
         className={`flex flex-col ${
           !isFirstTime ? "justify-start" : "justify-center"
-        } items-center h-screen ${!isHeroUp ? "gap-y-[70px]" : "gap-y-[20px]"} pt-[47px] ${isHeroUp ? "w-[792px]" : "w-[89%] max-w-[996px]"}`}
+        } items-center h-screen ${!isHeroUp ? "gap-y-[70px]" : "gap-y-[20px]"} ${
+          isHeroUp ? "pt-[20px]" : "pt-[47px]"
+        } ${isHeroUp ? "w-[792px]" : "w-[89%] max-w-[996px]"}`}
       >
         <HeroSection />
         <div
