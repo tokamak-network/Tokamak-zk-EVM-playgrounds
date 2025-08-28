@@ -5,6 +5,7 @@ export const WSLInstallModal: React.FC = () => {
   const { wslInfo, isLoading, isWindows } = useWSL();
   const [isOpen, setIsOpen] = useState(false);
   const [isCheckingWSL, setIsCheckingWSL] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   // Determine if modal should be shown
   useEffect(() => {
@@ -115,26 +116,7 @@ export const WSLInstallModal: React.FC = () => {
 
         if (result.success) {
           console.log("✅ Successfully opened WSL installation page");
-
-          // Show additional instructions after opening the store
-          const instructions = `Microsoft Store is opening to install WSL.
-
-After WSL installation:
-1. Restart your computer when prompted
-2. Go back to Microsoft Store and search for "Ubuntu"
-3. Install Ubuntu (or any Linux distribution you prefer)
-4. Open Ubuntu from Start menu to complete setup
-5. Create your Linux username and password when prompted
-6. The app will automatically detect WSL once setup is complete
-
-This dialog will remain open and automatically close when WSL is detected.
-
-Alternative method (for advanced users):
-1. Open PowerShell as Administrator
-2. Run: wsl --install
-3. Follow the setup prompts`;
-
-          alert(instructions);
+          setShowInstructions(true);
         } else {
           console.error(
             "❌ Failed to open WSL installation page:",
@@ -157,23 +139,9 @@ Alternative method (for advanced users):
 
   // Fallback manual instructions
   const showManualInstructions = () => {
-    const instructions = `To install WSL, please follow these steps:
+    const instructions = `To install WSL, please click the "Install" button below to open Microsoft Store, or visit our detailed setup guide:
 
-Method 1 (Recommended for beginners):
-1. Go to Microsoft Store and install WSL
-2. Restart your computer when prompted
-3. Go back to Microsoft Store and search for "Ubuntu"
-4. Install Ubuntu (or any Linux distribution you prefer)
-5. Open Ubuntu from Start menu to complete setup
-6. Create your Linux username and password when prompted
-
-Method 2 (For advanced users):
-1. Open PowerShell as Administrator
-2. Run: wsl --install
-3. Follow the setup prompts
-
-Microsoft Store WSL link:
-https://apps.microsoft.com/detail/9PDXGNCFSCZV
+https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/blob/main/packages/playground-hub/WSL_SETUP.md
 
 This dialog will remain open and automatically close when WSL is detected.`;
 
@@ -274,14 +242,6 @@ This dialog will remain open and automatically close when WSL is detected.`;
               {wslInfo && !wslInfo.wsl.isAvailable && (
                 <>
                   <br />
-                  <span style={{ fontSize: "12px", color: "#666666" }}>
-                    {wslInfo.wsl.error?.includes("initial setup") ||
-                    wslInfo.wsl.error?.includes("user account")
-                      ? "WSL is installed but needs initial setup. Please complete the user account configuration."
-                      : wslInfo.wsl.error?.includes("not properly configured")
-                        ? "WSL is installed but not properly configured. Please complete the setup."
-                        : "WSL is not installed or not working properly."}
-                  </span>
                 </>
               )}
               {isCheckingWSL && (
@@ -289,6 +249,35 @@ This dialog will remain open and automatically close when WSL is detected.`;
                   <br />
                   <span style={{ fontSize: "12px", color: "#0066CC" }}>
                     🔍 Checking for WSL installation...
+                  </span>
+                </>
+              )}
+              {showInstructions && (
+                <>
+                  <br />
+                  <span style={{ fontSize: "12px", color: "#666666" }}>
+                    Microsoft Store is opening to install WSL.
+                  </span>
+                  <br />
+                  <br />
+                  <span style={{ fontSize: "12px", color: "#222222" }}>
+                    For detailed setup guide:{" "}
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.electron?.openExternalUrl(
+                          "https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/blob/main/packages/playground-hub/WSL_SETUP.md"
+                        );
+                      }}
+                      style={{
+                        color: "#0066CC",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Click here for setup guide
+                    </a>
                   </span>
                 </>
               )}
