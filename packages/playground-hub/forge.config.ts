@@ -10,21 +10,25 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
-    icon: "src/assets/icons/app-icon.icns",
+    // Default icon (will be overridden by platform-specific icons)
+    icon: "src/assets/icons/favicon.ico",
+    // Windows-specific settings
+    win32metadata: {
+      CompanyName: "Tokamak Network",
+      ProductName: "Tokamak zkEVM Playground Hub",
+      FileDescription: "Tokamak zkEVM Playground Hub",
+      OriginalFilename: "tokamak-zk-evm-playground-hub.exe",
+    },
     // Include binary files, assets, and public folder in the app package
     extraResource: ["src/binaries", "src/assets", "public"],
-    // Disable code signing for development builds
-    ...(process.platform === "darwin" && {
-      osxSign: false,
-    }),
-    // Apple Developer 인증서 설정 (프로덕션 빌드에서만 활성화)
+    // Apple Developer certificate configuration (only for production builds)
     ...(process.platform === "darwin" &&
       process.env.NODE_ENV === "production" && {
         osxSign: {
-          // 인증서 이름 (Keychain에서 확인 가능)
+          // Certificate name (can be checked in Keychain)
           identity: "Developer ID Application: Tokamak Network",
         },
-        // 공증(Notarization) 설정 (선택사항이지만 권장)
+        // Notarization configuration (optional but recommended)
         osxNotarize: {
           appleId: process.env.APPLE_ID || "",
           appleIdPassword: process.env.APPLE_ID_PASSWORD || "",
@@ -34,7 +38,10 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    new MakerSquirrel({}),
+    new MakerSquirrel({
+      // Windows-specific configuration for Squirrel installer
+      setupIcon: "src/assets/icons/favicon.ico",
+    }),
     new MakerZIP({}, ["darwin"]),
     new MakerRpm({}),
     new MakerDeb({}),
