@@ -8,9 +8,7 @@ import { useBenchmark } from "../hooks/useBenchmark";
 import JSZip from "jszip";
 
 const Logs = () => {
-  const { logGroups: test } = useSynthesizerResult();
-
-  const logGroups = test;
+  const { logGroups } = useSynthesizerResult();
 
   return logGroups && logGroups.length > 0 ? (
     logGroups.map((logGroup, index) => (
