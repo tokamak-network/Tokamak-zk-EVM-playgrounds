@@ -18,9 +18,6 @@ export default function LoadingSpinner() {
     return undefined;
   }, [loadingStage]);
 
-  // Debug logs
-  console.log("LoadingSpinner - loadingStage:", loadingStage);
-
   // Only show when playground is in process
   if (!playgroundStageInProcess) return null;
 

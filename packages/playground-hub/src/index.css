@@ -98,3 +98,13 @@ body {
   min-height: 100vh;
   background: linear-gradient(179.38deg, #000306, #003466);
 }
+
+/* Transaction input placeholder styles */
+.transaction-input::placeholder {
+  color: #999;
+  font-family: "IBM Plex Mono";
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}

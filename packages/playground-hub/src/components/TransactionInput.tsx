@@ -69,7 +69,7 @@ export default function TransactionInput() {
       } z-[100]`}
     >
       <input
-        className={`focus:outline-none focus:ring-0 focus:border-transparent`}
+        className={`focus:outline-none focus:ring-0 focus:border-transparent transaction-input`}
         style={{
           width: "100%",
           height: "100%",
@@ -92,6 +92,7 @@ export default function TransactionInput() {
           lineHeight: "normal",
           backgroundColor: isHeroUp ? "transparent" : "#fff",
         }}
+        placeholder={isFocused ? "" : "Enter an Ethereum transaction hash"}
         value={transactionHash}
         onChange={(e) => setTransactionHash(e.target.value)}
         onFocus={() => {
@@ -101,6 +102,9 @@ export default function TransactionInput() {
             // setIsFirstTime(true);
           }
           setIsFocused(true);
+        }}
+        onBlur={() => {
+          setIsFocused(false);
         }}
       ></input>
       <button
@@ -139,12 +143,13 @@ export default function TransactionInput() {
           }
         }}
         onClick={() => {
-          if (isActive) {
-            setIsFocused(false);
+          // Check if button should be active (ignore isFocused for click)
+          const canExecute = isValidTxHash && !errorCase && !isInProcess;
+          if (canExecute) {
             executeAll();
           }
         }}
-        disabled={!isActive && !errorCase}
+        disabled={!isValidTxHash || isInProcess}
       >
         {/* Process Icon */}
         <svg
