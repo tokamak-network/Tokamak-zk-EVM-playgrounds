@@ -21,15 +21,15 @@ export const useSynthesizer = () => {
 
       if (isPackaged) {
         return {
-          synthesizerDir: "resources/binaries/synthesizer",
-          outputDir: "resources/binaries/backend/resource/synthesizer/outputs",
-          synthesizerBinary: "./synthesizer-final",
+          synthesizerDir: "resources/binaries",
+          outputDir: "resources/binaries/resource/synthesizer/outputs",
+          synthesizerScript: "2_run-synthesizer.sh",
         };
       } else {
         return {
-          synthesizerDir: "src/binaries/synthesizer",
-          outputDir: "src/binaries/backend/resource/synthesizer/outputs",
-          synthesizerBinary: "./synthesizer-final",
+          synthesizerDir: "src/binaries",
+          outputDir: "src/binaries/resource/synthesizer/outputs",
+          synthesizerScript: "2_run-synthesizer.sh",
         };
       }
     } catch (error) {
@@ -39,9 +39,9 @@ export const useSynthesizer = () => {
       );
       // Fallback to development paths
       return {
-        synthesizerDir: "src/binaries/synthesizer",
-        outputDir: "src/binaries/backend/resource/synthesizer/outputs",
-        synthesizerBinary: "./synthesizer-final",
+        synthesizerDir: "src/binaries",
+        outputDir: "src/binaries/resource/synthesizer/outputs",
+        synthesizerScript: "2_run-synthesizer.sh",
       };
     }
   }, []);
@@ -133,12 +133,14 @@ export const useSynthesizer = () => {
         console.log("🔍 Synthesizer: Using WSL for execution on Windows");
 
         try {
-          // Execute synthesizer via WSL using the correct synthesizer path
+          // Execute synthesizer script via WSL
           const paths = await getPaths();
+          const scriptPath = `${paths.synthesizerDir}/${paths.synthesizerScript}`;
           result = await window.binaryService.executeSystemCommand([
             "bash",
-            "-c",
-            `cd ${paths.synthesizerDir} && ${paths.synthesizerBinary} parse -r ${RPC_URL} -t ${transactionHash} --output-dir ../backend/resource/synthesizer/outputs`,
+            scriptPath,
+            transactionHash,
+            RPC_URL,
           ]);
         } catch (wslError) {
           console.error("🔍 Synthesizer: WSL execution failed:", wslError);
@@ -155,14 +157,12 @@ export const useSynthesizer = () => {
 
         try {
           const paths = await getPaths();
-          result = await window.binaryService.executeDirectCommand([
-            "parse",
-            "-r",
-            RPC_URL,
-            "-t",
+          const scriptPath = `${paths.synthesizerDir}/${paths.synthesizerScript}`;
+          result = await window.binaryService.executeSystemCommand([
+            "bash",
+            scriptPath,
             transactionHash,
-            "--output-dir",
-            paths.outputDir,
+            RPC_URL,
           ]);
         } catch (directError) {
           console.log(
@@ -189,10 +189,12 @@ export const useSynthesizer = () => {
           // Fallback to system command for non-Windows platforms
           console.log("🔍 Synthesizer: Trying system command fallback");
           const paths = await getPaths();
+          const scriptPath = `${paths.synthesizerDir}/${paths.synthesizerScript}`;
           result = await window.binaryService.executeSystemCommand([
             "bash",
-            "-c",
-            `cd ${paths.synthesizerDir} && ${paths.synthesizerBinary} parse -r ${RPC_URL} -t ${transactionHash} --output-dir ../backend/resource/synthesizer/outputs`,
+            scriptPath,
+            transactionHash,
+            RPC_URL,
           ]);
         }
       }

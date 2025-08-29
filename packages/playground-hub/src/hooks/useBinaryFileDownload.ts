@@ -128,12 +128,11 @@ export const useBinaryFileDownload = () => {
 
       // Define file paths in the binary directory
       const filePaths = {
-        instance:
-          "src/binaries/backend/resource/synthesizer/outputs/instance.json",
+        instance: "src/binaries/resource/synthesizer/outputs/instance.json",
         permutation:
-          "src/binaries/backend/resource/synthesizer/outputs/permutation.json",
+          "src/binaries/resource/synthesizer/outputs/permutation.json",
         placementVariables:
-          "src/binaries/backend/resource/synthesizer/outputs/placementVariables.json",
+          "src/binaries/resource/synthesizer/outputs/placementVariables.json",
       };
 
       // Download each file

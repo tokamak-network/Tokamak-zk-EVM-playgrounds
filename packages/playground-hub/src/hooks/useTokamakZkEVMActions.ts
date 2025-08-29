@@ -26,8 +26,7 @@ export enum TokamakActionType {
 }
 
 export function useTokamakZkEVMActions() {
-  const { startBinary, binaryStatus } =
-    useBinary();
+  const { startBinary, binaryStatus } = useBinary();
   const { parseTONTransfer } = useSynthesizer();
   const { initializeWhenCatchError } = useResetStage();
   const { setPlaygroundStageInProcess } = usePlaygroundStage();
@@ -200,7 +199,7 @@ export function useTokamakZkEVMActions() {
                   "🔍 SetupTrustedSetup: Executing script with WSL support..."
                 );
                 const result = await executeScriptWithWSLSupport(
-                  "src/binaries/backend/1_run-trusted-setup.sh"
+                  "src/binaries/1_run-trusted-setup.sh"
                 );
 
                 console.log(
@@ -243,12 +242,12 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 PreProcess: Executing 2_run-preprocess.sh script with WSL support..."
+                  "🔍 PreProcess: Executing 3_run-preprocess.sh script with WSL support..."
                 );
 
                 // Execute the preprocess script using WSL-aware helper
                 const result = await executeScriptWithWSLSupport(
-                  "src/binaries/backend/2_run-preprocess.sh"
+                  "src/binaries/3_run-preprocess.sh"
                 );
 
                 console.log(
@@ -291,12 +290,12 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 PreProcess: Executing 2_run-preprocess.sh script with WSL support (fallback)..."
+                  "🔍 PreProcess: Executing 3_run-preprocess.sh script with WSL support (fallback)..."
                 );
 
                 // Execute the preprocess script using WSL-aware helper
                 const result = await executeScriptWithWSLSupport(
-                  "src/binaries/backend/2_run-preprocess.sh"
+                  "src/binaries/3_run-preprocess.sh"
                 );
 
                 console.log(
@@ -348,7 +347,7 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 ProveTransaction: Executing 3_run-prove.sh script with WSL support..."
+                  "🔍 ProveTransaction: Executing 4_run-prove.sh script with WSL support..."
                 );
 
                 // Set up streaming data listener for prove logs
@@ -376,7 +375,7 @@ export function useTokamakZkEVMActions() {
 
                 // Execute the prove script using WSL-aware helper
                 const result = await executeScriptWithWSLSupport(
-                  "src/binaries/backend/3_run-prove.sh"
+                  "src/binaries/4_run-prove.sh"
                 );
 
                 console.log(
@@ -420,12 +419,12 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 ProveTransaction: Executing 3_run-prove.sh script with WSL support (fallback)..."
+                  "🔍 ProveTransaction: Executing 4_run-prove.sh script with WSL support (fallback)..."
                 );
 
                 // Execute the prove script using WSL-aware helper
                 const result = await executeScriptWithWSLSupport(
-                  "src/binaries/backend/3_run-prove.sh"
+                  "src/binaries/4_run-prove.sh"
                 );
 
                 console.log(
@@ -454,12 +453,12 @@ export function useTokamakZkEVMActions() {
                   "🔍 Verify: Starting binary-based verify action..."
                 );
                 console.log(
-                  "🔍 Verify: Executing 4_run-verify.sh script with WSL support..."
+                  "🔍 Verify: Executing 5_run-verify.sh script with WSL support..."
                 );
 
                 // Execute the verify script using WSL-aware helper
                 const result = await executeScriptWithWSLSupport(
-                  "src/binaries/backend/4_run-verify.sh"
+                  "src/binaries/5_run-verify.sh"
                 );
 
                 console.log("🔍 Verify: Script execution completed:", result);
@@ -496,12 +495,12 @@ export function useTokamakZkEVMActions() {
 
               try {
                 console.log(
-                  "🔍 Verify: Executing 4_run-verify.sh script with WSL support (fallback)..."
+                  "🔍 Verify: Executing 5_run-verify.sh script with WSL support (fallback)..."
                 );
 
                 // Execute the verify script using WSL-aware helper
                 const result = await executeScriptWithWSLSupport(
-                  "src/binaries/backend/4_run-verify.sh"
+                  "src/binaries/5_run-verify.sh"
                 );
 
                 console.log(

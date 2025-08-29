@@ -57,7 +57,7 @@ export const useSynthesizerResult = (): SynthesizerResultData & {
 
       // Read the instance.json file from binary directory
       const result = await window.binaryService.readBinaryFile(
-        "src/binaries/backend/resource/synthesizer/outputs/instance.json"
+        "src/binaries/resource/synthesizer/outputs/instance.json"
       );
 
       console.log("📄 Instance.json content length:", result.length);

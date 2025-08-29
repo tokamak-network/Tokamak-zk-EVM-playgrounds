@@ -791,6 +791,14 @@ function setupIpcHandlers() {
             // Development: source directory
             return path.join(app.getAppPath(), arg);
           }
+        } else if (arg.startsWith("resources/binaries/")) {
+          if (app.isPackaged) {
+            // Production: already in resources format
+            return path.join(process.resourcesPath, arg.substring(10)); // Remove "resources/"
+          } else {
+            // Development: convert to src path
+            return path.join(app.getAppPath(), "src", arg.substring(10)); // Remove "resources/"
+          }
         }
         return arg;
       });
@@ -806,21 +814,15 @@ function setupIpcHandlers() {
             `Set execute permissions for script: ${processedCommand[0]}`
           );
 
-          // Also ensure all binaries in backend/bin have execute permissions
+          // Also ensure all binaries in bin have execute permissions
           let backendBinDir: string;
           if (app.isPackaged) {
-            backendBinDir = path.join(
-              process.resourcesPath,
-              "binaries",
-              "backend",
-              "bin"
-            );
+            backendBinDir = path.join(process.resourcesPath, "binaries", "bin");
           } else {
             backendBinDir = path.join(
               app.getAppPath(),
               "src",
               "binaries",
-              "backend",
               "bin"
             );
           }
@@ -858,7 +860,7 @@ function setupIpcHandlers() {
                 );
               });
 
-              // Remove quarantine from all binaries in backend/bin
+              // Remove quarantine from all binaries in bin
               if (fs.existsSync(backendBinDir)) {
                 const binFiles = fs.readdirSync(backendBinDir);
                 for (const binFile of binFiles) {
@@ -892,20 +894,15 @@ function setupIpcHandlers() {
       }
 
       return new Promise((resolve, reject) => {
-        // Set working directory to backend directory for script execution
+        // Set working directory to binaries directory for script execution
         let scriptWorkingDirectory: string;
         if (app.isPackaged) {
-          scriptWorkingDirectory = path.join(
-            process.resourcesPath,
-            "binaries",
-            "backend"
-          );
+          scriptWorkingDirectory = path.join(process.resourcesPath, "binaries");
         } else {
           scriptWorkingDirectory = path.join(
             app.getAppPath(),
             "src",
-            "binaries",
-            "backend"
+            "binaries"
           );
         }
 
@@ -920,7 +917,7 @@ function setupIpcHandlers() {
           path.join(
             scriptWorkingDirectory,
             "resource",
-            "qap_compiler",
+            "qap-compiler",
             "library",
             "wasm"
           ),
@@ -1197,6 +1194,14 @@ function setupIpcHandlers() {
           } else {
             // Development: source directory
             return path.join(app.getAppPath(), arg);
+          }
+        } else if (arg.startsWith("resources/binaries/")) {
+          if (app.isPackaged) {
+            // Production: already in resources format
+            return path.join(process.resourcesPath, arg.substring(10)); // Remove "resources/"
+          } else {
+            // Development: convert to src path
+            return path.join(app.getAppPath(), "src", arg.substring(10)); // Remove "resources/"
           }
         }
         return arg;
@@ -1548,6 +1553,14 @@ function setupIpcHandlers() {
               // Development: source directory
               return path.join(app.getAppPath(), arg);
             }
+          } else if (arg.startsWith("resources/binaries/")) {
+            if (app.isPackaged) {
+              // Production: already in resources format
+              return path.join(process.resourcesPath, arg.substring(10)); // Remove "resources/"
+            } else {
+              // Development: convert to src path
+              return path.join(app.getAppPath(), "src", arg.substring(10)); // Remove "resources/"
+            }
           }
           return arg;
         });
@@ -1790,31 +1803,18 @@ app.whenReady().then(async () => {
   binaryService = new BinaryService();
   console.log("Binary service initialized");
 
-  // Ensure all backend binaries have execute permissions on startup
+  // Ensure all binaries have execute permissions on startup
   try {
     let backendBinDir: string;
     if (app.isPackaged) {
-      backendBinDir = path.join(
-        process.resourcesPath,
-        "binaries",
-        "backend",
-        "bin"
-      );
+      backendBinDir = path.join(process.resourcesPath, "binaries", "bin");
     } else {
-      backendBinDir = path.join(
-        app.getAppPath(),
-        "src",
-        "binaries",
-        "backend",
-        "bin"
-      );
+      backendBinDir = path.join(app.getAppPath(), "src", "binaries", "bin");
     }
 
     if (fs.existsSync(backendBinDir)) {
       const binFiles = fs.readdirSync(backendBinDir);
-      console.log(
-        `Setting permissions for ${binFiles.length} backend binaries...`
-      );
+      console.log(`Setting permissions for ${binFiles.length} binaries...`);
 
       for (const binFile of binFiles) {
         const binPath = path.join(backendBinDir, binFile);
@@ -1844,7 +1844,7 @@ app.whenReady().then(async () => {
       }
     }
   } catch (error) {
-    console.warn("Failed to initialize backend binary permissions:", error);
+    console.warn("Failed to initialize binary permissions:", error);
   }
 
   // macOS에서만 dock 아이콘 설정
