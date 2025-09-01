@@ -196,12 +196,10 @@ export const useBinaryFileDownload = () => {
 
       // Define file paths in the binary directory
       const filePaths = {
-        combinedSigna:
-          "src/binaries/backend/resource/setup/output/combined_sigma.json",
+        combinedSigna: "src/binaries/resource/setup/output/combined_sigma.json",
         sigmaPreprocess:
-          "src/binaries/backend/resource/setup/output/sigma_preprocess.json",
-        sigmaVerify:
-          "src/binaries/backend/resource/setup/output/sigma_verify.json",
+          "src/binaries/resource/setup/output/sigma_preprocess.json",
+        sigmaVerify: "src/binaries/resource/setup/output/sigma_verify.json",
       };
 
       // For setup files, we only read the small sigma_verify file
@@ -263,7 +261,7 @@ export const useBinaryFileDownload = () => {
       console.log("Starting preprocess file download...");
 
       const filePath =
-        "src/binaries/backend/resource/preprocess/output/preprocess.json";
+        "src/binaries/resource/preprocess/output/preprocess.json";
 
       console.log(`Reading preprocess file from: ${filePath}`);
 
@@ -310,7 +308,7 @@ export const useBinaryFileDownload = () => {
     try {
       console.log("Starting prove file download...");
 
-      const filePath = "src/binaries/backend/resource/prove/output/proof.json";
+      const filePath = "src/binaries/resource/prove/output/proof.json";
 
       console.log(`Reading prove file from: ${filePath}`);
 

@@ -1,7 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 
-// preload.ts에서 정의한 API를 위한 타입 선언 (실제 window 객체에 있는 것처럼 사용하기 위함)
-// 필요하다면 d.ts 파일로 분리하여 관리할 수 있습니다.
+// Type declarations for the API defined in preload.ts (to use as if it exists on the window object)
+// Can be separated into a d.ts file for better management if needed.
 declare global {
   interface Window {
     fileDownloaderAPI: {
@@ -25,7 +25,7 @@ export interface DownloadProgressData {
   percentage: number;
   downloadedSize: number;
   totalSize: number | null;
-  message?: string; // 메인 프로세스에서 추가적인 메시지를 보낼 경우
+  message?: string; // Additional message from the main process if needed
 }
 
 export interface DockerLoadStatusData {
@@ -36,26 +36,26 @@ export interface DockerLoadStatusData {
 
 interface UseElectronFileDownloaderResult {
   /**
-   * 지정된 URL에서 파일 다운로드를 시작하고 Docker 이미지로 로드합니다.
-   * @param url 다운로드할 파일의 URL
-   * @param filename 저장할 파일 이름 (선택 사항). 메인 프로세스에서 기본값을 사용합니다.
+   * Start downloading a file from the specified URL and load it as a Docker image.
+   * @param url URL of the file to download
+   * @param filename File name to save (optional). Main process will use default if not provided.
    */
   startDownloadAndLoad: (url: string, filename?: string) => Promise<void>;
-  /** 현재 다운로드 진행 상태 */
+  /** Current download progress status */
   downloadProgress: DownloadProgressData;
-  /** 현재 Docker 이미지 로드 상태 */
+  /** Current Docker image load status */
   loadStatus: DockerLoadStatusData;
-  /** 파일 처리 중인지 여부 (다운로드 또는 로딩) */
+  /** Whether file is being processed (downloading or loading) */
   isProcessing: boolean;
   isPaused: boolean;
-  /** 일시 중지 상태 */
+  /** Pause download */
   pauseDownload: () => Promise<void>;
-  /** 재개 상태 */
+  /** Resume download */
   resumeDownload: () => Promise<void>;
 }
 
 /**
- * Electron 환경에서 파일 다운로드, Docker 이미지 로드 및 진행률/상태 추적을 위한 React 커스텀 훅입니다.
+ * React custom hook for file download, Docker image loading, and progress/status tracking in Electron environment.
  */
 const useElectronFileDownloader = (): UseElectronFileDownloaderResult => {
   const [downloadProgress, setDownloadProgress] =
@@ -71,46 +71,36 @@ const useElectronFileDownloader = (): UseElectronFileDownloaderResult => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
-  // useEffect 내에서 IPC 리스너 관리를 위해 ref 사용 (선택적이지만 안정적)
-  const onDownloadProgressListenerRef = useRef<
-    ((data: DownloadProgressData) => void) | null
-  >(null);
-  const onDockerLoadStatusListenerRef = useRef<
-    ((data: DockerLoadStatusData) => void) | null
-  >(null);
-
   useEffect(() => {
-    // 다운로드 진행률 리스너 설정
+    // Set up download progress listener
     const progressCallback = (data: DownloadProgressData) => {
       setDownloadProgress(data);
-      // loadStatus의 메시지도 업데이트할 수 있음 (예: "Downloading: X MB / Y MB")
+      // Can also update loadStatus message (e.g., "Downloading: X MB / Y MB")
       // setLoadStatus(prev => ({ ...prev, message: `Downloading: ${data.percentage}%`}));
     };
-    onDownloadProgressListenerRef.current = progressCallback; // ref에 콜백 저장
     const unsubscribeProgress =
       window.fileDownloaderAPI.onDownloadProgress(progressCallback);
 
-    // Docker 로드 상태 리스너 설정
+    // Set up Docker load status listener
     const statusCallback = (data: DockerLoadStatusData) => {
       setLoadStatus(data);
       if (data.stage === "completed" || data.stage === "failed") {
         setIsProcessing(false);
       }
       if (data.stage === "downloading") {
-        // downloadProgress가 이 stage를 커버하므로, 여기서는 특별히 상태를 변경 안 함
-        // 또는 더 명확한 메시지를 설정할 수 있음
+        // downloadProgress covers this stage, so no special state change here
+        // Or can set a more explicit message
       }
     };
-    onDockerLoadStatusListenerRef.current = statusCallback; // ref에 콜백 저장
     const unsubscribeStatus =
       window.fileDownloaderAPI.onDockerLoadStatus(statusCallback);
 
-    // 컴포넌트 언마운트 시 리스너 정리
+    // Clean up listeners on component unmount
     return () => {
       unsubscribeProgress();
       unsubscribeStatus();
     };
-  }, []); // 빈 배열로 마운트 시 한 번만 실행
+  }, []); // Empty array to run only once on mount
 
   const startDownloadAndLoad = useCallback(
     async (url: string, filename?: string) => {
@@ -133,24 +123,24 @@ const useElectronFileDownloader = (): UseElectronFileDownloaderResult => {
         percentage: 0,
         downloadedSize: 0,
         totalSize: null,
-      }); // 진행률 초기화
+      }); // Initialize progress
 
       try {
-        // 메인 프로세스에 작업 요청
+        // Request work from main process
         const result = await window.fileDownloaderAPI.downloadAndLoadImage({
           url,
           filename,
         });
 
-        // downloadAndLoadImage의 반환값은 최종 결과이므로,
-        // onDockerLoadStatus를 통해 이미 최종 상태가 업데이트 되었을 것임.
-        // 여기서는 추가적인 로깅이나 아주 최종적인 UI 업데이트를 할 수 있음.
+        // downloadAndLoadImage return value is the final result,
+        // so the final status should already be updated via onDockerLoadStatus.
+        // Here we can do additional logging or final UI updates.
         if (result.success) {
           console.log("Main process reported overall success:", result.message);
         } else {
           console.error("Main process reported overall failure:", result.error);
-          // setLoadStatus는 onDockerLoadStatus 콜백에서 이미 처리되었을 가능성이 높음
-          // 만약 IPC 메시지가 누락될 경우를 대비한 방어 코드
+          // setLoadStatus likely already handled in onDockerLoadStatus callback
+          // Defensive code in case IPC message is missed
           if (loadStatus.stage !== "failed") {
             setLoadStatus({
               stage: "failed",
@@ -160,7 +150,7 @@ const useElectronFileDownloader = (): UseElectronFileDownloaderResult => {
           }
         }
       } catch (err) {
-        // invoke 자체에서 발생한 에러
+        // Error from invoke itself
         console.error("Error invoking downloadAndLoadImage:", err);
         setLoadStatus({
           stage: "failed",
@@ -172,9 +162,9 @@ const useElectronFileDownloader = (): UseElectronFileDownloaderResult => {
         });
         setIsProcessing(false);
       }
-      // isProcessing은 onDockerLoadStatus 콜백에서 'completed' 또는 'failed' 시 false로 설정됨
+      // isProcessing is set to false in onDockerLoadStatus callback when 'completed' or 'failed'
     },
-    [loadStatus.stage] // loadStatus.stage 변경 시 콜백 재생성 (중복 실행 방지용으로 상태값 확인)
+    [loadStatus.stage] // Recreate callback when loadStatus.stage changes (check state value to prevent duplicate execution)
   );
 
   const pauseDownload = useCallback(async () => {
