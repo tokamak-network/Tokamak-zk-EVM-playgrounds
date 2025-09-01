@@ -475,9 +475,15 @@ async function checkWSLDistribution(): Promise<{
 
         // Extract distribution name (first word after cleaning)
         const parts = cleanLine.split(/\s+/);
-        const distroName = parts[0];
+        let distroName = parts[0];
 
         if (distroName && distroName.length > 0) {
+          // Normalize Ubuntu variants (Ubuntu0, Ubuntu-20.04, etc.) to just "Ubuntu"
+          if (distroName.toLowerCase().startsWith("ubuntu")) {
+            distroName = "Ubuntu";
+            console.log("🔍 Normalized Ubuntu variant to:", distroName);
+          }
+
           // Skip Docker Desktop distributions, prefer Linux distributions
           if (!distroName.toLowerCase().includes("docker")) {
             foundDistribution = distroName;
@@ -522,9 +528,18 @@ async function checkWSLDistribution(): Promise<{
         const runningLines = runningDistros.trim().split("\n");
         if (runningLines.length > 1) {
           const cleanLine = runningLines[1].replace(/[^\w\-\s]/g, "").trim();
-          const distroName = cleanLine.split(/\s+/)[0];
+          let distroName = cleanLine.split(/\s+/)[0];
 
           if (distroName) {
+            // Normalize Ubuntu variants (Ubuntu0, Ubuntu-20.04, etc.) to just "Ubuntu"
+            if (distroName.toLowerCase().startsWith("ubuntu")) {
+              distroName = "Ubuntu";
+              console.log(
+                "🔍 Normalized running Ubuntu variant to:",
+                distroName
+              );
+            }
+
             console.log("✅ WSL running distribution found:", distroName);
             return {
               isAvailable: true,
