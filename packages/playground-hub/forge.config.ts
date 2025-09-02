@@ -26,19 +26,23 @@ const config: ForgeConfig = {
     },
     // Include binary files, assets, and public folder in the app package
     extraResource: ["src/binaries", "src/assets", "public"],
-    // Apple Developer certificate configuration (only for production builds)
+    // Apple Developer certificate configuration (with file access permissions)
     ...(process.platform === "darwin" &&
       process.env.NODE_ENV === "production" && {
         osxSign: {
           // Certificate name (can be checked in Keychain)
-          identity: "Developer ID Application: Tokamak Network",
+          identity: "3524416ED3903027378EA41BB258070785F977F9",
         },
-        // Notarization configuration (optional but recommended)
+        // Notarization configuration (reduces security prompts)
+        // TODO: Enable after getting Apple ID credentials from administrator
+        // Uncomment the following block when ready for notarization:
+        /*
         osxNotarize: {
           appleId: process.env.APPLE_ID || "",
           appleIdPassword: process.env.APPLE_ID_PASSWORD || "",
-          teamId: process.env.APPLE_TEAM_ID || "",
+          teamId: process.env.APPLE_TEAM_ID || "B5WMFK82H9",
         },
+        */
       }),
   },
   rebuildConfig: {},

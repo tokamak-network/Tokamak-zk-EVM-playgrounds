@@ -29,10 +29,8 @@ contextBridge.exposeInMainWorld("binaryService", {
     ipcRenderer.invoke("binary-execute-direct", command),
   executeSystemCommand: (command: string[]) =>
     ipcRenderer.invoke("system-execute-command", command),
-  executeSystemCommandWithSudo: (command: string[]) =>
-    ipcRenderer.invoke("system-execute-command-with-sudo", command),
-  executeScriptWithSudo: (scriptPath: string) =>
-    ipcRenderer.invoke("system-execute-script-with-sudo", scriptPath),
+
+
   readBinaryFile: (filePath: string) =>
     ipcRenderer.invoke("binary-read-file", filePath),
 });

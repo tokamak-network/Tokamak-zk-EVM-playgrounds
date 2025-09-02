@@ -78,23 +78,56 @@ Welcome to **Tokamak-zk-evm-playground**! 🚀 Ready to turn any Ethereum transa
 
 **🎉 Congratulations! You have completed one full cycle of the Tokamak-zk-EVM-playground.**
 
-**Analyzing Additional Transactions:**
+**Proving Additional Transactions:**
 
-- If you want to analyze other transactions, simply repeat steps 2-6 above.
-- Enter a new transaction hash and click the Process button to proceed with the analysis in the same way.
+- If you want to process other transactions, simply repeat steps 2-6 above.
+- Enter a new transaction hash and click the Process button to proceed in the same way.
 - Each transaction will provide unique analysis results and Proof data.
 
-## 6. Having Trouble? (Simple Troubleshooting) 🤔
+## 7. Understanding the Transaction Logs 📊
+
+After the proof generation is complete, you'll see detailed transaction logs displayed in the results section. These logs contain the same information that you can find in the "Logs" tab of any transaction on Etherscan, demonstrating that Tokamak-zk-EVM processes transactions in exactly the same way as the actual Ethereum Virtual Machine (EVM).
+
+**What the logs show:**
+
+- **Topics**: These are indexed parameters from smart contract events, displayed as hexadecimal values with 0x prefix
+- **Values**: These are non-indexed event data, converted from hexadecimal to decimal format for easier reading
+
+**Why these logs matter:**
+
+The logs serve as indirect proof that your transaction was processed correctly by Tokamak-zk-EVM using the same execution logic as the real Ethereum network. By comparing these logs with the original transaction logs on Etherscan, you can verify that the zk-EVM execution produced identical results to the mainnet execution.
+
+**How to verify:**
+
+1. Go to your original transaction on Etherscan
+2. Click on the "Logs" tab
+3. Compare the Topics and Data values with what's displayed in the playground results
+4. The values should match exactly, confirming successful zk-EVM execution
+
+This verification process demonstrates the reliability and accuracy of Tokamak's zero-knowledge Ethereum Virtual Machine implementation.
+
+## 8. Having Trouble? (Simple Troubleshooting) 🤔
 
 - **Performance is slower than expected:**
 
-  - This is normal - the playground works perfectly fine, typically completing within 5 minutes on average computer specifications, or at most 10 minutes
+  This is normal - the playground works perfectly fine! Processing times vary based on your hardware specifications. Please refer to the benchmark table below:
+
+  **Proof Generation Time** (for a single proof handling up to 4 TON transfer transactions):
+
+  | Hardware Configuration   | Processing Time |
+  | ------------------------ | --------------- |
+  | 12th Gen Intel i3 CPU    | 3-4 minutes     |
+  | Apple Silicon M4 Pro CPU | 1-2 minutes     |
+  | CUDA with RTX 3070ti     | < 1 minute      |
+
+  - If your computer has lower specifications than those listed in the table above, processing may take longer (typically 5-10 minutes or more)
+  - This is completely normal and the playground will still work perfectly - just be patient!
   - For faster performance, consider installing CUDA if you have an NVIDIA GPU (see [CUDA Setup Guide](./CUDA_SETUP.md))
   - Close other resource-intensive applications during processing
 
 - **If you need more help, leave an issue on the [GitHub Issues page](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/issues):**
 
-## 7. Uninstalling the Program 🗑️
+## 9. Uninstalling the Program 🗑️
 
 - **Uninstalling Tokamak-zk-evm-playground:**
   - Exit the `Tokamak-zk-evm-playground` program.

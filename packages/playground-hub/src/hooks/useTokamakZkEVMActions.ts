@@ -15,7 +15,6 @@ import {
 // CUDA API types are defined in render.d.ts
 
 export enum TokamakActionType {
-  InstallDependencies = "INSTALL_DEPENDENCIES",
   SetupEvmSpec = "SETUP_EVM_SPEC",
   RunSynthesizer = "RUN_SYNTHESIZER",
   ProveTransaction = "PROVE_TRANSACTION",
@@ -129,26 +128,6 @@ export function useTokamakZkEVMActions() {
         // WSL check removed - handled at app startup level
 
         switch (actionType) {
-          case TokamakActionType.InstallDependencies:
-            console.log(
-              "🔍 InstallDependencies: Starting installation process..."
-            );
-
-            try {
-              console.log("🔍 InstallDependencies: Executing 1_install.sh...");
-              const result = await window.binaryService.executeScriptWithSudo(
-                "src/binaries/backend/1_install.sh"
-              );
-
-              console.log(
-                "🔍 InstallDependencies: Installation completed successfully"
-              );
-              return result;
-            } catch (error) {
-              console.error("🔍 InstallDependencies: Error occurred:", error);
-              throw error;
-            }
-
           case TokamakActionType.SetupEvmSpec:
             try {
               // Start binary process
@@ -731,10 +710,6 @@ export function useTokamakZkEVMActions() {
     return executeTokamakAction(TokamakActionType.Verify);
   }, [executeTokamakAction]);
 
-  const runInstallDependencies = useCallback(async () => {
-    return executeTokamakAction(TokamakActionType.InstallDependencies);
-  }, [executeTokamakAction]);
-
   const executeAll = useCallback(async () => {
     return await executeTokamakAction(TokamakActionType.ExecuteAll);
   }, [executeTokamakAction]);
@@ -747,7 +722,6 @@ export function useTokamakZkEVMActions() {
     runSetupTrustedSetup,
     runPreProcess,
     runVerify,
-    runInstallDependencies,
     executeAll,
     shouldUseWSL,
   };

@@ -9,7 +9,7 @@
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "make:signed": "electron-forge make --platform=darwin",
+    "make:signed": "NODE_ENV=production electron-forge make --platform=darwin",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "build": "npm run build:cjs && npm run build:esm",
@@ -74,7 +74,6 @@
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.0",
-    "sudo-prompt": "^9.2.1"
+    "react-router-dom": "^7.6.0"
   }
 }
