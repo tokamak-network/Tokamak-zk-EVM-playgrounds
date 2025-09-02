@@ -20,14 +20,7 @@ const MainContent = () => {
   const { isInProcess, isFirstTime, isHeroUp, isStarted } = useUI();
 
   return (
-    <div
-      className="flex flex-col justify-center items-center h-screen overflow-auto pt-[75px] relative"
-      style={{
-        background: "linear-gradient(179.38deg, #000306, #003466)",
-        minHeight: "100vh",
-        width: "100%",
-      }}
-    >
+    <div className="flex flex-col justify-center items-center h-screen overflow-auto pt-[75px] relative">
       {/* Background stars component */}
       <Stars isOverBreakpoint={isOverBreakpoint} />
       {/* Header with logo */}

@@ -55,10 +55,14 @@ export const useSynthesizerResult = (): SynthesizerResultData & {
 
       console.log("🔍 Fetching instance.json from binary directory...");
 
-      // Read the instance.json file from binary directory
-      const result = await window.binaryService.readBinaryFile(
-        "src/binaries/resource/synthesizer/outputs/instance.json"
-      );
+      // Read the instance.json file from /tmp directory
+      // Platform-specific paths: Windows uses original paths, macOS/Linux uses /tmp
+      const isWindows = window.navigator.platform.toLowerCase().includes("win");
+      const instancePath = isWindows
+        ? "src/binaries/resource/synthesizer/outputs/instance.json"
+        : "/tmp/tokamak-zk-evm/synthesizer/outputs/instance.json";
+
+      const result = await window.binaryService.readBinaryFile(instancePath);
 
       console.log("📄 Instance.json content length:", result.length);
       console.log(

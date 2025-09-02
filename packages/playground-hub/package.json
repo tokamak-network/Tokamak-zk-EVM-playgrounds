@@ -1,6 +1,6 @@
 {
-  "name": "tokamak-zk-evm-playground-hub",
-  "productName": "tokamak-zk-evm-playground-hub",
+  "name": "tokamak-zk-evm-playground",
+  "productName": "Tokamak-zk-EVM-playground",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
@@ -17,7 +17,7 @@
     "build:esm": "tsc --module es2020 --outDir dist/esm"
   },
   "build": {
-    "appId": "tokamak-zk-evm-playground-hub",
+    "appId": "com.tokamak.zk-evm-playground",
     "mac": {
       "icon": "src/assets/icons/app-icon.icns",
       "entitlements": "src/entitlements.plist",
@@ -42,6 +42,7 @@
   "devDependencies": {
     "@electron-forge/cli": "^7.8.0",
     "@electron-forge/maker-deb": "^7.8.0",
+    "@electron-forge/maker-dmg": "^7.8.3",
     "@electron-forge/maker-rpm": "^7.8.0",
     "@electron-forge/maker-squirrel": "^7.8.0",
     "@electron-forge/maker-zip": "^7.8.0",

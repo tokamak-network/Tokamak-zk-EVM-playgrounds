@@ -126,13 +126,16 @@ export const useBinaryFileDownload = () => {
 
       console.log("Downloading synthesizer files from binary directory...");
 
-      // Define file paths in the binary directory
+      // Platform-specific paths: Windows uses original paths, macOS/Linux uses /tmp
+      const isWindows = window.navigator.platform.toLowerCase().includes("win");
+      const baseOutputPath = isWindows
+        ? "src/binaries/resource/synthesizer/outputs"
+        : "/tmp/tokamak-zk-evm/synthesizer/outputs";
+
       const filePaths = {
-        instance: "src/binaries/resource/synthesizer/outputs/instance.json",
-        permutation:
-          "src/binaries/resource/synthesizer/outputs/permutation.json",
-        placementVariables:
-          "src/binaries/resource/synthesizer/outputs/placementVariables.json",
+        instance: `${baseOutputPath}/instance.json`,
+        permutation: `${baseOutputPath}/permutation.json`,
+        placementVariables: `${baseOutputPath}/placementVariables.json`,
       };
 
       // Download each file
@@ -260,8 +263,11 @@ export const useBinaryFileDownload = () => {
     try {
       console.log("Starting preprocess file download...");
 
-      const filePath =
-        "src/binaries/resource/preprocess/output/preprocess.json";
+      // Platform-specific paths: Windows uses original paths, macOS/Linux uses /tmp
+      const isWindows = window.navigator.platform.toLowerCase().includes("win");
+      const filePath = isWindows
+        ? "src/binaries/resource/preprocess/output/preprocess.json"
+        : "/tmp/tokamak-zk-evm/preprocess/output/preprocess.json";
 
       console.log(`Reading preprocess file from: ${filePath}`);
 
@@ -308,7 +314,7 @@ export const useBinaryFileDownload = () => {
     try {
       console.log("Starting prove file download...");
 
-      const filePath = "src/binaries/resource/prove/output/proof.json";
+      const filePath = "/tmp/tokamak-zk-evm/prove/output/proof.json";
 
       console.log(`Reading prove file from: ${filePath}`);
 

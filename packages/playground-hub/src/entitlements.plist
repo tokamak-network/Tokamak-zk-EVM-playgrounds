@@ -2,24 +2,5 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- Allow app to modify its own bundle contents and execute binaries -->
-    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-    <true/>
-    <key>com.apple.security.cs.allow-jit</key>
-    <true/>
-    <key>com.apple.security.cs.disable-library-validation</key>
-    <true/>
-    
-    <!-- File system access for app bundle and user directories -->
-    <key>com.apple.security.files.user-selected.read-write</key>
-    <true/>
-    <key>com.apple.security.files.downloads.read-write</key>
-    <true/>
-    
-    <!-- Allow app to read/write its own Resources directory -->
-    <key>com.apple.security.temporary-exception.files.absolute-path.read-write</key>
-    <array>
-        <string>/Applications/Tokamak zkEVM Playground Hub.app/Contents/Resources/</string>
-    </array>
 </dict>
 </plist>

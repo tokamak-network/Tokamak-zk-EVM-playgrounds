@@ -29,6 +29,32 @@ if (started) {
   app.quit();
 }
 
+// Disable Electron Safe Storage to prevent keychain access prompts
+app.commandLine.appendSwitch(
+  "disable-features",
+  "ElectronSerialChooser,SafeStorage,PasswordManager,AutofillManager"
+);
+
+// Set environment variables before app initialization
+process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = "true";
+process.env.ELECTRON_DISABLE_SAFE_STORAGE = "true";
+
+if (process.platform === "darwin") {
+  // Disable Safe Storage and keychain access on macOS
+  app.commandLine.appendSwitch(
+    "disable-features",
+    "SafeStorage,KeychainAccess,PasswordManager"
+  );
+  app.commandLine.appendSwitch("disable-background-timer-throttling");
+  app.commandLine.appendSwitch("disable-renderer-backgrounding");
+
+  // Override Safe Storage before app ready
+  const originalSafeStorage = require("electron").safeStorage;
+  if (originalSafeStorage) {
+    originalSafeStorage.isEncryptionAvailable = () => false;
+  }
+}
+
 const createWindow = () => {
   // Set fixed window size to 1200x910
   const width = 1200;
@@ -1199,7 +1225,11 @@ function setupIpcHandlers() {
   ipcMain.handle("binary-read-file", async (event, filePath: string) => {
     try {
       let fullPath: string;
-      if (app.isPackaged) {
+
+      // Check if it's an absolute path (starts with / on Unix or C:\ on Windows)
+      if (path.isAbsolute(filePath)) {
+        fullPath = filePath;
+      } else if (app.isPackaged) {
         // Production: resources folder (src/ prefix is removed in extraResource)
         const resourcePath = filePath.startsWith("src/")
           ? filePath.substring(4)

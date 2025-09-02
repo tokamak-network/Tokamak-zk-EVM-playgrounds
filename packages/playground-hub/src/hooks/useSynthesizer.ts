@@ -19,16 +19,22 @@ export const useSynthesizer = () => {
 
       console.log("🔍 Synthesizer: Environment check:", { isPackaged });
 
+      // Platform-specific output directory: Windows uses original paths, macOS/Linux uses /tmp
+      const isWindows = window.navigator.platform.toLowerCase().includes("win");
+      const outputDir = isWindows
+        ? "src/binaries/resource/synthesizer/outputs"
+        : "/tmp/tokamak-zk-evm/synthesizer/outputs";
+
       if (isPackaged) {
         return {
           synthesizerDir: "resources/binaries",
-          outputDir: "resources/binaries/resource/synthesizer/outputs",
+          outputDir,
           synthesizerScript: "2_run-synthesizer.sh",
         };
       } else {
         return {
           synthesizerDir: "src/binaries",
-          outputDir: "src/binaries/resource/synthesizer/outputs",
+          outputDir,
           synthesizerScript: "2_run-synthesizer.sh",
         };
       }
@@ -38,9 +44,14 @@ export const useSynthesizer = () => {
         error
       );
       // Fallback to development paths
+      const isWindows = window.navigator.platform.toLowerCase().includes("win");
+      const outputDir = isWindows
+        ? "src/binaries/resource/synthesizer/outputs"
+        : "/tmp/tokamak-zk-evm/synthesizer/outputs";
+
       return {
         synthesizerDir: "src/binaries",
-        outputDir: "src/binaries/resource/synthesizer/outputs",
+        outputDir,
         synthesizerScript: "2_run-synthesizer.sh",
       };
     }
@@ -156,14 +167,52 @@ export const useSynthesizer = () => {
         );
 
         try {
+          console.log("🔍 Synthesizer: Getting paths...");
           const paths = await getPaths();
+          console.log("🔍 Synthesizer: Paths obtained:", paths);
+
           const scriptPath = `${paths.synthesizerDir}/${paths.synthesizerScript}`;
-          result = await window.binaryService.executeSystemCommand([
-            "bash",
-            scriptPath,
-            transactionHash,
-            RPC_URL,
-          ]);
+          console.log("🔍 Synthesizer: Script path:", scriptPath);
+          console.log("🔍 Synthesizer: Transaction hash:", transactionHash);
+          console.log("🔍 Synthesizer: RPC URL:", RPC_URL);
+
+          console.log("🔍 Synthesizer: About to execute system command...");
+          console.log(
+            "🔍 Synthesizer: Checking window.binaryService:",
+            !!window.binaryService
+          );
+          console.log(
+            "🔍 Synthesizer: Checking executeSystemCommand:",
+            !!window.binaryService?.executeSystemCommand
+          );
+
+          const commandArray = ["bash", scriptPath, transactionHash, RPC_URL];
+          console.log("🔍 Synthesizer: Command array:", commandArray);
+
+          try {
+            console.log("🔍 Synthesizer: Calling executeSystemCommand...");
+
+            // Add timeout to prevent infinite hanging
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => {
+                reject(
+                  new Error("executeSystemCommand timed out after 30 seconds")
+                );
+              }, 30000);
+            });
+
+            const executePromise =
+              window.binaryService.executeSystemCommand(commandArray);
+
+            result = await Promise.race([executePromise, timeoutPromise]);
+            console.log("🔍 Synthesizer: System command completed:", result);
+          } catch (executeError) {
+            console.error(
+              "🔍 Synthesizer: executeSystemCommand failed:",
+              executeError
+            );
+            throw executeError;
+          }
         } catch (directError) {
           console.log(
             "🔍 Synthesizer: Direct execution failed:",
