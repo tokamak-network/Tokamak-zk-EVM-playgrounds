@@ -88,10 +88,11 @@ export function useTokamakZkEVMActions() {
             `🔍 WSL script execution using Synthesizer pattern: ${scriptPath}`
           );
 
+          // Execute script directly without changing directory
+          // Since the system command already sets the correct working directory
           return await window.binaryService.executeSystemCommand([
             "bash",
-            "-c",
-            `cd ${scriptPath.replace(/\/[^\/]*$/, "")} && /usr/bin/bash ./${scriptPath.split("/").pop()}`,
+            scriptPath,
           ]);
         } catch (error) {
           console.error("🔍 WSL execution failed:", error);

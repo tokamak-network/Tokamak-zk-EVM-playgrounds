@@ -474,9 +474,15 @@ async function checkWSLDistribution(): Promise<{
 
         // Extract distribution name (first word after cleaning)
         const parts = cleanLine.split(/\s+/);
-        const distroName = parts[0];
+        let distroName = parts[0];
 
         if (distroName && distroName.length > 0) {
+          // Normalize Ubuntu variants (Ubuntu0, Ubuntu-20.04, etc.) to just "Ubuntu"
+          if (distroName.toLowerCase().startsWith("ubuntu")) {
+            distroName = "Ubuntu";
+            console.log("🔍 Normalized Ubuntu variant to:", distroName);
+          }
+
           // Skip Docker Desktop distributions, prefer Linux distributions
           if (!distroName.toLowerCase().includes("docker")) {
             foundDistribution = distroName;
@@ -521,9 +527,18 @@ async function checkWSLDistribution(): Promise<{
         const runningLines = runningDistros.trim().split("\n");
         if (runningLines.length > 1) {
           const cleanLine = runningLines[1].replace(/[^\w\-\s]/g, "").trim();
-          const distroName = cleanLine.split(/\s+/)[0];
+          let distroName = cleanLine.split(/\s+/)[0];
 
           if (distroName) {
+            // Normalize Ubuntu variants (Ubuntu0, Ubuntu-20.04, etc.) to just "Ubuntu"
+            if (distroName.toLowerCase().startsWith("ubuntu")) {
+              distroName = "Ubuntu";
+              console.log(
+                "🔍 Normalized running Ubuntu variant to:",
+                distroName
+              );
+            }
+
             console.log("✅ WSL running distribution found:", distroName);
             return {
               isAvailable: true,
@@ -1016,8 +1031,20 @@ function setupIpcHandlers() {
             // The command should run from the WSL working directory
             wslCommand = actualCommand;
           } else {
-            // For other commands, join them
-            wslCommand = processedCommand.join(" ");
+            // For other commands, convert Windows paths to WSL paths and join them
+            const wslProcessedCommand = processedCommand.map((arg) => {
+              // Convert Windows paths to WSL paths
+              if (arg.match(/^[A-Za-z]:\\/)) {
+                return arg
+                  .replace(/\\/g, "/")
+                  .replace(
+                    /^([A-Za-z]):/,
+                    (match, drive) => `/mnt/${drive.toLowerCase()}`
+                  );
+              }
+              return arg;
+            });
+            wslCommand = wslProcessedCommand.join(" ");
           }
 
           const fullWSLCommand = `cd "${wslWorkingDir}" && ${wslCommand}`;
@@ -1046,24 +1073,49 @@ function setupIpcHandlers() {
             args,
           });
 
-          childProcess = spawn(
-            "wsl",
-            [
-              "-d",
-              targetDistribution,
-              "--",
-              "/bin/bash",
-              "-c",
-              `cd "${workingDir}" && ${executable} ${args.join(" ")}`,
-            ],
-            {
-              stdio: ["pipe", "pipe", "pipe"],
-              env: {
-                ...process.env,
-                WSLENV: "PATH/l:LD_LIBRARY_PATH/l:DYLD_LIBRARY_PATH/l",
-              },
-            }
-          );
+          // For bash scripts, execute them directly without shell wrapper
+          if (executable === "bash" && args.length > 0) {
+            const scriptPath = args[0];
+            const scriptArgs = args.slice(1);
+
+            childProcess = spawn(
+              "wsl",
+              [
+                "-d",
+                targetDistribution,
+                "--",
+                "/bin/bash",
+                scriptPath,
+                ...scriptArgs,
+              ],
+              {
+                stdio: ["pipe", "pipe", "pipe"],
+                env: {
+                  ...process.env,
+                  WSLENV: "PATH/l:LD_LIBRARY_PATH/l:DYLD_LIBRARY_PATH/l",
+                },
+              }
+            );
+          } else {
+            childProcess = spawn(
+              "wsl",
+              [
+                "-d",
+                targetDistribution,
+                "--",
+                "/bin/bash",
+                "-c",
+                `cd "${workingDir}" && ${executable} ${args.join(" ")}`,
+              ],
+              {
+                stdio: ["pipe", "pipe", "pipe"],
+                env: {
+                  ...process.env,
+                  WSLENV: "PATH/l:LD_LIBRARY_PATH/l:DYLD_LIBRARY_PATH/l",
+                },
+              }
+            );
+          }
 
           console.log("🔍 Using WSL with direct bash execution");
         } else {

@@ -1,0 +1,284 @@
+---
+description: WSL/Windows compatibility rules for binary shell scripts in src/binaries/
+globs: packages/playground-hub/src/binaries/*.sh
+alwaysApply: true
+---
+
+# WSL/Windows Binary Script Compatibility Rules
+
+## Overview
+
+Binary shell scripts in `src/binaries/` must be compatible with WSL Ubuntu minimal installations that lack common Unix utilities like `dirname`, `command`, `grep`, etc.
+
+## Required Script Structure
+
+### 1. **Shebang and Error Handling**
+
+```bash
+#!/bin/bash
+# Windows/WSL compatible [script-name] script - minimal dependencies version
+set -e
+
+echo "🔍 Starting [script-name] script..."
+```
+
+**❌ DON'T:**
+
+```bash
+#!/usr/bin/env bash
+set -Eeuo pipefail
+IFS=$'\n\t'
+```
+
+### 2. **Script Directory Detection**
+
+Use parameter expansion instead of external commands:
+
+```bash
+# Get script directory using basic string manipulation
+SCRIPT_PATH="$0"
+if [[ "$SCRIPT_PATH" == */* ]]; then
+    # Remove filename from path using parameter expansion
+    SCRIPT_DIR="${SCRIPT_PATH%/*}"
+else
+    # Script called from current directory
+    SCRIPT_DIR="."
+fi
+
+echo "🔍 Script path: $SCRIPT_PATH"
+echo "🔍 Script directory: $SCRIPT_DIR"
+```
+
+**❌ DON'T:**
+
+```bash
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+```
+
+### 3. **CUDA Detection (for GPU-enabled scripts)**
+
+Check nvidia-smi without using `command -v`:
+
+```bash
+check_backend_support() {
+  local backend="${1:-}"
+  echo "Checking GPU backend..."
+  if [[ "$backend" == "cuda" ]]; then
+    local flag=""
+    # Check for nvidia-smi without using command -v (which might not be available)
+    if [ -x "/usr/bin/nvidia-smi" ]; then
+      flag="/usr/bin/nvidia-smi"
+    elif [ -x "/usr/local/bin/nvidia-smi" ]; then
+      flag="/usr/local/bin/nvidia-smi"
+    elif [ -x "/bin/nvidia-smi" ]; then
+      flag="/bin/nvidia-smi"
+    fi
+
+    echo "nvidia-smi path: ${flag:-<not found>}"
+    if [[ -z "$flag" ]]; then
+      echo "CUDA not detected (nvidia-smi not found)."
+      return 1
+    fi
+    return 0
+  else
+    echo "Unknown backend type: $backend"
+    return 1
+  fi
+}
+```
+
+**❌ DON'T:**
+
+```bash
+flag="$(command -v nvidia-smi || true)"
+```
+
+### 4. **Binary Existence Check with Debugging**
+
+Always include comprehensive binary validation:
+
+```bash
+# Check if [binary-name] binary exists
+if [ ! -f "$LOCAL" ]; then
+    echo "❌ Error: [Binary-name] binary not found at $LOCAL"
+    echo "Available files in bin directory:"
+    if [ -d "$SCRIPT_DIR/bin" ]; then
+        echo "bin directory exists, listing contents:"
+        for file in "$SCRIPT_DIR/bin"/*; do
+            if [ -f "$file" ]; then
+                echo "  - $(basename "$file")"
+            fi
+        done
+    else
+        echo "bin directory not found at $SCRIPT_DIR/bin"
+    fi
+    exit 1
+fi
+
+# Make sure binary is executable
+chmod +x "$LOCAL" 2>/dev/null || echo "Note: Could not set execute permissions"
+```
+
+### 5. **Comprehensive Path Logging**
+
+Always log all paths for debugging:
+
+```bash
+echo "🔍 [Binary-name] binary: $LOCAL"
+echo "🔍 QAP library: $QAP_LIB"
+echo "🔍 Input directory: $INPUT_DIR"
+echo "🔍 Output directory: $OUTPUT_DIR"
+
+echo "🚀 Starting [binary-name] with:"
+echo "   Library: $QAP_LIB"
+echo "   Input: $INPUT_DIR"
+echo "   Output: $OUTPUT_DIR"
+```
+
+## Script-Specific Patterns
+
+### Synthesizer Script (`2_run-synthesizer.sh`)
+
+```bash
+# Check if required arguments are provided
+if [ $# -lt 2 ]; then
+    echo "Usage: $0 <transaction_hash> <rpc_url>"
+    exit 1
+fi
+
+TRANSACTION_HASH="$1"
+RPC_URL="$2"
+
+# Set paths relative to script directory
+LOCAL="$SCRIPT_DIR/bin/synthesizer"
+OUT_DIR="$SCRIPT_DIR/resource/synthesizer/outputs"
+
+# Create output directory
+rm -rf "$OUT_DIR" 2>/dev/null || true
+mkdir -p "$OUT_DIR"
+
+# Execute synthesizer
+exec "$LOCAL" parse -r "$RPC_URL" -t "$TRANSACTION_HASH" --output-dir "$OUT_DIR"
+```
+
+### Processing Scripts (`3_run-preprocess.sh`, `4_run-prove.sh`, `5_run-verify.sh`)
+
+```bash
+# Set up environment variables
+export ICICLE_BACKEND_INSTALL_DIR=""
+export LD_LIBRARY_PATH="${SCRIPT_DIR}/backend-lib/icicle/lib"
+
+echo "🔍 Checking CUDA support..."
+if check_backend_support "cuda"; then
+  export ICICLE_BACKEND_INSTALL_DIR="${SCRIPT_DIR}/backend-lib/icicle/lib/backend"
+  echo "✅ CUDA backend enabled"
+else
+  echo "ℹ️ CUDA backend not available, using CPU"
+fi
+
+# Set up paths (adjust based on script requirements)
+LOCAL="$SCRIPT_DIR/bin/[binary-name]"
+QAP_LIB="$SCRIPT_DIR/resource/qap-compiler/library"
+# ... other paths as needed
+
+# Execute binary with appropriate arguments
+exec "$LOCAL" "$QAP_LIB" [other-args...]
+```
+
+## Common Mistakes to Avoid
+
+### ❌ External Command Dependencies
+
+- `dirname` → Use `${SCRIPT_PATH%/*}`
+- `command -v` → Use direct path checks with `[ -x "/path/to/binary" ]`
+- `grep` → Use bash pattern matching `[[ "$var" == *pattern* ]]`
+- `ls -la` → Use `for file in "$dir"/*; do ... done`
+
+### ❌ Complex Error Handling
+
+- `set -Eeuo pipefail` → Use simple `set -e`
+- `IFS=$'\n\t'` → Remove entirely
+
+### ❌ macOS-Specific Assumptions
+
+- `BASH_SOURCE[0]` → Use `$0`
+- Absolute paths → Use relative paths from script directory
+
+## Migration Checklist
+
+When updating binary scripts from macOS versions:
+
+1. **✅ Update shebang**: `#!/bin/bash`
+2. **✅ Simplify error handling**: `set -e` only
+3. **✅ Replace directory detection**: Use parameter expansion
+4. **✅ Replace external commands**: Use bash built-ins
+5. **✅ Add comprehensive logging**: Echo all paths and settings
+6. **✅ Add binary validation**: Check existence and list alternatives
+7. **✅ Test CUDA detection**: Use direct path checks
+8. **✅ Add graceful error handling**: Continue on non-critical failures
+
+## Testing Verification
+
+After applying these rules, verify:
+
+1. **No external command errors**: No `command not found` messages
+2. **Correct path detection**: Script directory is properly identified
+3. **Binary execution**: Binaries are found and executable
+4. **WSL compatibility**: Works in minimal WSL Ubuntu installations
+5. **Debugging output**: All paths and settings are logged
+
+## Example Complete Script Template
+
+```bash
+#!/bin/bash
+# Windows/WSL compatible [script-name] script - minimal dependencies version
+set -e
+
+echo "🔍 Starting [script-name] script..."
+
+# Get script directory using basic string manipulation
+SCRIPT_PATH="$0"
+if [[ "$SCRIPT_PATH" == */* ]]; then
+    SCRIPT_DIR="${SCRIPT_PATH%/*}"
+else
+    SCRIPT_DIR="."
+fi
+
+echo "🔍 Script path: $SCRIPT_PATH"
+echo "🔍 Script directory: $SCRIPT_DIR"
+
+# Set up paths
+LOCAL="$SCRIPT_DIR/bin/[binary-name]"
+# ... other paths
+
+echo "🔍 [Binary-name] binary: $LOCAL"
+# ... other path logs
+
+# Check if binary exists
+if [ ! -f "$LOCAL" ]; then
+    echo "❌ Error: [Binary-name] binary not found at $LOCAL"
+    echo "Available files in bin directory:"
+    if [ -d "$SCRIPT_DIR/bin" ]; then
+        echo "bin directory exists, listing contents:"
+        for file in "$SCRIPT_DIR/bin"/*; do
+            if [ -f "$file" ]; then
+                echo "  - $(basename "$file")"
+            fi
+        done
+    else
+        echo "bin directory not found at $SCRIPT_DIR/bin"
+    fi
+    exit 1
+fi
+
+chmod +x "$LOCAL" 2>/dev/null || echo "Note: Could not set execute permissions"
+
+echo "🚀 Starting [binary-name] with appropriate arguments"
+
+# Execute binary
+exec "$LOCAL" [arguments...]
+```
+
+---
+
+**Note**: These rules ensure maximum compatibility with WSL Ubuntu minimal installations while maintaining functionality across different platforms. Always test scripts in a clean WSL environment before deployment.
