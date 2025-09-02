@@ -49,7 +49,7 @@ osxSign: {
 },
 ```
 
-### **Step 4: Environment Variables Setup (for Notarization - Optional)**
+### **Step 4: Environment Variables Setup (for Notarization - REQUIRED for Distribution)**
 
 #### **Generate App-Specific Password:**
 
@@ -70,45 +70,63 @@ export APPLE_ID_PASSWORD="@keychain:AC_PASSWORD"
 export APPLE_TEAM_ID="TEAM123456"  # Check in Developer Portal
 ```
 
-### **Step 5: Build and Test**
+### **Step 5: Complete Build & Notarization (ADMIN ONLY)**
 
-#### **Build signed app:**
-
-```bash
-npm run make:signed
-```
-
-#### **Verify signature:**
+#### **Run the integrated script:**
 
 ```bash
-codesign -dv --verbose=4 out/tokamak-zk-evm-playground-hub-darwin-arm64/tokamak-zk-evm-playground-hub.app
+./apply-certificate.sh
 ```
 
-Success output:
+This script will:
+
+1. ✅ **Detect installed certificates automatically**
+   - If multiple certificates are found, you'll be prompted to choose
+   - If only one certificate exists, it's selected automatically
+2. ✅ **Prompt for Apple Developer credentials**
+3. ✅ **Set up notarization configuration**
+4. ✅ **Update forge.config.ts with correct certificate**
+5. ✅ **Build, sign, and notarize the app**
+6. ✅ **Verify the final result**
+
+#### **What the script asks for:**
+
+- **Certificate Selection** (if multiple certificates are installed):
+  - The script will list all available "Developer ID Application" certificates
+  - Choose the one that matches your current Apple Developer account
+- **Apple ID** (Developer Account Email)
+- **Apple Team ID** (defaults to B5WMFK82H9)
+- **App-Specific Password** (from appleid.apple.com)
+
+#### **Expected output:**
 
 ```
-Authority=Developer ID Application: Tokamak Network (TEAM123456)
-Authority=Developer ID Certification Authority
-Authority=Apple Root CA
+🎉 SUCCESS! The app is now ready for distribution!
+
+✨ Users can now:
+   • Double-click the .app to run directly
+   • Install from .dmg without security warnings
+   • Extract and run from .zip without issues
 ```
 
 ### **Step 6: Distribution Testing**
 
 1. **Test on different Mac**
 2. **Verify double-click execution**
-3. **Confirm no "unidentified developer" warning**
+3. **Confirm no "unidentified developer" or "malicious software" warnings**
 
 ## 🎯 **Current Preparation Status**
 
 - ✅ **forge.config.ts**: Apple Developer settings completed
 - ✅ **package.json**: `make:signed` script added
 - ✅ **entitlements.plist**: Permission settings completed
-- ⏳ **Certificate**: Needs creation after Apple Developer Program enrollment
-- ⏳ **Environment Variables**: Required when using notarization
+- ✅ **Certificate**: Applied and working (identity: 3524416ED3903027378EA41BB258070785F977F9)
+- ⚠️ **Notarization**: REQUIRED for distribution - prevents "malicious software" warnings
+- ⏳ **Environment Variables**: Required for notarization (see steps below)
 
-## 🚀 **Changes After Certificate Application**
+## 🚀 **Changes After Complete Setup**
 
-### **Before (Current):**
+### **Before (Manual Process):**
 
 ```bash
 # Users must run these commands every time
@@ -116,14 +134,34 @@ sudo xattr -rd com.apple.quarantine tokamak-zk-evm-playground-hub.app
 codesign --force --deep --sign - tokamak-zk-evm-playground-hub.app
 ```
 
-### **After (Certificate Applied):**
+### **After (Certificate + Notarization):**
 
 ```bash
-# Developer builds once
-npm run make:signed
+# Admin runs once (with Apple Developer credentials)
+./apply-certificate.sh
 
 # Users can run with double-click only ✨
+# No security warnings, no manual commands needed
 ```
+
+## 🔐 **Why Both Signing AND Notarization Are Required**
+
+### **Code Signing Only (Previous State):**
+
+- ✅ Proves app hasn't been tampered with
+- ✅ Identifies the developer
+- ❌ Still shows "unidentified developer" warnings
+- ❌ Users get "malicious software" alerts
+
+### **Code Signing + Notarization (Current Goal):**
+
+- ✅ Proves app hasn't been tampered with
+- ✅ Identifies the developer
+- ✅ **Apple pre-approved the app as safe**
+- ✅ **No security warnings for users**
+- ✅ **Seamless installation and execution**
+
+**Notarization = Apple's stamp of approval that the app is safe to run**
 
 ## 📞 **Troubleshooting**
 
@@ -139,9 +177,16 @@ npm run make:signed
    - Incorrect certificate name
    - Re-check identity value in `forge.config.ts`
 
-3. **"Notarization failed"**
+3. **"Multiple certificates - wrong one selected"**
+
+   - When prompted, choose the certificate that matches your Apple Developer account
+   - Look for the certificate with the correct Team ID in parentheses
+   - Example: "Developer ID Application: Your Name (TEAM123456)"
+
+4. **"Notarization failed"**
    - Apple ID or App-Specific Password error
    - Re-verify environment variables
+   - Ensure the selected certificate matches the Apple ID being used
 
 ### **Help Resources:**
 

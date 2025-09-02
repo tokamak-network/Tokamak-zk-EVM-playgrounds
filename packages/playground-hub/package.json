@@ -10,6 +10,7 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "make:signed": "NODE_ENV=production electron-forge make --platform=darwin",
+    "make:notarized": "./apply-certificate.sh",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "build": "npm run build:cjs && npm run build:esm",

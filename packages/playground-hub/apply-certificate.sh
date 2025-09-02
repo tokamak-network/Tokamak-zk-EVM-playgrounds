@@ -1,64 +1,265 @@
 #!/bin/bash
 
-echo "🍎 Apple Developer Certificate Application Script"
-echo "==============================================="
+echo "🍎 Apple Developer Complete Build & Notarization Script"
+echo "======================================================"
+echo "⚠️  ADMIN ONLY: This script requires Apple Developer credentials"
+echo ""
 
-# 1. Check installed certificates
-echo "1️⃣ Checking installed code signing certificates..."
+# Color codes for better readability
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to print colored output
+print_step() {
+    echo -e "${BLUE}$1${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+# Function to prompt for input with default value
+prompt_input() {
+    local prompt="$1"
+    local default="$2"
+    local var_name="$3"
+    
+    if [ -n "$default" ]; then
+        read -p "$prompt [$default]: " input
+        if [ -z "$input" ]; then
+            input="$default"
+        fi
+    else
+        read -p "$prompt: " input
+        while [ -z "$input" ]; do
+            print_error "This field is required!"
+            read -p "$prompt: " input
+        done
+    fi
+    
+    eval "$var_name='$input'"
+}
+
+# Check if running on macOS
+if [[ "$OSTYPE" != "darwin"* ]]; then
+    print_error "This script must be run on macOS"
+    exit 1
+fi
+
+print_step "1️⃣ Checking installed code signing certificates..."
+
+# Check for Developer ID Application certificates
 CERTIFICATES=$(security find-identity -v -p codesigning | grep "Developer ID Application")
 
 if [ -z "$CERTIFICATES" ]; then
-    echo "❌ No Developer ID Application certificates found."
+    print_error "No Developer ID Application certificates found."
     echo "   Please create certificate in Apple Developer Portal and install in Keychain."
     echo "   See APPLE_CERTIFICATE_SETUP.md for detailed instructions."
     exit 1
 fi
 
-echo "✅ Found certificates:"
+print_success "Found certificates:"
 echo "$CERTIFICATES"
 echo ""
 
-# 2. Extract certificate name
-IDENTITY=$(echo "$CERTIFICATES" | head -1 | sed 's/.*"\(.*\)".*/\1/')
-echo "2️⃣ Using certificate: $IDENTITY"
+# Handle multiple certificates
+CERT_COUNT=$(echo "$CERTIFICATES" | wc -l | tr -d ' ')
 
-# 3. Update forge.config.ts
-echo "3️⃣ Updating forge.config.ts..."
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    sed -i '' "s/identity: \"Developer ID Application: Tokamak Network\"/identity: \"$IDENTITY\"/" forge.config.ts
+if [ "$CERT_COUNT" -eq 1 ]; then
+    # Only one certificate found - use it automatically
+    IDENTITY=$(echo "$CERTIFICATES" | sed 's/.*"\(.*\)".*/\1/')
+    print_step "2️⃣ Using certificate: $IDENTITY"
 else
-    # Linux
-    sed -i "s/identity: \"Developer ID Application: Tokamak Network\"/identity: \"$IDENTITY\"/" forge.config.ts
+    # Multiple certificates found - let user choose
+    print_step "2️⃣ Multiple certificates found. Please choose one:"
+    echo ""
+    
+    # Display certificates with numbers
+    i=1
+    echo "$CERTIFICATES" | while read -r cert; do
+        cert_name=$(echo "$cert" | sed 's/.*"\(.*\)".*/\1/')
+        echo "   $i) $cert_name"
+        i=$((i + 1))
+    done
+    echo ""
+    
+    # Prompt for selection
+    while true; do
+        read -p "Enter certificate number (1-$CERT_COUNT): " cert_choice
+        
+        # Validate input
+        if [[ "$cert_choice" =~ ^[0-9]+$ ]] && [ "$cert_choice" -ge 1 ] && [ "$cert_choice" -le "$CERT_COUNT" ]; then
+            # Extract the chosen certificate
+            IDENTITY=$(echo "$CERTIFICATES" | sed -n "${cert_choice}p" | sed 's/.*"\(.*\)".*/\1/')
+            print_success "Selected certificate: $IDENTITY"
+            break
+        else
+            print_error "Invalid selection. Please enter a number between 1 and $CERT_COUNT."
+        fi
+    done
 fi
 
-echo "✅ forge.config.ts update completed"
+echo ""
 
-# 4. Test build
-echo "4️⃣ Running test build..."
-echo "   (This process may take several minutes)"
+print_step "3️⃣ Setting up Apple Developer credentials for notarization..."
+echo "   Please provide your Apple Developer account information:"
+echo ""
 
+# Prompt for Apple Developer credentials
+prompt_input "Apple ID (Developer Account Email)" "" "APPLE_ID"
+prompt_input "Apple Team ID" "B5WMFK82H9" "APPLE_TEAM_ID"
+
+echo ""
+print_warning "App-Specific Password Setup Required:"
+echo "   1. Visit https://appleid.apple.com"
+echo "   2. Go to 'Sign-In and Security' → 'App-Specific Passwords'"
+echo "   3. Generate a new password with label 'Electron Notarization'"
+echo "   4. Copy the generated password"
+echo ""
+
+prompt_input "App-Specific Password (from appleid.apple.com)" "" "APP_SPECIFIC_PASSWORD"
+
+echo ""
+print_step "4️⃣ Storing credentials securely in Keychain..."
+
+# Store password in keychain
+if xcrun altool --store-password-in-keychain-item "AC_PASSWORD" -u "$APPLE_ID" -p "$APP_SPECIFIC_PASSWORD" 2>/dev/null; then
+    print_success "Credentials stored in Keychain successfully"
+    APPLE_ID_PASSWORD="@keychain:AC_PASSWORD"
+else
+    print_warning "Keychain storage failed, using direct password (less secure)"
+    APPLE_ID_PASSWORD="$APP_SPECIFIC_PASSWORD"
+fi
+
+echo ""
+print_step "5️⃣ Creating environment configuration..."
+
+# Create .env file with credentials
+cat > .env << EOF
+# Apple Developer Account for Notarization
+# Generated by apply-certificate.sh on $(date)
+
+APPLE_ID=$APPLE_ID
+APPLE_ID_PASSWORD=$APPLE_ID_PASSWORD
+APPLE_TEAM_ID=$APPLE_TEAM_ID
+EOF
+
+print_success ".env file created with notarization credentials"
+
+echo ""
+print_step "6️⃣ Updating forge.config.ts with certificate identity..."
+
+# Update forge.config.ts with the correct identity
+if grep -q "identity: \"3524416ED3903027378EA41BB258070785F977F9\"" forge.config.ts; then
+    # Replace the hash with the actual certificate name
+    sed -i '' "s/identity: \"3524416ED3903027378EA41BB258070785F977F9\"/identity: \"$IDENTITY\"/" forge.config.ts
+elif grep -q "identity: \"Developer ID Application:" forge.config.ts; then
+    # Replace existing Developer ID Application certificate
+    sed -i '' "s/identity: \"Developer ID Application:[^\"]*\"/identity: \"$IDENTITY\"/" forge.config.ts
+else
+    print_error "Could not find identity configuration in forge.config.ts"
+    exit 1
+fi
+
+print_success "forge.config.ts updated with certificate identity"
+
+echo ""
+print_step "7️⃣ Starting build and notarization process..."
+print_warning "This process may take 5-15 minutes depending on app size and Apple's servers"
+echo ""
+
+# Export environment variables for the build process
+export APPLE_ID="$APPLE_ID"
+export APPLE_ID_PASSWORD="$APPLE_ID_PASSWORD"
+export APPLE_TEAM_ID="$APPLE_TEAM_ID"
+
+# Run the signed build with notarization
 if npm run make:signed; then
     echo ""
-    echo "🎉 Success! Signed app has been created!"
+    print_success "Build and notarization completed successfully!"
     echo ""
-    echo "📁 Generated file location:"
-    find out -name "*.app" -type d 2>/dev/null | head -1
-    echo ""
-    echo "🔍 Signature verification:"
+    
+    print_step "8️⃣ Verifying the notarized application..."
+    
+    # Find the generated app
     APP_PATH=$(find out -name "*.app" -type d 2>/dev/null | head -1)
+    DMG_PATH=$(find out -name "*.dmg" 2>/dev/null | head -1)
+    ZIP_PATH=$(find out -name "*.zip" 2>/dev/null | head -1)
+    
     if [ -n "$APP_PATH" ]; then
+        echo ""
+        print_success "Generated application: $APP_PATH"
+        
+        # Verify code signature
+        echo ""
+        echo "🔍 Code Signature Verification:"
         codesign -dv --verbose=4 "$APP_PATH" 2>&1 | grep "Authority=" | head -3
+        
+        # Verify notarization
+        echo ""
+        echo "🔍 Notarization Verification:"
+        if spctl -a -v "$APP_PATH" 2>&1 | grep -q "accepted"; then
+            print_success "App is properly notarized and will run without warnings"
+        else
+            print_warning "Notarization verification inconclusive - test on another Mac"
+        fi
     fi
+    
+    # List all generated files
     echo ""
-    echo "✨ Users can now run the app with just double-click!"
+    print_step "📁 Generated distribution files:"
+    if [ -n "$APP_PATH" ]; then
+        echo "   • App Bundle: $APP_PATH"
+    fi
+    if [ -n "$DMG_PATH" ]; then
+        echo "   • DMG Installer: $DMG_PATH"
+    fi
+    if [ -n "$ZIP_PATH" ]; then
+        echo "   • ZIP Archive: $ZIP_PATH"
+    fi
+    
+    echo ""
+    print_success "🎉 SUCCESS! The app is now ready for distribution!"
+    echo ""
+    echo "✨ Users can now:"
+    echo "   • Double-click the .app to run directly"
+    echo "   • Install from .dmg without security warnings"
+    echo "   • Extract and run from .zip without issues"
+    echo ""
+    print_step "📋 Next Steps:"
+    echo "   1. Test the app on a different Mac to confirm no warnings appear"
+    echo "   2. Distribute the .dmg or .zip file to users"
+    echo "   3. Keep the .env file secure (contains sensitive credentials)"
+    
 else
     echo ""
-    echo "❌ Build failed. Please check the following:"
-    echo "   - Certificate is properly installed"
-    echo "   - Certificate is not expired"
-    echo "   - Network connection status (for notarization)"
+    print_error "Build or notarization failed!"
     echo ""
-    echo "See APPLE_CERTIFICATE_SETUP.md for detailed troubleshooting."
+    echo "🔍 Common issues and solutions:"
+    echo "   • Certificate expired: Renew in Apple Developer Portal"
+    echo "   • Wrong Apple ID: Verify account has Developer Program access"
+    echo "   • Network issues: Check internet connection"
+    echo "   • App-specific password: Generate new one at appleid.apple.com"
+    echo "   • Team ID mismatch: Verify in Apple Developer Portal"
+    echo ""
+    echo "📖 For detailed troubleshooting, see APPLE_CERTIFICATE_SETUP.md"
     exit 1
-fi 
+fi
+
+echo ""
+print_step "🔒 Security Note:"
+echo "   The .env file contains sensitive credentials."
+echo "   • Keep it secure and never commit to version control"
+echo "   • Consider deleting it after successful build"
+echo "   • Credentials are also stored in macOS Keychain for future use" 

@@ -35,15 +35,11 @@ const config: ForgeConfig = {
           identity: "3524416ED3903027378EA41BB258070785F977F9",
         },
         // Notarization configuration (reduces security prompts)
-        // TODO: Enable after getting Apple ID credentials from administrator
-        // Uncomment the following block when ready for notarization:
-        /*
         osxNotarize: {
           appleId: process.env.APPLE_ID || "",
           appleIdPassword: process.env.APPLE_ID_PASSWORD || "",
           teamId: process.env.APPLE_TEAM_ID || "B5WMFK82H9",
         },
-        */
       }),
   },
   rebuildConfig: {},
