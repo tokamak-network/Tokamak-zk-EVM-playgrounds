@@ -161,14 +161,41 @@ echo ""
 print_step "6️⃣ Updating forge.config.ts with certificate identity..."
 
 # Update forge.config.ts with the correct identity
+print_step "Current forge.config.ts identity configuration:"
+grep -n "identity:" forge.config.ts || echo "No identity configuration found"
+echo ""
+
+# Try multiple patterns to find and replace the identity
+UPDATED=false
+
+# Pattern 1: Hash-based identity
 if grep -q "identity: \"3524416ED3903027378EA41BB258070785F977F9\"" forge.config.ts; then
-    # Replace the hash with the actual certificate name
+    print_step "Replacing hash-based identity..."
     sed -i '' "s/identity: \"3524416ED3903027378EA41BB258070785F977F9\"/identity: \"$IDENTITY\"/" forge.config.ts
+    UPDATED=true
+# Pattern 2: Existing Developer ID Application certificate
 elif grep -q "identity: \"Developer ID Application:" forge.config.ts; then
-    # Replace existing Developer ID Application certificate
+    print_step "Replacing existing Developer ID Application certificate..."
     sed -i '' "s/identity: \"Developer ID Application:[^\"]*\"/identity: \"$IDENTITY\"/" forge.config.ts
+    UPDATED=true
+# Pattern 3: Any identity string
+elif grep -q "identity: \"" forge.config.ts; then
+    print_step "Replacing existing identity string..."
+    sed -i '' "s/identity: \"[^\"]*\"/identity: \"$IDENTITY\"/" forge.config.ts
+    UPDATED=true
 else
     print_error "Could not find identity configuration in forge.config.ts"
+    print_step "Current file content around osxSign:"
+    grep -A 5 -B 5 "osxSign" forge.config.ts || echo "osxSign section not found"
+    exit 1
+fi
+
+if [ "$UPDATED" = true ]; then
+    print_step "Updated forge.config.ts identity configuration:"
+    grep -n "identity:" forge.config.ts
+    echo ""
+else
+    print_error "Failed to update identity in forge.config.ts"
     exit 1
 fi
 
@@ -177,6 +204,19 @@ print_success "forge.config.ts updated with certificate identity"
 echo ""
 print_step "7️⃣ Starting build and notarization process..."
 print_warning "This process may take 5-15 minutes depending on app size and Apple's servers"
+
+# Verify environment variables before build
+print_step "Verifying environment variables:"
+echo "   APPLE_ID: $APPLE_ID"
+echo "   APPLE_TEAM_ID: $APPLE_TEAM_ID"
+echo "   APPLE_ID_PASSWORD: [HIDDEN]"
+
+# Check if all required variables are set
+if [ -z "$APPLE_ID" ] || [ -z "$APPLE_ID_PASSWORD" ] || [ -z "$APPLE_TEAM_ID" ]; then
+    print_error "Missing required environment variables for notarization"
+    exit 1
+fi
+
 echo ""
 
 # Export environment variables for the build process
