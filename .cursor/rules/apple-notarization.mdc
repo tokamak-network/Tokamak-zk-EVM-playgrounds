@@ -1,0 +1,250 @@
+---
+description: Apple macOS app notarization troubleshooting and resolution guide
+globs: packages/*/forge.config.ts, packages/*/apply-certificate.sh, packages/*/.env
+alwaysApply: true
+---
+
+# Apple macOS App Notarization Guide
+
+## **Problem Overview**
+
+When distributing macOS apps, users encounter security warnings:
+
+- "This app can't be opened because it is from an unidentified developer"
+- "macOS cannot verify that this app is free from malware"
+
+**Root Cause**: Apps need both **code signing** AND **notarization** from Apple.
+
+## **Solution Architecture**
+
+### **Two-Step Process Required:**
+
+1. **Code Signing**: Proves developer identity and app integrity
+2. **Notarization**: Apple pre-approves app as safe to run
+
+### **Key Components:**
+
+- **Developer ID Application Certificate**: For code signing
+- **App-Specific Password**: For notarization API authentication
+- **Apple Developer Program**: Required (not just Apple ID)
+
+## **Common Failure Patterns and Solutions**
+
+### **❌ Pattern 1: 401 Authentication Errors**
+
+**Symptoms:**
+
+```
+Error: HTTP status code: 401. Invalid credentials.
+Username or password is incorrect.
+```
+
+**Root Causes & Solutions:**
+
+1. **Using Regular Apple ID Password**
+
+   ```bash
+   # ❌ Wrong: Regular password (any length ≠ 19)
+   APPLE_ID_PASSWORD="myregularpassword123"
+
+   # ✅ Correct: App-Specific Password (exactly 19 characters)
+   APPLE_ID_PASSWORD="abcd-efgh-ijkl-mnop"
+   ```
+
+2. **Missing Apple Developer Program Enrollment**
+
+   ```bash
+   # Test account status
+   xcrun altool --list-apps -u "apple-id@example.com" -p "app-specific-password" --team-id "TEAM123456"
+   ```
+
+3. **Incorrect Team ID**
+   - Check at developer.apple.com → Account → Membership
+   - Must match exactly in forge.config.ts
+
+### **❌ Pattern 2: Environment Variable Issues**
+
+**Problem**: Scripts overwrite manually set .env files
+
+**Solution**: Use direct environment variable export
+
+```bash
+# ✅ Correct approach
+export APPLE_ID="developer@example.com"
+export APPLE_ID_PASSWORD="abcd-efgh-ijkl-mnop"  # 19 chars exactly
+export APPLE_TEAM_ID="B5WMFK82H9"
+npm run make:signed
+```
+
+### **❌ Pattern 3: API Version Conflicts**
+
+**Problem**: Legacy API succeeds but modern notarization fails
+
+**Diagnosis Commands:**
+
+```bash
+# Test legacy API
+xcrun altool --list-apps -u "$APPLE_ID" -p "$PASSWORD" --team-id "$TEAM_ID"
+
+# Test modern notarization API
+xcrun notarytool store-credentials "test-profile" \
+  --apple-id "$APPLE_ID" --password "$PASSWORD" --team-id "$TEAM_ID"
+```
+
+**Solution**: Use keychain-based authentication
+
+```typescript
+// forge.config.ts
+osxNotarize: {
+  tool: 'notarytool',
+  keychainProfile: 'app-notarization-profile',
+}
+```
+
+## **Implementation Patterns**
+
+### **✅ Forge Configuration (forge.config.ts)**
+
+```typescript
+// Complete notarization setup
+...(process.platform === "darwin" &&
+  process.env.NODE_ENV === "production" && {
+    osxSign: {
+      identity: "Developer ID Application: Company Name (TEAM123456)",
+    },
+    osxNotarize: {
+      appleId: process.env.APPLE_ID || "",
+      appleIdPassword: process.env.APPLE_ID_PASSWORD || "",
+      teamId: process.env.APPLE_TEAM_ID || "TEAM123456",
+    },
+  }),
+```
+
+### **✅ App-Specific Password Generation**
+
+**Critical Steps:**
+
+1. Visit https://appleid.apple.com
+2. Sign-In and Security → App-Specific Passwords
+3. Generate password with label "Electron Notarization"
+4. **Verify format**: exactly `abcd-efgh-ijkl-mnop` (19 characters)
+5. **Wait 5-10 minutes** after generation for Apple server sync
+
+### **✅ Validation Script Pattern**
+
+```bash
+# Password format validation
+PASSWORD_LENGTH=${#APP_SPECIFIC_PASSWORD}
+if [ "$PASSWORD_LENGTH" -ne 19 ]; then
+    echo "❌ Invalid length: $PASSWORD_LENGTH (expected: 19)"
+    echo "Format: abcd-efgh-ijkl-mnop"
+    exit 1
+fi
+
+if [[ ! "$APP_SPECIFIC_PASSWORD" =~ ^[a-z]{4}-[a-z]{4}-[a-z]{4}-[a-z]{4}$ ]]; then
+    echo "❌ Invalid format"
+    exit 1
+fi
+```
+
+### **✅ Build Process**
+
+```bash
+# Method 1: Direct environment variables (recommended)
+APPLE_ID="dev@example.com" \
+APPLE_ID_PASSWORD="abcd-efgh-ijkl-mnop" \
+APPLE_TEAM_ID="TEAM123456" \
+npm run make:signed
+
+# Method 2: Export then build
+export APPLE_ID="dev@example.com"
+export APPLE_ID_PASSWORD="abcd-efgh-ijkl-mnop"
+export APPLE_TEAM_ID="TEAM123456"
+npm run make:signed
+```
+
+## **Verification Commands**
+
+### **Check Notarization Status**
+
+```bash
+# Find generated app
+APP_PATH=$(find out -name "*.app" -type d | head -1)
+
+# Verify notarization (most important)
+spctl -a -v "$APP_PATH"
+# Success: "accepted, source=Notarized Developer ID"
+# Failure: "rejected, source=Unnotarized Developer ID"
+
+# Check code signing chain
+codesign -dv --verbose=4 "$APP_PATH" 2>&1 | grep "Authority="
+# Should show: Developer ID Application → Developer ID CA → Apple Root CA
+```
+
+## **Troubleshooting Checklist**
+
+### **Before Starting:**
+
+- [ ] Apple Developer Program enrollment (not just Apple ID)
+- [ ] Developer ID Application certificate installed in Keychain
+- [ ] 2FA enabled on Apple ID
+
+### **During Setup:**
+
+- [ ] App-Specific Password is exactly 19 characters
+- [ ] Team ID matches Apple Developer account
+- [ ] Wait 5-10 minutes after password generation
+
+### **If Build Fails:**
+
+1. **Check environment variables are set**
+2. **Test APIs separately** (legacy vs modern)
+3. **Verify certificate identity** in forge.config.ts
+4. **Generate fresh App-Specific Password**
+
+### **Final Verification:**
+
+- [ ] `spctl -a -v` shows "accepted, source=Notarized Developer ID"
+- [ ] Double-click app runs without warnings
+- [ ] DMG/ZIP distribution works on other Macs
+
+## **Expected Timeline**
+
+- **Setup**: 30-60 minutes (first time)
+- **Build + Notarization**: 10-30 minutes
+- **Apple Server Processing**: 5-15 minutes (during "Finalizing package")
+
+## **Success Indicators**
+
+### **✅ Complete Success:**
+
+```bash
+# Build output
+🎉 SUCCESS! The app is now ready for distribution!
+
+# Verification
+spctl -a -v app.app
+# → "accepted, source=Notarized Developer ID"
+
+# User experience
+# → Double-click runs without warnings
+# → DMG installs cleanly on any Mac
+```
+
+## **Emergency Fallback**
+
+If notarization continues to fail, temporary distribution with signing only:
+
+```typescript
+// Disable notarization temporarily
+// osxNotarize: { ... },  // Comment out
+```
+
+**User workaround:**
+
+- Right-click → Open (instead of double-click)
+- Or: `sudo xattr -rd com.apple.quarantine app.app`
+
+---
+
+**Key Lesson**: The most common issue is using regular Apple ID passwords instead of App-Specific Passwords. Always verify the 19-character format first.

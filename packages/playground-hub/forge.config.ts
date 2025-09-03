@@ -32,7 +32,7 @@ const config: ForgeConfig = {
       process.env.NODE_ENV === "production" && {
         osxSign: {
           // Certificate name (can be checked in Keychain)
-          identity: "3524416ED3903027378EA41BB258070785F977F9",
+          identity: "Developer ID Application: Jehyuk Jang (B5WMFK82H9)",
         },
         // Notarization configuration (reduces security prompts)
         osxNotarize: {
