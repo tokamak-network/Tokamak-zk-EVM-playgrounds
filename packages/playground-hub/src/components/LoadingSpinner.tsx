@@ -11,7 +11,7 @@ export default function LoadingSpinner() {
 
   const message = useMemo(() => {
     if (loadingStage === 0) return "Collecting stardust";
-    if (loadingStage === 1) return "Aligning tiny particles";
+    if (loadingStage === 1) return "Aligning tiny particles ...";
     if (loadingStage === 2) return "Taking shape, looks like a planet";
     if (loadingStage === 3) return "Adding the final sparkles";
     if (loadingStage === 4) return "Almost there, hang tight";

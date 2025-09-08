@@ -4,6 +4,7 @@ import { add0xPrefix, hexToDecimal } from "../utils/helpers";
 import { useSynthesizerResult } from "../hooks/useSynthesizerResult";
 import { useAtomValue } from "jotai";
 import { showProcessResultModalAtom } from "../atoms/ui";
+import { transactionHashAtom } from "../atoms/api";
 import { useBinaryFileDownload } from "../hooks/useBinaryFileDownload";
 import { useBenchmark } from "../hooks/useBenchmark";
 import JSZip from "jszip";
@@ -96,6 +97,7 @@ const Logs = () => {
 
 const ProcessResult = () => {
   const showProcessResult = useAtomValue(showProcessResultModalAtom);
+  const transactionHash = useAtomValue(transactionHashAtom);
   const { refetchInstance } = useSynthesizerResult();
 
   const { downloadSynthesizerFiles, downloadProveFiles } =
@@ -168,6 +170,9 @@ const ProcessResult = () => {
       // Add benchmark file
       const benchmarkJson = JSON.stringify(benchmarkData, null, 2);
       zip.file("benchmark.json", benchmarkJson);
+
+      // Add transaction hash file
+      zip.file("transaction_hash.txt", transactionHash);
 
       // 5. Download zip file
       const zipBlob = await zip.generateAsync({ type: "blob" });
