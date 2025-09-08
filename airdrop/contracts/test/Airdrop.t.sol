@@ -232,15 +232,15 @@ contract AirdropTest is Test {
         vm.expectEmit(true, true, true, true);
         emit UserRewarded(alice, aliceSnsId, dummyProofHash, 100 * 10 ** 27);
         vm.expectEmit(true, true, true, true);
-        emit UserRewarded(bob, bobSnsId, dummyProofHash, 100 * 10 ** 27);
+        emit UserRewarded(bob, bobSnsId, dummyProofHash, 50 * 10 ** 27);
         vm.expectEmit(true, true, true, true);
-        emit BatchRewardCompleted(2, 200 * 10 ** 27);
+        emit BatchRewardCompleted(2, 150 * 10 ** 27);
 
         airdrop.rewardAll();
 
         // Check balances
         assertEq(wton.balanceOf(address(depositManager)), 100 * 10 ** 27);
-        assertEq(wton.balanceOf(bob), 100 * 10 ** 27);
+        assertEq(wton.balanceOf(bob), 50 * 10 ** 27);
 
         // Check states
         (,,, bool aliceRewarded,,) = airdrop.eligibleUser(alice);
@@ -355,6 +355,94 @@ contract AirdropTest is Test {
 
     function testGetContractBalance() public view {
         assertEq(airdrop.getContractBalance(), 5000 * 10 ** 27);
+    }
+
+    // Test half reward for non-staking users
+    function testHalfRewardForNonStakingUsers() public {
+        // Setup one user who doesn't stake
+        address[] memory users = new address[](1);
+        users[0] = charlie;
+
+        bytes32[] memory snsIds = new bytes32[](1);
+        snsIds[0] = charlieSnsId;
+
+        Airdrop.Proof[] memory proofs = new Airdrop.Proof[](1);
+        proofs[0] = validProof;
+
+        Airdrop.Preprocessed[] memory preprocess = new Airdrop.Preprocessed[](1);
+        preprocess[0] = validPreprocessed;
+
+        Airdrop.PublicInputs[] memory publicInputs = new Airdrop.PublicInputs[](1);
+        publicInputs[0] = ValidPublicInputs;
+
+        bytes32[] memory proofHashes = new bytes32[](1);
+        proofHashes[0] = dummyProofHash;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 100 * 10 ** 27;
+
+        bool[] memory stakes = new bool[](1);
+        stakes[0] = false;
+
+        airdrop.inputWinnerList(users, snsIds, proofs, preprocess, publicInputs, amounts, proofHashes, stakes);
+
+        uint256 charlieBalanceBefore = wton.balanceOf(charlie);
+
+        // Should emit event with half the granted amount (50 * 10^27 instead of 100 * 10^27)
+        vm.expectEmit(true, true, true, true);
+        emit UserRewarded(charlie, charlieSnsId, dummyProofHash, 50 * 10 ** 27);
+
+        airdrop.rewardAll();
+
+        // Charlie should receive half of granted amount since not staking
+        assertEq(wton.balanceOf(charlie), charlieBalanceBefore + 50 * 10 ** 27);
+        
+        // Check total distributed is half the granted amount
+        assertEq(airdrop.totalAmountDistributed(), 50 * 10 ** 27);
+    }
+
+    // Test full reward for staking users
+    function testFullRewardForStakingUsers() public {
+        // Setup one user who stakes
+        address[] memory users = new address[](1);
+        users[0] = charlie;
+
+        bytes32[] memory snsIds = new bytes32[](1);
+        snsIds[0] = charlieSnsId;
+
+        Airdrop.Proof[] memory proofs = new Airdrop.Proof[](1);
+        proofs[0] = validProof;
+
+        Airdrop.Preprocessed[] memory preprocess = new Airdrop.Preprocessed[](1);
+        preprocess[0] = validPreprocessed;
+
+        Airdrop.PublicInputs[] memory publicInputs = new Airdrop.PublicInputs[](1);
+        publicInputs[0] = ValidPublicInputs;
+
+        bytes32[] memory proofHashes = new bytes32[](1);
+        proofHashes[0] = dummyProofHash;
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 100 * 10 ** 27;
+
+        bool[] memory stakes = new bool[](1);
+        stakes[0] = true;
+
+        airdrop.inputWinnerList(users, snsIds, proofs, preprocess, publicInputs, amounts, proofHashes, stakes);
+
+        uint256 depositManagerBalanceBefore = wton.balanceOf(address(depositManager));
+
+        // Should emit event with full granted amount
+        vm.expectEmit(true, true, true, true);
+        emit UserRewarded(charlie, charlieSnsId, dummyProofHash, 100 * 10 ** 27);
+
+        airdrop.rewardAll();
+
+        // Deposit manager should receive full amount since user is staking
+        assertEq(wton.balanceOf(address(depositManager)), depositManagerBalanceBefore + 100 * 10 ** 27);
+        
+        // Check total distributed is full granted amount
+        assertEq(airdrop.totalAmountDistributed(), 100 * 10 ** 27);
     }
 
     // Helper functions

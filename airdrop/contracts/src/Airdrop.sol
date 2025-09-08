@@ -194,19 +194,25 @@ contract Airdrop is Ownable, ReentrancyGuard {
             eligibleUser[user].hasBeenRewarded = true;
 
             totalUserRewarded++;
-            totalAmountDistributed += eligibleUser[user].amountGranted;
+            uint256 rewardAmount;
 
             // Transfer tokens
             if (!eligibleUser[user].stake) {
-                require(wton.transfer(user, eligibleUser[user].amountGranted), "Token transfer failed");
+                // Users who don't stake get half the amount
+                rewardAmount = eligibleUser[user].amountGranted / 2;
+                require(wton.transfer(user, rewardAmount), "Token transfer failed");
             } else {
+                // Users who stake get the full amount
+                rewardAmount = eligibleUser[user].amountGranted;
                 require(
-                    depositManagerProxy.deposit(layer2, user, eligibleUser[user].amountGranted),
+                    depositManagerProxy.deposit(layer2, user, rewardAmount),
                     "Failed to stake tokens"
                 );
             }
 
-            emit UserRewarded(user, eligibleUser[user].snsId, eligibleUser[user].proofHash, eligibleUser[user].amountGranted);
+            totalAmountDistributed += rewardAmount;
+
+            emit UserRewarded(user, eligibleUser[user].snsId, eligibleUser[user].proofHash, rewardAmount);
         }
 
         airdropCompleted = true;
