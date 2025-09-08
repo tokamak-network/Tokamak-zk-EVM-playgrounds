@@ -19,21 +19,20 @@ Welcome to **Tokamak-zk-evm-playground**! 🚀 Ready to turn any Ethereum transa
 - **Download:**
   - [Download the latest version](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/releases/latest)
   - From the download page, download only one file that matches your operating system and CPU.
-  - **Windows users:** Download the `playground-hub-windows-x64-vX.X.X-portable.zip` file. (`X.X.X` is the version)
-  - **Mac users (Apple Silicon):** Download the `playground-hub-macOS-arm64-vX.X.X-portable.zip` file. (`X.X.X` is the version)
+  - **Windows users:** Download the `Tokamak-zk-EVM-playground-win32-x64.7z` file.
+  - **Mac users (Apple Silicon):** Download the `Tokamak-zk-EVM-playground-X.X.X-arm64.dmg` file. (`X.X.X` is the version)
   - **Note:** You do not need to download the files marked as `Source code`, as they are for developers.
 - **Extract and File Location:**
 
-  - Extract the downloaded compressed file.
-  - **Windows:** After extracting, you will get a folder containing `tokamak-zk-evm-playground.exe` file. Move this folder to a convenient location, such as `My Documents`, `Program Files`, or your Desktop.
-  - **Mac:** After extracting, you will get a `tokamak-zk-evm-playground.app` file. Move this file to a convenient location, such as your Desktop or Applications folder.
+  - **Windows:** Extract the downloaded `.7z` file using 7-Zip or WinRAR. After extracting, you will get a folder containing `tokamak-zk-evm-playground.exe` file. Move this folder to a convenient location, such as `My Documents`, `Program Files`, or your Desktop.
+  - **Mac:** Double-click the downloaded `.dmg` file to mount it, then drag the `tokamak-zk-evm-playground.app` to your Applications folder or desired location.
 
 ## 4. Running Tokamak-zk-evm-playground 🚀
 
 1. Run `tokamak-zk-evm-playground`.
 
 - **Windows:** Navigate to the folder you extracted earlier and double-click the executable file, such as `tokamak-zk-evm-playground.exe`.
-- **macOS:** Double-click the `tokamak-zk-evm-playground.app` file from the location where you moved it (e.g., `Applications` folder or Desktop).
+- **macOS:** Open the `tokamak-zk-evm-playground.app` from your Applications folder or the location where you installed it.
 
 2. Wait a moment for the program to start.
 
