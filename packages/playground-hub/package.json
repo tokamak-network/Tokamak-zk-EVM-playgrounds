@@ -9,7 +9,7 @@
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "make:signed": "NODE_ENV=production electron-forge make --platform=darwin",
+    "make:signed": "source .env 2>/dev/null || true && NODE_ENV=production electron-forge make --platform=darwin",
     "make:notarized": "./apply-certificate.sh",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",

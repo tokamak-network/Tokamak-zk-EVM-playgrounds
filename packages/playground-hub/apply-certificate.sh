@@ -113,22 +113,66 @@ fi
 echo ""
 
 print_step "3️⃣ Setting up Apple Developer credentials for notarization..."
-echo "   Please provide your Apple Developer account information:"
-echo ""
 
-# Prompt for Apple Developer credentials
-prompt_input "Apple ID (Developer Account Email)" "" "APPLE_ID"
-prompt_input "Apple Team ID" "B5WMFK82H9" "APPLE_TEAM_ID"
+# Check if .env file exists and has all required credentials
+if [ -f ".env" ]; then
+    print_step "Found existing .env file, checking credentials..."
+    
+    # Source the .env file to load variables
+    source .env 2>/dev/null || true
+    
+    # Check if all required variables are present and non-empty
+    if [ -n "$APPLE_ID" ] && [ -n "$APPLE_TEAM_ID" ] && [ -n "$APPLE_ID_PASSWORD" ]; then
+        print_success "Using existing credentials from .env file:"
+        echo "   Apple ID: $APPLE_ID"
+        echo "   Team ID: $APPLE_TEAM_ID"
+        echo "   Password: [HIDDEN]"
+        echo ""
+        
+        # Extract password from keychain reference or use direct password
+        if [[ "$APPLE_ID_PASSWORD" == "@keychain:"* ]]; then
+            APP_SPECIFIC_PASSWORD="$APPLE_ID_PASSWORD"
+        else
+            APP_SPECIFIC_PASSWORD="$APPLE_ID_PASSWORD"
+        fi
+        
+        # Ask if user wants to use existing credentials
+        read -p "Use these existing credentials? (Y/n): " use_existing
+        if [[ "$use_existing" =~ ^[Nn]$ ]]; then
+            print_step "Prompting for new credentials..."
+            SKIP_CREDENTIAL_INPUT=false
+        else
+            print_success "Using existing credentials from .env file"
+            SKIP_CREDENTIAL_INPUT=true
+        fi
+    else
+        print_warning "Incomplete credentials in .env file, prompting for input..."
+        SKIP_CREDENTIAL_INPUT=false
+    fi
+else
+    print_step "No .env file found, prompting for credentials..."
+    SKIP_CREDENTIAL_INPUT=false
+fi
 
-echo ""
-print_warning "App-Specific Password Setup Required:"
-echo "   1. Visit https://appleid.apple.com"
-echo "   2. Go to 'Sign-In and Security' → 'App-Specific Passwords'"
-echo "   3. Generate a new password with label 'Electron Notarization'"
-echo "   4. Copy the generated password"
-echo ""
+# Only prompt for credentials if needed
+if [ "$SKIP_CREDENTIAL_INPUT" != true ]; then
+    echo "   Please provide your Apple Developer account information:"
+    echo ""
 
-prompt_input "App-Specific Password (from appleid.apple.com)" "" "APP_SPECIFIC_PASSWORD"
+    # Prompt for Apple Developer credentials
+    prompt_input "Apple ID (Developer Account Email)" "" "APPLE_ID"
+    prompt_input "Apple Team ID" "B5WMFK82H9" "APPLE_TEAM_ID"
+
+    echo ""
+    print_warning "App-Specific Password Setup Required:"
+    echo "   1. Visit https://appleid.apple.com"
+    echo "   2. Go to 'Sign-In and Security' → 'App-Specific Passwords'"
+    echo "   3. Generate a new password with label 'Electron Notarization'"
+    echo "   4. Copy the generated password"
+    echo ""
+
+    prompt_input "App-Specific Password (from appleid.apple.com)" "" "APP_SPECIFIC_PASSWORD"
+fi
 
 # Validate app-specific password format and length
 PASSWORD_LENGTH=${#APP_SPECIFIC_PASSWORD}
@@ -263,7 +307,7 @@ export APPLE_ID_PASSWORD="$APPLE_ID_PASSWORD"
 export APPLE_TEAM_ID="$APPLE_TEAM_ID"
 
 # Run the signed build with notarization
-if npm run make:signed; then
+if APPLE_ID="$APPLE_ID" APPLE_ID_PASSWORD="$APPLE_ID_PASSWORD" APPLE_TEAM_ID="$APPLE_TEAM_ID" npm run make:signed; then
     echo ""
     print_success "Build and notarization completed successfully!"
     echo ""

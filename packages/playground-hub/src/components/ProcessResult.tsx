@@ -128,7 +128,6 @@ const ProcessResult = () => {
     try {
       // 1. Get proof file
       let proofData: string | null = null;
-      let instanceData: string | null = null;
 
       if (proveFilesResult?.proof) {
         proofData = proveFilesResult.proof;
@@ -140,32 +139,18 @@ const ProcessResult = () => {
         return { success: false, error: "No proof data available" };
       }
 
-      // 2. Get instance file
-      if (synthesizerFiles?.instance) {
-        instanceData = synthesizerFiles.instance;
-        console.log("Using instance from loaded files");
-      }
-
-      if (!instanceData) {
-        console.error("No instance data available");
-        return { success: false, error: "No instance data available" };
-      }
-
-      // 3. Get benchmark data
+      // 2. Get benchmark data
       const benchmarkData = generateBenchmarkData();
       if (!benchmarkData) {
         console.error("No benchmark data available");
         return { success: false, error: "No benchmark data available" };
       }
 
-      // 4. Create zip file
+      // 3. Create zip file
       const zip = new JSZip();
 
       // Add proof file
       zip.file("proof.json", proofData);
-
-      // Add instance file
-      zip.file("instance.json", instanceData);
 
       // Add benchmark file
       const benchmarkJson = JSON.stringify(benchmarkData, null, 2);
@@ -174,7 +159,7 @@ const ProcessResult = () => {
       // Add transaction hash file
       zip.file("transaction_hash.txt", transactionHash);
 
-      // 5. Download zip file
+      // 4. Download zip file
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(zipBlob);
 
