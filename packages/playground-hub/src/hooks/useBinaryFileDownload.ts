@@ -314,7 +314,11 @@ export const useBinaryFileDownload = () => {
     try {
       console.log("Starting prove file download...");
 
-      const filePath = "/tmp/tokamak-zk-evm/prove/output/proof.json";
+      // Platform-specific paths: Windows uses original paths, macOS/Linux uses /tmp
+      const isWindows = window.navigator.platform.toLowerCase().includes("win");
+      const filePath = isWindows
+        ? "src/binaries/resource/prove/output/proof.json"
+        : "/tmp/tokamak-zk-evm/prove/output/proof.json";
 
       console.log(`Reading prove file from: ${filePath}`);
 
