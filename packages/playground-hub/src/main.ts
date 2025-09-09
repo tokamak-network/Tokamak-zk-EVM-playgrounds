@@ -463,127 +463,53 @@ async function checkWSLDistribution(): Promise<{
   }
 
   try {
-    console.log("🔍 Checking WSL distributions...");
+    console.log("🔍 Checking for Microsoft Store Ubuntu...");
 
-    // First try to get all available distributions (including stopped ones)
     const { stdout: allDistros } = await execAsync("cmd /c wsl --list", {
       timeout: 5000,
     });
 
     console.log("🔍 WSL distributions output:", allDistros.trim());
 
-    if (
-      !allDistros.trim() ||
-      allDistros.includes("There are no installed distributions")
-    ) {
-      console.log("❌ No WSL distributions found");
+    if (!allDistros.trim()) {
       return {
         isAvailable: false,
-        error: "No WSL distributions installed",
+        error: "No WSL output - WSL may not be installed",
       };
     }
 
     const lines = allDistros.trim().split("\n");
-    console.log("🔍 Processing distribution lines:", lines);
 
-    if (lines.length > 1) {
-      // Skip header line and process distributions
-      let foundDistribution = null;
+    // Look for exact "Ubuntu" distribution name
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
 
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
+      // Extract distribution name, handling various default markers
+      // Remove special characters but keep letters, numbers, hyphens, spaces, and common separators
+      const cleanLine = line.replace(/[^\w\-\s()[\]【】：:]/g, "").trim();
+      // Split on various separators: space, parentheses, brackets, colons, hyphens
+      const distroName = cleanLine.split(/[\s()[\]【】：:-]/)[0].trim();
 
-        // Clean up the line - remove special characters but keep alphanumeric, hyphens, and underscores
-        const cleanLine = line.replace(/[^\w\-\s]/g, "").trim();
-        console.log(`🔍 Processing line ${i}: "${line}" -> "${cleanLine}"`);
+      console.log(
+        `🔍 Found distribution: "${distroName}" (from line: "${line.trim()}")`
+      );
 
-        // Extract distribution name (first word after cleaning)
-        const parts = cleanLine.split(/\s+/);
-        let distroName = parts[0];
-
-        if (distroName && distroName.length > 0) {
-          // Normalize Ubuntu variants (Ubuntu0, Ubuntu-20.04, etc.) to just "Ubuntu"
-          if (distroName.toLowerCase().startsWith("ubuntu")) {
-            distroName = "Ubuntu";
-            console.log("🔍 Normalized Ubuntu variant to:", distroName);
-          }
-
-          // Skip Docker Desktop distributions, prefer Linux distributions
-          if (!distroName.toLowerCase().includes("docker")) {
-            foundDistribution = distroName;
-            console.log("✅ Found non-Docker distribution:", foundDistribution);
-            break;
-          } else if (!foundDistribution) {
-            // Keep Docker as fallback if no other distribution found
-            foundDistribution = distroName;
-            console.log(
-              "🔍 Found Docker distribution as fallback:",
-              foundDistribution
-            );
-          }
-        }
-      }
-
-      if (foundDistribution) {
-        console.log("✅ WSL distribution selected:", foundDistribution);
+      // Microsoft Store Ubuntu (may have default marker)
+      if (distroName === "Ubuntu") {
+        console.log("✅ Microsoft Store Ubuntu found!");
         return {
           isAvailable: true,
-          distribution: foundDistribution,
+          distribution: "Ubuntu",
         };
       }
     }
 
-    // Try to get running distributions as additional fallback
-    try {
-      console.log("🔍 Trying to find running distributions...");
-      const { stdout: runningDistros } = await execAsync(
-        "cmd /c wsl --list --running",
-        {
-          timeout: 5000,
-        }
-      );
-
-      console.log("🔍 Running distributions output:", runningDistros.trim());
-
-      if (
-        runningDistros.trim() &&
-        !runningDistros.includes("There are no running distributions")
-      ) {
-        const runningLines = runningDistros.trim().split("\n");
-        if (runningLines.length > 1) {
-          const cleanLine = runningLines[1].replace(/[^\w\-\s]/g, "").trim();
-          let distroName = cleanLine.split(/\s+/)[0];
-
-          if (distroName) {
-            // Normalize Ubuntu variants (Ubuntu0, Ubuntu-20.04, etc.) to just "Ubuntu"
-            if (distroName.toLowerCase().startsWith("ubuntu")) {
-              distroName = "Ubuntu";
-              console.log(
-                "🔍 Normalized running Ubuntu variant to:",
-                distroName
-              );
-            }
-
-            console.log("✅ WSL running distribution found:", distroName);
-            return {
-              isAvailable: true,
-              distribution: distroName,
-            };
-          }
-        }
-      }
-    } catch (runningError) {
-      console.log(
-        "🔍 No running WSL distributions found:",
-        runningError.message
-      );
-    }
-
-    console.log("❌ No usable WSL distribution found");
+    // Ubuntu not found in the list
+    console.log("❌ Microsoft Store Ubuntu not found in WSL distributions");
     return {
       isAvailable: false,
-      error: "No usable WSL distribution found",
+      error: "Ubuntu distribution not installed",
     };
   } catch (error) {
     console.log("❌ WSL distribution check failed:", error.message);
