@@ -224,7 +224,7 @@ const ProcessResult = () => {
           }}
           onClick={async () => {
             const url =
-              "https://docs.google.com/forms/d/e/1FAIpQLSdVqGLRSrO2JhR0apXe5MzrUM9WdQZLJQTpnfd0hiUoNmNESw/viewform";
+              "https://zkevm-event.tokamak.network/?source=playground_app";
 
             console.log("📝 Opening Google Form in external browser...");
             try {
