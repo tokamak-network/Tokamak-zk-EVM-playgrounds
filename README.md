@@ -7,6 +7,7 @@ Interactive tools and playgrounds for exploring [the Tokamak ZK-EVM](https://git
 This monorepo contains:
 
 - [playground-hub](./packages/playground-hub) - An interactive desktop application that visualizes the entire Tokamak-zk-EVM proof generation pipeline. It uses Docker to run backend components and provides real-time animations of the process.
+- [playground-edu](./packages/playground-edu) - An educational version of the playground hub with a more detailed UI that separates each step of the Tokamak-zk-EVM process. While the interface is more complex, it provides deeper insights into individual stages, making it ideal for learning and understanding the proof generation pipeline.
 - [synthesizer-playground](./packages/synthesizer-playground) - A web interface for analyzing Ethereum transactions using the Synthesizer library, providing visualization of:
   - Storage operations (loads and stores)
   - Transaction logs
@@ -46,7 +47,6 @@ This will automatically:
 ## 📋 Prerequisites
 
 - Node.js 18.x or higher
-- Etherscan API key (for transaction data)
 - Cursor AI or VS Code (recommended)
 
 ## 🔍 Features
@@ -57,10 +57,15 @@ This will automatically:
 - **ZK-EVM Integration**: Seamless integration with Tokamak's ZK-EVM
 - **Developer Tools**: Debug and analyze transaction processing
 
-## 🤝 Contributing
-
-Contributions are welcome! Please see our [Contributing Guidelines](./CONTRIBUTING.md).
-
 ## 📚 Documentation
 
 - [Synthesizer Documentation](https://tokamak.notion.site/Synthesizer-documentation-164d96a400a3808db0f0f636e20fca24?pvs=4)
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/issues)
+- **Community**: [Tokamak ZKP World Discord](https://discord.gg/tokamak), [Tokamak ZKP World X](https://x.com/TokamakZKPWorld)
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
