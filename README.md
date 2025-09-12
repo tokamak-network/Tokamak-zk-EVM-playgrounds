@@ -64,7 +64,7 @@ This will automatically:
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/tokamak-network/Tokamak-zk-EVM-playgrounds/issues)
-- **Community**: [Tokamak ZKP World Discord](https://discord.gg/tokamak), [Tokamak ZKP World X](https://x.com/TokamakZKPWorld)
+- **Community**: [Tokamak ZKP World Discord](https://discord.com/invite/BgtSfggv), [Tokamak ZKP World X](https://x.com/TokamakZKPWorld)
 
 ## 📄 License
 
