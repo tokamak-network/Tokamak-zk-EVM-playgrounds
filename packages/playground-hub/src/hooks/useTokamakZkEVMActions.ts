@@ -268,6 +268,21 @@ export function useTokamakZkEVMActions() {
                 "🔍 PreProcess: Binary status check failed, trying direct script execution..."
               );
 
+              // Force initialization if no benchmark session exists (fallback mode)
+              if (!currentSession) {
+                console.log(
+                  "🔍 PreProcess (fallback): No benchmark session found, initializing..."
+                );
+                await initializeBenchmarkSession();
+              }
+
+              // Benchmarking: Record PreProcess start time (fallback mode)
+              const preprocessStartTime = startProcessTiming("preprocess");
+              console.log(
+                "🔍 PreProcess (fallback): startProcessTiming result:",
+                preprocessStartTime
+              );
+
               try {
                 console.log(
                   "🔍 PreProcess: Executing 3_run-preprocess.sh script with WSL support (fallback)..."
@@ -283,6 +298,21 @@ export function useTokamakZkEVMActions() {
                   result
                 );
 
+                // Benchmarking: Record PreProcess successful completion time (fallback mode)
+                if (preprocessStartTime) {
+                  console.log(
+                    "🔍 PreProcess (fallback): Calling endProcessTiming..."
+                  );
+                  endProcessTiming("preprocess", preprocessStartTime, true);
+                  console.log(
+                    "🔍 PreProcess (fallback): endProcessTiming completed"
+                  );
+                } else {
+                  console.warn(
+                    "🔍 PreProcess (fallback): preprocessStartTime is null, skipping endProcessTiming"
+                  );
+                }
+
                 return {
                   success: true,
                   result: result,
@@ -292,6 +322,19 @@ export function useTokamakZkEVMActions() {
                   "🔍 PreProcess: Fallback execution failed:",
                   error
                 );
+
+                // Benchmarking: Record PreProcess failure time (fallback mode)
+                if (preprocessStartTime) {
+                  console.log(
+                    "🔍 PreProcess (fallback): Calling endProcessTiming for error..."
+                  );
+                  endProcessTiming(
+                    "preprocess",
+                    preprocessStartTime,
+                    false,
+                    error.message
+                  );
+                }
                 throw error;
               }
             }
@@ -397,6 +440,21 @@ export function useTokamakZkEVMActions() {
                 "🔍 ProveTransaction: Binary status check failed, trying direct script execution..."
               );
 
+              // Force initialization if no benchmark session exists (fallback mode)
+              if (!currentSession) {
+                console.log(
+                  "🔍 ProveTransaction (fallback): No benchmark session found, initializing..."
+                );
+                await initializeBenchmarkSession();
+              }
+
+              // Benchmarking: Record Prove start time (fallback mode)
+              const proveStartTime = startProcessTiming("prove");
+              console.log(
+                "🔍 ProveTransaction (fallback): startProcessTiming result:",
+                proveStartTime
+              );
+
               try {
                 console.log(
                   "🔍 ProveTransaction: Executing 4_run-prove.sh script with WSL support (fallback)..."
@@ -412,6 +470,27 @@ export function useTokamakZkEVMActions() {
                   result
                 );
 
+                // Benchmarking: Record Prove successful completion time (fallback mode)
+                if (proveStartTime) {
+                  console.log(
+                    "🔍 ProveTransaction (fallback): Calling endProcessTiming..."
+                  );
+                  endProcessTiming(
+                    "prove",
+                    proveStartTime,
+                    true,
+                    undefined,
+                    result
+                  );
+                  console.log(
+                    "🔍 ProveTransaction (fallback): endProcessTiming completed"
+                  );
+                } else {
+                  console.warn(
+                    "🔍 ProveTransaction (fallback): proveStartTime is null, skipping endProcessTiming"
+                  );
+                }
+
                 return {
                   success: true,
                   result: result,
@@ -421,6 +500,19 @@ export function useTokamakZkEVMActions() {
                   "🔍 ProveTransaction: Fallback execution failed:",
                   error
                 );
+
+                // Benchmarking: Record Prove failure time (fallback mode)
+                if (proveStartTime) {
+                  console.log(
+                    "🔍 ProveTransaction (fallback): Calling endProcessTiming for error..."
+                  );
+                  endProcessTiming(
+                    "prove",
+                    proveStartTime,
+                    false,
+                    error.message
+                  );
+                }
                 throw error;
               }
             }
@@ -473,6 +565,21 @@ export function useTokamakZkEVMActions() {
                 "🔍 Verify: Binary status check failed, trying direct script execution..."
               );
 
+              // Force initialization if no benchmark session exists (fallback mode)
+              if (!currentSession) {
+                console.log(
+                  "🔍 Verify (fallback): No benchmark session found, initializing..."
+                );
+                await initializeBenchmarkSession();
+              }
+
+              // Benchmarking: Record Verify start time (fallback mode)
+              const verifyStartTime = startProcessTiming("verify");
+              console.log(
+                "🔍 Verify (fallback): startProcessTiming result:",
+                verifyStartTime
+              );
+
               try {
                 console.log(
                   "🔍 Verify: Executing 5_run-verify.sh script with WSL support (fallback)..."
@@ -509,6 +616,21 @@ export function useTokamakZkEVMActions() {
                     isTrue: isTrue,
                   });
 
+                  // Benchmarking: Record Verify successful completion time (fallback mode)
+                  if (verifyStartTime) {
+                    console.log(
+                      "🔍 Verify (fallback): Calling endProcessTiming..."
+                    );
+                    endProcessTiming("verify", verifyStartTime, isTrue);
+                    console.log(
+                      "🔍 Verify (fallback): endProcessTiming completed"
+                    );
+                  } else {
+                    console.warn(
+                      "🔍 Verify (fallback): verifyStartTime is null, skipping endProcessTiming"
+                    );
+                  }
+
                   return {
                     success: isTrue,
                     verificationResult: isTrue,
@@ -521,6 +643,19 @@ export function useTokamakZkEVMActions() {
                   allLines: lines,
                 });
 
+                // Benchmarking: Record Verify failure time (unrecognized format)
+                if (verifyStartTime) {
+                  console.log(
+                    "🔍 Verify (fallback): Calling endProcessTiming for unrecognized format..."
+                  );
+                  endProcessTiming(
+                    "verify",
+                    verifyStartTime,
+                    false,
+                    "Verification line not found or unrecognized format"
+                  );
+                }
+
                 return {
                   success: false,
                   error: "Verification line not found or unrecognized format",
@@ -528,6 +663,20 @@ export function useTokamakZkEVMActions() {
                 };
               } catch (error) {
                 console.error("🔍 Verify: Fallback execution failed:", error);
+
+                // Benchmarking: Record Verify failure time (fallback mode)
+                if (verifyStartTime) {
+                  console.log(
+                    "🔍 Verify (fallback): Calling endProcessTiming for error..."
+                  );
+                  endProcessTiming(
+                    "verify",
+                    verifyStartTime,
+                    false,
+                    error.message
+                  );
+                }
+
                 return {
                   success: false,
                   error: error.message || "An unknown error occurred",
