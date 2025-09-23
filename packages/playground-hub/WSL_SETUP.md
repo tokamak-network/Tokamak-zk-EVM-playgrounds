@@ -25,7 +25,7 @@ Once the Microsoft Store opens:
 - You'll see the Ubuntu installation page
 - Click the **"Install"** button to start downloading Ubuntu
 - Wait for the installation to complete
-![Program Initial Screen](./assets/wsl/1-2.png)
+  ![Program Initial Screen](./assets/wsl/1-2.png)
 
 ### 3. Open Ubuntu
 
@@ -35,7 +35,6 @@ After installation is complete:
 - Click the **"Open"** button to launch Ubuntu
 
 ![Program Initial Screen](./assets/wsl/1-4.png)
-
 
 ### 4. Automatic Setup Process
 
@@ -55,7 +54,6 @@ During the setup process:
 - Type your desired username and press Enter
 
 ![Program Initial Screen](./assets/wsl/1-6.png)
-
 
 ### 6. Create Password
 
@@ -90,46 +88,127 @@ Once WSL is installed:
 
 If you want to remove WSL from your computer:
 
-### Method 1: Uninstall Ubuntu from Microsoft Store
+### Understanding WSL Components
 
-1. **Open Microsoft Store**
-2. **Search for "Ubuntu"**
-3. **Click on Ubuntu** in the search results
-4. **Click "Uninstall"** button
-5. **Confirm the uninstallation** when prompted
+Before uninstalling, it's important to understand that WSL has two separate components:
 
-### Method 2: Uninstall from Windows Settings
+- **Microsoft Store App**: The Ubuntu installer/launcher from Microsoft Store
+- **WSL Distribution**: The actual Linux filesystem and data created when you first run Ubuntu
 
-1. **Open Windows Settings** (Windows key + I)
-2. **Go to "Apps"**
-3. **Search for "Ubuntu"** in the apps list
-4. **Click on Ubuntu** and select **"Uninstall"**
-5. **Confirm the uninstallation**
+**Important:** Removing only the Microsoft Store app will NOT delete your Ubuntu data. The WSL distribution will remain registered and accessible.
+
+### Method 1: Complete Ubuntu Removal (Recommended)
+
+To completely remove Ubuntu and all its data:
+
+1. **First, unregister the WSL distribution** (this deletes all Linux data):
+
+   ```cmd
+   wsl --unregister Ubuntu
+   ```
+
+   Or for specific versions:
+
+   ```cmd
+   wsl --unregister Ubuntu-20.04
+   wsl --unregister Ubuntu-22.04
+   wsl --unregister Ubuntu-24.04
+   ```
+
+   ⚠️ **Warning:** This permanently deletes all files, settings, and data in your Ubuntu installation.
+
+2. **Then, remove the Microsoft Store app**:
+
+   **Option A: Using PowerShell (Recommended)**
+
+   ```powershell
+   # Run as Administrator
+   Get-AppxPackage *Ubuntu* | Remove-AppxPackage
+   ```
+
+   **Option B: Using Microsoft Store**
+
+   - Open Microsoft Store
+   - Search for "Ubuntu"
+   - Click on Ubuntu and select "Uninstall"
+
+   **Option C: Using Windows Settings**
+
+   - Open Windows Settings (Windows key + I)
+   - Go to "Apps"
+   - Search for "Ubuntu" and click "Uninstall"
+
+3. **Verify complete removal**:
+
+   ```cmd
+   wsl --list
+   ```
+
+   You should see: "Linux용 Windows 하위 시스템 설치된 배포가 없습니다"
+
+### Method 2: App-Only Removal (Keeps Data)
+
+If you only want to remove the Microsoft Store app but keep your Ubuntu data:
+
+1. **Remove the Microsoft Store app** (using any of the options from Method 1, step 2)
+2. **Your Ubuntu distribution remains registered** and can be accessed via `wsl` command
+3. **To restore the app later**, simply reinstall Ubuntu from Microsoft Store
 
 ### Method 3: Complete WSL Removal (Advanced)
 
 If you want to completely remove WSL from Windows:
 
-1. **Open PowerShell as Administrator**
+1. **First, remove all distributions**:
+
+   ```cmd
+   wsl --unregister Ubuntu
+   # Repeat for any other distributions you have
+   ```
+
+2. **Open PowerShell as Administrator**
 
    - Right-click Start button
    - Select "Windows PowerShell (Admin)" or "Terminal (Admin)"
 
-2. **Unregister Ubuntu:**
+3. **Remove Microsoft Store apps**:
 
    ```powershell
-   wsl --unregister Ubuntu
+   Get-AppxPackage *Ubuntu* | Remove-AppxPackage
    ```
 
-3. **Disable WSL feature:**
+4. **Disable WSL features**:
 
    ```powershell
    dism.exe /online /disable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+   dism.exe /online /disable-feature /featurename:VirtualMachinePlatform /all /norestart
    ```
 
-4. **Restart your computer** to complete the removal
+5. **Clean up remaining files** (optional):
+
+   Delete these folders if they exist:
+
+   ```
+   %USERPROFILE%\AppData\Local\Packages\CanonicalGroupLimited.Ubuntu*
+   %LOCALAPPDATA%\lxss\
+   ```
+
+6. **Restart your computer** to complete the removal
 
 **Note:** Method 3 will completely disable WSL on your system. Only use this if you're sure you won't need WSL for other applications.
+
+### Troubleshooting Removal Issues
+
+**Problem:** "Ubuntu still appears in `wsl --list` after removing the app"
+
+- **Solution:** You need to run `wsl --unregister Ubuntu` to remove the actual distribution data
+
+**Problem:** "Can't find Ubuntu in Microsoft Store after removal"
+
+- **Solution:** Search for "Ubuntu" or "Ubuntu 22.04 LTS" in Microsoft Store, or visit the Ubuntu page directly
+
+**Problem:** "WSL command still works after complete removal"
+
+- **Solution:** This is normal if you only removed distributions. WSL commands will work but show "no distributions installed". To remove WSL entirely, follow Method 3.
 
 ## Need Help?
 
