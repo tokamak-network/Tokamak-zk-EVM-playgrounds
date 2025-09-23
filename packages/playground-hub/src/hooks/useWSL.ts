@@ -62,7 +62,15 @@ export const useWSL = () => {
           // Use dedicated WSL API if available
           console.log("🔍 useWSL: Using dedicated WSL API");
           const wslSupport = await window.wslAPI.checkWSLSupport();
-          console.log("🔍 useWSL: WSL support result:", wslSupport);
+          console.log("🔍 useWSL: WSL support result:", JSON.stringify(wslSupport, null, 2));
+          console.log("🔍 useWSL: WSL details:", {
+            isAvailable: wslSupport.isAvailable,
+            wslAvailable: wslSupport.wsl?.isAvailable,
+            wslError: wslSupport.wsl?.error,
+            distributionAvailable: wslSupport.distribution?.isAvailable,
+            distributionName: wslSupport.distribution?.distribution,
+            distributionError: wslSupport.distribution?.error,
+          });
           setWslInfo(wslSupport);
         } else if (
           typeof window !== "undefined" &&

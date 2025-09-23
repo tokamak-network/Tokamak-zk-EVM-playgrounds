@@ -109,21 +109,21 @@ function createMenu(): void {
     // macOS에서는 첫 번째 메뉴가 앱 이름
     ...(isMac
       ? [
-          {
-            label: app.name,
-            submenu: [
-              { role: "about" as const },
-              { type: "separator" as const },
-              { role: "services" as const },
-              { type: "separator" as const },
-              { role: "hide" as const },
-              { role: "hideOthers" as const },
-              { role: "unhide" as const },
-              { type: "separator" as const },
-              { role: "quit" as const },
-            ] as MenuItemConstructorOptions[],
-          },
-        ]
+        {
+          label: app.name,
+          submenu: [
+            { role: "about" as const },
+            { type: "separator" as const },
+            { role: "services" as const },
+            { type: "separator" as const },
+            { role: "hide" as const },
+            { role: "hideOthers" as const },
+            { role: "unhide" as const },
+            { type: "separator" as const },
+            { role: "quit" as const },
+          ] as MenuItemConstructorOptions[],
+        },
+      ]
       : []),
     {
       label: "Edit",
@@ -207,9 +207,9 @@ async function checkNvidiaGPU(): Promise<{
       // Windows에서 PATH 확장
       env: isWindows
         ? {
-            ...process.env,
-            PATH: `${process.env.PATH};C:\\Program Files\\NVIDIA Corporation\\NVSMI;C:\\Windows\\System32`,
-          }
+          ...process.env,
+          PATH: `${process.env.PATH};C:\\Program Files\\NVIDIA Corporation\\NVSMI;C:\\Windows\\System32`,
+        }
         : process.env,
     });
 
@@ -271,9 +271,9 @@ async function checkCudaCompiler(): Promise<{
       // Windows에서 CUDA PATH 확장
       env: isWindows
         ? {
-            ...process.env,
-            PATH: `${process.env.PATH};C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v11.8\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.0\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.1\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.2\\bin`,
-          }
+          ...process.env,
+          PATH: `${process.env.PATH};C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v11.8\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.0\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.1\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.2\\bin`,
+        }
         : process.env,
     });
 
@@ -355,19 +355,86 @@ async function checkWSL(): Promise<{
   }
 
   try {
-    console.log("🔍 Checking WSL availability using cmd...");
+    console.log("🔍 Checking WSL availability...");
 
-    // Use cmd to check if wsl command works
-    const { stdout } = await execAsync("cmd /c wsl --list --verbose", {
-      timeout: 10000,
-    });
+    // Try multiple approaches for WSL detection in packaged environment
+    let stdout: Buffer;
+    let wslCommand: string;
 
-    console.log("✅ WSL command executed successfully via cmd:", stdout.trim());
+    // First try: Direct wsl command
+    try {
+      console.log("🔍 Trying direct wsl command...");
+      const result = await execAsync("wsl --list --verbose", {
+        timeout: 10000,
+        encoding: 'buffer',
+        env: {
+          ...process.env,
+          // Ensure system paths are available
+          PATH: `${process.env.PATH};C:\\Windows\\System32;C:\\Windows\\System32\\WindowsPowerShell\\v1.0`,
+        },
+      });
+      stdout = result.stdout;
+      wslCommand = "wsl --list --verbose";
+      console.log("✅ Direct wsl command succeeded");
+    } catch (directError) {
+      console.log("❌ Direct wsl command failed:", directError.message);
+
+      // Second try: Use full path to wsl.exe
+      try {
+        console.log("🔍 Trying full path to wsl.exe...");
+        const result = await execAsync("C:\\Windows\\System32\\wsl.exe --list --verbose", {
+          timeout: 10000,
+          encoding: 'buffer',
+        });
+        stdout = result.stdout;
+        wslCommand = "C:\\Windows\\System32\\wsl.exe --list --verbose";
+        console.log("✅ Full path wsl command succeeded");
+      } catch (fullPathError) {
+        console.log("❌ Full path wsl command failed:", fullPathError.message);
+
+        // Third try: Use PowerShell to execute wsl
+        try {
+          console.log("🔍 Trying PowerShell wsl command...");
+          const result = await execAsync('powershell -Command "wsl --list --verbose"', {
+            timeout: 15000,
+            encoding: 'buffer',
+          });
+          stdout = result.stdout;
+          wslCommand = 'powershell -Command "wsl --list --verbose"';
+          console.log("✅ PowerShell wsl command succeeded");
+        } catch (powershellError) {
+          console.log("❌ PowerShell wsl command failed:", powershellError.message);
+          throw new Error(`All WSL detection methods failed. Last error: ${powershellError.message}`);
+        }
+      }
+    }
+
+    console.log(`✅ WSL command executed successfully: ${wslCommand}`);
+    console.log("🔍 WSL --list --verbose raw output:");
+    console.log("Raw bytes:", stdout);
+
+    // Try to decode as UTF-16 LE (Windows default for wsl command)
+    let decodedOutput: string;
+    try {
+      // Check if it's UTF-16 LE by looking for null bytes pattern
+      if (stdout.length > 1 && stdout[1] === 0) {
+        decodedOutput = stdout.toString('utf16le');
+        console.log("🔍 Decoded as UTF-16 LE:", JSON.stringify(decodedOutput));
+      } else {
+        decodedOutput = stdout.toString('utf8');
+        console.log("🔍 Decoded as UTF-8:", JSON.stringify(decodedOutput));
+      }
+    } catch (decodeError) {
+      console.log("⚠️ Decoding failed, using UTF-8 fallback");
+      decodedOutput = stdout.toString('utf8');
+    }
+
+    const finalOutput = decodedOutput.trim();
 
     // Check if there are any distributions installed
     if (
-      !stdout.trim() ||
-      stdout.includes("There are no installed distributions")
+      !finalOutput ||
+      finalOutput.includes("There are no installed distributions")
     ) {
       console.log("❌ No WSL distributions installed");
       return {
@@ -377,7 +444,7 @@ async function checkWSL(): Promise<{
     }
 
     // Parse WSL version from output (look for VERSION column)
-    const lines = stdout.trim().split("\n");
+    const lines = finalOutput.split("\n");
     let version = "Unknown";
 
     // Look for version in the header or distribution lines
@@ -394,7 +461,7 @@ async function checkWSL(): Promise<{
     try {
       console.log("🔍 Testing WSL functionality with simple command...");
       const { stdout: testOutput } = await execAsync("cmd /c wsl echo test", {
-        timeout: 10000,
+        timeout: 15000, // Increased timeout to allow WSL to start if stopped
       });
 
       if (testOutput.trim() === "test") {
@@ -405,6 +472,17 @@ async function checkWSL(): Promise<{
         };
       } else {
         console.log("❌ WSL command test failed - output:", testOutput.trim());
+
+        // If we have distributions but the test failed, WSL might just need to start
+        // Consider it available if distributions exist
+        if (finalOutput.includes("Ubuntu") || finalOutput.includes("Debian") || finalOutput.includes("Alpine")) {
+          console.log("ℹ️ WSL distributions found, considering WSL available despite test failure");
+          return {
+            isAvailable: true,
+            version,
+          };
+        }
+
         return {
           isAvailable: false,
           error:
@@ -427,6 +505,17 @@ async function checkWSL(): Promise<{
           isAvailable: false,
           error:
             "WSL is installed but initial setup is incomplete. Please complete the user account setup.",
+        };
+      }
+
+      // If we have distributions listed but the test command failed,
+      // it might be because WSL needs to start or there's a temporary issue
+      // Consider WSL available if we successfully got the distribution list
+      if (finalOutput.includes("Ubuntu") || finalOutput.includes("Debian") || finalOutput.includes("Alpine")) {
+        console.log("ℹ️ WSL distributions found, considering WSL available despite command test failure");
+        return {
+          isAvailable: true,
+          version,
         };
       }
 
@@ -463,53 +552,158 @@ async function checkWSLDistribution(): Promise<{
   }
 
   try {
-    console.log("🔍 Checking for Microsoft Store Ubuntu...");
+    console.log("🔍 Checking for WSL distributions...");
 
-    const { stdout: allDistros } = await execAsync("cmd /c wsl --list", {
-      timeout: 5000,
-    });
+    // Try multiple approaches for WSL distribution detection in packaged environment
+    let allDistros: Buffer;
+    let wslCommand: string;
 
-    console.log("🔍 WSL distributions output:", allDistros.trim());
+    // First try: Direct wsl command
+    try {
+      console.log("🔍 Trying direct wsl command for distributions...");
+      const result = await execAsync("wsl --list --verbose", {
+        timeout: 5000,
+        encoding: 'buffer',
+        env: {
+          ...process.env,
+          PATH: `${process.env.PATH};C:\\Windows\\System32;C:\\Windows\\System32\\WindowsPowerShell\\v1.0`,
+        },
+      });
+      allDistros = result.stdout;
+      wslCommand = "wsl --list --verbose";
+      console.log("✅ Direct wsl command for distributions succeeded");
+    } catch (directError) {
+      console.log("❌ Direct wsl command for distributions failed:", directError.message);
 
-    if (!allDistros.trim()) {
+      // Second try: Use full path to wsl.exe
+      try {
+        console.log("🔍 Trying full path to wsl.exe for distributions...");
+        const result = await execAsync("C:\\Windows\\System32\\wsl.exe --list --verbose", {
+          timeout: 5000,
+          encoding: 'buffer',
+        });
+        allDistros = result.stdout;
+        wslCommand = "C:\\Windows\\System32\\wsl.exe --list --verbose";
+        console.log("✅ Full path wsl command for distributions succeeded");
+      } catch (fullPathError) {
+        console.log("❌ Full path wsl command for distributions failed:", fullPathError.message);
+
+        // Third try: Use PowerShell to execute wsl
+        try {
+          console.log("🔍 Trying PowerShell wsl command for distributions...");
+          const result = await execAsync('powershell -Command "wsl --list --verbose"', {
+            timeout: 10000,
+            encoding: 'buffer',
+          });
+          allDistros = result.stdout;
+          wslCommand = 'powershell -Command "wsl --list --verbose"';
+          console.log("✅ PowerShell wsl command for distributions succeeded");
+        } catch (powershellError) {
+          console.log("❌ PowerShell wsl command for distributions failed:", powershellError.message);
+          throw new Error(`All WSL distribution detection methods failed. Last error: ${powershellError.message}`);
+        }
+      }
+    }
+
+    console.log("🔍 WSL distributions raw output:");
+    console.log("Raw bytes:", allDistros);
+
+    // Try to decode as UTF-16 LE (Windows default for wsl command)
+    let decodedDistros: string;
+    try {
+      // Check if it's UTF-16 LE by looking for null bytes pattern
+      if (allDistros.length > 1 && allDistros[1] === 0) {
+        decodedDistros = allDistros.toString('utf16le');
+        console.log("🔍 Decoded as UTF-16 LE:", JSON.stringify(decodedDistros));
+      } else {
+        decodedDistros = allDistros.toString('utf8');
+        console.log("🔍 Decoded as UTF-8:", JSON.stringify(decodedDistros));
+      }
+    } catch (decodeError) {
+      console.log("⚠️ Decoding failed, using UTF-8 fallback");
+      decodedDistros = allDistros.toString('utf8');
+    }
+
+    const finalDistros = decodedDistros.trim();
+
+    if (!finalDistros) {
+      console.log("❌ Empty WSL output");
       return {
         isAvailable: false,
         error: "No WSL output - WSL may not be installed",
       };
     }
 
-    const lines = allDistros.trim().split("\n");
+    const lines = finalDistros.split("\n");
+    console.log(`🔍 Total lines found: ${lines.length}`);
 
-    // Look for exact "Ubuntu" distribution name
-    for (let i = 1; i < lines.length; i++) {
+    // Look for Ubuntu distribution in any form
+    for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      if (!line) continue;
+      console.log(`🔍 Line ${i}: "${line}" (length: ${line.length})`);
+      console.log(`🔍 Line ${i} bytes:`, Buffer.from(line, 'utf8'));
 
-      // Extract distribution name, handling various default markers
-      // Remove special characters but keep letters, numbers, hyphens, spaces, and common separators
-      const cleanLine = line.replace(/[^\w\-\s()[\]【】：:]/g, "").trim();
-      // Split on various separators: space, parentheses, brackets, colons, hyphens
-      const distroName = cleanLine.split(/[\s()[\]【】：:-]/)[0].trim();
+      if (!line) {
+        console.log(`🔍 Line ${i}: Empty line, skipping`);
+        continue;
+      }
 
-      console.log(
-        `🔍 Found distribution: "${distroName}" (from line: "${line.trim()}")`
-      );
+      // Check if line contains "Ubuntu" (case-insensitive)
+      const lowerLine = line.toLowerCase();
+      console.log(`🔍 Line ${i} lowercase: "${lowerLine}"`);
 
-      // Microsoft Store Ubuntu (may have default marker)
-      if (distroName === "Ubuntu") {
-        console.log("✅ Microsoft Store Ubuntu found!");
+      if (lowerLine.includes("ubuntu")) {
+        console.log(`✅ Ubuntu found in line ${i}!`);
+
+        // Extract the actual distribution name from the line
+        // Handle both English and Korean output formats
+        let distroName = "Ubuntu";
+
+        // Try to extract the first word that contains "Ubuntu"
+        const words = line.split(/\s+/);
+        console.log(`🔍 Words in line ${i}:`, words);
+
+        for (const word of words) {
+          console.log(`🔍 Checking word: "${word}"`);
+          if (word.toLowerCase().includes("ubuntu")) {
+            // Remove special characters like * (default marker)
+            distroName = word.replace(/[*\s]/g, "");
+            console.log(`🔍 Extracted distro name: "${distroName}"`);
+            break;
+          }
+        }
+
         return {
           isAvailable: true,
-          distribution: "Ubuntu",
+          distribution: distroName,
         };
+      }
+
+      // Also check for other common distributions
+      if (lowerLine.includes("debian") ||
+        lowerLine.includes("alpine") ||
+        lowerLine.includes("opensuse")) {
+        console.log(`✅ Found other distribution in line ${i}: ${line}`);
+        const words = line.split(/\s+/);
+        for (const word of words) {
+          if (word.toLowerCase().match(/(debian|alpine|opensuse)/)) {
+            const distroName = word.replace(/[*\s]/g, "");
+            console.log(`✅ Found distribution: ${distroName}`);
+            return {
+              isAvailable: true,
+              distribution: distroName,
+            };
+          }
+        }
       }
     }
 
-    // Ubuntu not found in the list
-    console.log("❌ Microsoft Store Ubuntu not found in WSL distributions");
+    // No supported distributions found
+    console.log("❌ No supported WSL distributions found after checking all lines");
+    console.log("❌ Lines processed:", lines.map((line, i) => `${i}: "${line}"`));
     return {
       isAvailable: false,
-      error: "Ubuntu distribution not installed",
+      error: "No supported Linux distributions installed in WSL",
     };
   } catch (error) {
     console.log("❌ WSL distribution check failed:", error.message);
@@ -728,7 +922,7 @@ function setupIpcHandlers() {
           if (!shouldUseWSL) {
             console.warn(
               "WSL is not available on Windows. Attempting to run command natively, " +
-                "but this may fail for Linux binaries."
+              "but this may fail for Linux binaries."
             );
             // Don't throw error, let it try native execution as fallback
             shouldUseWSL = false;
@@ -775,6 +969,26 @@ function setupIpcHandlers() {
       // Ensure script has execute permissions if it's a shell script
       if (processedCommand[0] && processedCommand[0].endsWith(".sh")) {
         try {
+          // Convert CRLF to LF for WSL compatibility
+          if (shouldUseWSL) {
+            console.log(`🔧 Converting line endings for WSL: ${processedCommand[0]}`);
+            try {
+              const scriptContent = fs.readFileSync(processedCommand[0], 'utf8');
+              // Convert CRLF (\r\n) and CR (\r) to LF (\n)
+              const convertedContent = scriptContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+              // Only write if content changed
+              if (scriptContent !== convertedContent) {
+                fs.writeFileSync(processedCommand[0], convertedContent, 'utf8');
+                console.log(`✅ Converted line endings for: ${processedCommand[0]}`);
+              } else {
+                console.log(`ℹ️ Line endings already correct for: ${processedCommand[0]}`);
+              }
+            } catch (conversionError) {
+              console.warn(`⚠️ Failed to convert line endings for ${processedCommand[0]}: ${conversionError.message}`);
+            }
+          }
+
           fs.chmodSync(processedCommand[0], "755");
           console.log(
             `Set execute permissions for script: ${processedCommand[0]}`
@@ -968,36 +1182,48 @@ function setupIpcHandlers() {
               (match, drive) => `/mnt/${drive.toLowerCase()}`
             );
 
+          console.log("🔍 WSL path conversion:");
+          console.log("  Windows working dir:", actualWorkingDir);
+          console.log("  WSL working dir:", wslWorkingDir);
+
           // Convert command to WSL-compatible format
           let wslCommand;
           if (processedCommand[0] === "bash" && processedCommand[1] === "-c") {
             // For bash -c commands, extract the actual command and remove directory changes
             let actualCommand = processedCommand[2];
+            console.log("🔍 Original bash -c command:", actualCommand);
 
             // Remove any cd commands since we're already in the correct directory
             actualCommand = actualCommand.replace(
               /cd (src\/binaries\/\w+|resources\/binaries\/\w+|binaries\/\w+)\s*&&\s*/g,
               ""
             );
+            console.log("🔍 Cleaned bash -c command:", actualCommand);
 
             // The command should run from the WSL working directory
             wslCommand = actualCommand;
           } else {
             // For other commands, convert Windows paths to WSL paths and join them
-            const wslProcessedCommand = processedCommand.map((arg) => {
+            console.log("🔍 Converting command paths to WSL format:");
+            const wslProcessedCommand = processedCommand.map((arg, index) => {
               // Convert Windows paths to WSL paths
               if (arg.match(/^[A-Za-z]:\\/)) {
-                return arg
+                const converted = arg
                   .replace(/\\/g, "/")
                   .replace(
                     /^([A-Za-z]):/,
                     (match, drive) => `/mnt/${drive.toLowerCase()}`
                   );
+                console.log(`  Arg ${index}: "${arg}" -> "${converted}"`);
+                return converted;
               }
+              console.log(`  Arg ${index}: "${arg}" (no conversion)`);
               return arg;
             });
             wslCommand = wslProcessedCommand.join(" ");
           }
+
+          console.log("🔍 Final WSL command:", wslCommand);
 
           const fullWSLCommand = `cd "${wslWorkingDir}" && ${wslCommand}`;
           console.log("🔍 WSL full command:", fullWSLCommand);
@@ -1030,43 +1256,59 @@ function setupIpcHandlers() {
             const scriptPath = args[0];
             const scriptArgs = args.slice(1);
 
-            childProcess = spawn(
-              "wsl",
-              [
-                "-d",
-                targetDistribution,
-                "--",
-                "/bin/bash",
-                scriptPath,
-                ...scriptArgs,
-              ],
-              {
-                stdio: ["pipe", "pipe", "pipe"],
-                env: {
-                  ...process.env,
-                  WSLENV: "PATH/l:LD_LIBRARY_PATH/l:DYLD_LIBRARY_PATH/l",
-                },
-              }
-            );
+            const wslArgs = [
+              "-d",
+              targetDistribution,
+              "--",
+              "/bin/bash",
+              scriptPath,
+              ...scriptArgs,
+            ];
+
+            console.log("🔍 WSL bash script execution:");
+            console.log("  Command: wsl", wslArgs.join(" "));
+            console.log("  Script path:", scriptPath);
+            console.log("  Script args:", scriptArgs);
+
+            // Use full path to wsl.exe for packaged environment reliability
+            const wslExecutable = app.isPackaged ? "C:\\Windows\\System32\\wsl.exe" : "wsl";
+            console.log(`🔍 Using WSL executable: ${wslExecutable}`);
+
+            childProcess = spawn(wslExecutable, wslArgs, {
+              stdio: ["pipe", "pipe", "pipe"],
+              env: {
+                ...process.env,
+                WSLENV: "PATH/l:LD_LIBRARY_PATH/l:DYLD_LIBRARY_PATH/l",
+                PATH: `${process.env.PATH};C:\\Windows\\System32;C:\\Windows\\System32\\WindowsPowerShell\\v1.0`,
+              },
+            });
           } else {
-            childProcess = spawn(
-              "wsl",
-              [
-                "-d",
-                targetDistribution,
-                "--",
-                "/bin/bash",
-                "-c",
-                `cd "${workingDir}" && ${executable} ${args.join(" ")}`,
-              ],
-              {
-                stdio: ["pipe", "pipe", "pipe"],
-                env: {
-                  ...process.env,
-                  WSLENV: "PATH/l:LD_LIBRARY_PATH/l:DYLD_LIBRARY_PATH/l",
-                },
-              }
-            );
+            const bashCommand = `cd "${workingDir}" && ${executable} ${args.join(" ")}`;
+            const wslArgs = [
+              "-d",
+              targetDistribution,
+              "--",
+              "/bin/bash",
+              "-c",
+              bashCommand,
+            ];
+
+            console.log("🔍 WSL direct binary execution:");
+            console.log("  Command: wsl", wslArgs.join(" "));
+            console.log("  Bash command:", bashCommand);
+
+            // Use full path to wsl.exe for packaged environment reliability
+            const wslExecutable = app.isPackaged ? "C:\\Windows\\System32\\wsl.exe" : "wsl";
+            console.log(`🔍 Using WSL executable: ${wslExecutable}`);
+
+            childProcess = spawn(wslExecutable, wslArgs, {
+              stdio: ["pipe", "pipe", "pipe"],
+              env: {
+                ...process.env,
+                WSLENV: "PATH/l:LD_LIBRARY_PATH/l:DYLD_LIBRARY_PATH/l",
+                PATH: `${process.env.PATH};C:\\Windows\\System32;C:\\Windows\\System32\\WindowsPowerShell\\v1.0`,
+              },
+            });
           }
 
           console.log("🔍 Using WSL with direct bash execution");
@@ -1122,14 +1364,15 @@ function setupIpcHandlers() {
           console.log(
             `${shouldUseWSL ? "WSL" : "System"} command exited with code: ${code}`
           );
+          console.log(`${shouldUseWSL ? "WSL" : "System"} stdout:`, output);
+          console.log(`${shouldUseWSL ? "WSL" : "System"} stderr:`, errorOutput);
+
           if (code === 0) {
             resolve(output);
           } else {
-            reject(
-              new Error(
-                `${shouldUseWSL ? "WSL" : "System"} command failed with code ${code}: ${errorOutput}`
-              )
-            );
+            const errorMessage = `${shouldUseWSL ? "WSL" : "System"} command failed with code ${code}: ${errorOutput || 'No error output'}`;
+            console.error("❌ Command execution failed:", errorMessage);
+            reject(new Error(errorMessage));
           }
         });
 
@@ -1533,13 +1776,42 @@ app.whenReady().then(async () => {
   binaryService = new BinaryService();
   console.log("Binary service initialized");
 
-  // Ensure all binaries have execute permissions on startup
+  // Ensure all binaries have execute permissions on startup and convert shell scripts for WSL
   try {
     let backendBinDir: string;
+    let scriptDir: string;
+
     if (app.isPackaged) {
       backendBinDir = path.join(process.resourcesPath, "binaries", "bin");
+      scriptDir = path.join(process.resourcesPath, "binaries");
     } else {
       backendBinDir = path.join(app.getAppPath(), "src", "binaries", "bin");
+      scriptDir = path.join(app.getAppPath(), "src", "binaries");
+    }
+
+    // Convert shell scripts for WSL compatibility on Windows
+    if (process.platform === "win32" && fs.existsSync(scriptDir)) {
+      console.log("🔧 Converting shell scripts for WSL compatibility...");
+      const scriptFiles = fs.readdirSync(scriptDir).filter(file => file.endsWith('.sh'));
+
+      for (const scriptFile of scriptFiles) {
+        const scriptPath = path.join(scriptDir, scriptFile);
+        try {
+          const scriptContent = fs.readFileSync(scriptPath, 'utf8');
+          // Convert CRLF (\r\n) and CR (\r) to LF (\n)
+          const convertedContent = scriptContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+          // Only write if content changed
+          if (scriptContent !== convertedContent) {
+            fs.writeFileSync(scriptPath, convertedContent, 'utf8');
+            console.log(`✅ Converted line endings for: ${scriptFile}`);
+          } else {
+            console.log(`ℹ️ Line endings already correct for: ${scriptFile}`);
+          }
+        } catch (conversionError) {
+          console.warn(`⚠️ Failed to convert line endings for ${scriptFile}: ${conversionError.message}`);
+        }
+      }
     }
 
     if (fs.existsSync(backendBinDir)) {

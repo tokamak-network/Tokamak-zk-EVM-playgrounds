@@ -14,6 +14,9 @@ export const WSLInstallModal: React.FC = () => {
       wslInfo,
       isWindows,
       currentModalState: isOpen,
+      wslAvailable: wslInfo?.isAvailable,
+      wslDetails: wslInfo?.wsl,
+      distributionDetails: wslInfo?.distribution,
     });
 
     // Don't show modal while still loading WSL info
@@ -37,7 +40,13 @@ export const WSLInstallModal: React.FC = () => {
     if (isWindows === true && wslInfo) {
       if (!wslInfo.isAvailable) {
         console.log(
-          "🎭 WSLInstallModal: WSL not available on Windows, showing modal"
+          "🎭 WSLInstallModal: WSL not available on Windows, showing modal",
+          {
+            wslAvailable: wslInfo.wsl?.isAvailable,
+            wslError: wslInfo.wsl?.error,
+            distributionAvailable: wslInfo.distribution?.isAvailable,
+            distributionError: wslInfo.distribution?.error,
+          }
         );
         setIsOpen(true);
       } else {
@@ -238,9 +247,35 @@ This dialog will remain open and automatically close when WSL is detected.`;
               }}
             >
               This app needs WSL to run on Windows.
-              {wslInfo && !wslInfo.wsl.isAvailable && (
+              {wslInfo && (
                 <>
                   <br />
+                  <br />
+                  <span style={{ fontSize: "12px", color: "#666666" }}>
+                    WSL Status: {wslInfo.wsl.isAvailable ? "✅ Installed" : "❌ Not found"}
+                    <br />
+                    Distribution: {wslInfo.distribution.isAvailable
+                      ? `✅ ${wslInfo.distribution.distribution} available`
+                      : "❌ No Linux distributions"}
+                    <br />
+                    Overall: {wslInfo.isAvailable ? "✅ Available" : "❌ Not available"}
+                  </span>
+                  {wslInfo.wsl.error && (
+                    <>
+                      <br />
+                      <span style={{ fontSize: "12px", color: "#CC6600" }}>
+                        Issue: {wslInfo.wsl.error}
+                      </span>
+                    </>
+                  )}
+                  {wslInfo.distribution.error && (
+                    <>
+                      <br />
+                      <span style={{ fontSize: "12px", color: "#CC6600" }}>
+                        Distribution: {wslInfo.distribution.error}
+                      </span>
+                    </>
+                  )}
                 </>
               )}
               {isCheckingWSL && (
