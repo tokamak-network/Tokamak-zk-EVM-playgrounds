@@ -1175,7 +1175,7 @@ function setupIpcHandlers() {
             }
           }
 
-          const wslWorkingDir = actualWorkingDir
+          let wslWorkingDir = actualWorkingDir
             .replace(/\\/g, "/")
             .replace(
               /^([A-Za-z]):/,
@@ -1184,7 +1184,11 @@ function setupIpcHandlers() {
 
           console.log("🔍 WSL path conversion:");
           console.log("  Windows working dir:", actualWorkingDir);
-          console.log("  WSL working dir:", wslWorkingDir);
+          console.log("  WSL working dir (before escaping):", wslWorkingDir);
+
+          // Escape special characters for bash (especially parentheses)
+          wslWorkingDir = wslWorkingDir.replace(/[()]/g, '\\$&');
+          console.log("  WSL working dir (after escaping):", wslWorkingDir);
 
           // Convert command to WSL-compatible format
           let wslCommand;
@@ -1208,17 +1212,21 @@ function setupIpcHandlers() {
             const wslProcessedCommand = processedCommand.map((arg, index) => {
               // Convert Windows paths to WSL paths
               if (arg.match(/^[A-Za-z]:\\/)) {
-                const converted = arg
+                let converted = arg
                   .replace(/\\/g, "/")
                   .replace(
                     /^([A-Za-z]):/,
                     (match, drive) => `/mnt/${drive.toLowerCase()}`
                   );
+                // Escape special characters for bash (especially parentheses)
+                converted = converted.replace(/[()]/g, '\\$&');
                 console.log(`  Arg ${index}: "${arg}" -> "${converted}"`);
                 return converted;
               }
-              console.log(`  Arg ${index}: "${arg}" (no conversion)`);
-              return arg;
+              // Escape special characters even for non-path arguments
+              const escaped = arg.replace(/[()]/g, '\\$&');
+              console.log(`  Arg ${index}: "${arg}" -> "${escaped}"`);
+              return escaped;
             });
             wslCommand = wslProcessedCommand.join(" ");
           }
@@ -1256,13 +1264,17 @@ function setupIpcHandlers() {
             const scriptPath = args[0];
             const scriptArgs = args.slice(1);
 
+            // Escape special characters in script path and args for WSL
+            const escapedScriptPath = scriptPath.replace(/[()]/g, '\\$&');
+            const escapedScriptArgs = scriptArgs.map(arg => arg.replace(/[()]/g, '\\$&'));
+
             const wslArgs = [
               "-d",
               targetDistribution,
               "--",
               "/bin/bash",
-              scriptPath,
-              ...scriptArgs,
+              escapedScriptPath,
+              ...escapedScriptArgs,
             ];
 
             console.log("🔍 WSL bash script execution:");
@@ -1283,7 +1295,12 @@ function setupIpcHandlers() {
               },
             });
           } else {
-            const bashCommand = `cd "${workingDir}" && ${executable} ${args.join(" ")}`;
+            // Escape special characters in paths for bash
+            const escapedWorkingDir = workingDir.replace(/[()]/g, '\\$&');
+            const escapedExecutable = executable.replace(/[()]/g, '\\$&');
+            const escapedArgs = args.map(arg => arg.replace(/[()]/g, '\\$&'));
+
+            const bashCommand = `cd "${escapedWorkingDir}" && ${escapedExecutable} ${escapedArgs.join(" ")}`;
             const wslArgs = [
               "-d",
               targetDistribution,

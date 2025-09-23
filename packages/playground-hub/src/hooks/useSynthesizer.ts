@@ -115,8 +115,8 @@ export const useSynthesizer = () => {
             if (!isWSLSupported) {
               console.warn(
                 "🔍 Synthesizer: WSL is not available on Windows. " +
-                  "This may cause issues with Linux binary execution. " +
-                  "Consider installing WSL for better compatibility."
+                "This may cause issues with Linux binary execution. " +
+                "Consider installing WSL for better compatibility."
               );
             } else {
               console.log(
@@ -157,7 +157,7 @@ export const useSynthesizer = () => {
           console.error("🔍 Synthesizer: WSL execution failed:", wslError);
           throw new Error(
             `WSL execution failed: ${wslError.message}. ` +
-              "Please ensure WSL is properly installed and configured, or try installing a Linux distribution from the Microsoft Store."
+            "Please ensure WSL is properly installed and configured, or try installing a Linux distribution from the Microsoft Store."
           );
         }
       } else {
@@ -174,7 +174,6 @@ export const useSynthesizer = () => {
           const scriptPath = `${paths.synthesizerDir}/${paths.synthesizerScript}`;
           console.log("🔍 Synthesizer: Script path:", scriptPath);
           console.log("🔍 Synthesizer: Transaction hash:", transactionHash);
-          console.log("🔍 Synthesizer: RPC URL:", RPC_URL);
 
           console.log("🔍 Synthesizer: About to execute system command...");
           console.log(
@@ -226,8 +225,8 @@ export const useSynthesizer = () => {
               if (envInfo.platform === "win32") {
                 throw new Error(
                   "Cannot execute Linux binaries on Windows without WSL. " +
-                    "Please install WSL using 'wsl --install' in PowerShell as administrator, " +
-                    "or install a Linux distribution from the Microsoft Store."
+                  "Please install WSL using 'wsl --install' in PowerShell as administrator, " +
+                  "or install a Linux distribution from the Microsoft Store."
                 );
               }
             } catch (envError) {
